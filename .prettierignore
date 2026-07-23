@@ -1,0 +1,11 @@
+.next
+node_modules
+package-lock.json
+
+# hand-maintained project docs/backlog, not app code
+*.md
+docs/
+memory-bank/
+templates/
+backlog/
+github/

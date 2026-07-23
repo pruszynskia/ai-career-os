@@ -179,3 +179,33 @@ Consequences:
 
 - Every backend-touching task (TASK-002 onward) follows Route Handler → service → Prisma; scope for those tasks assumes this layering.
 - Adding multi-tenant filtering (ADR-005) later means editing service modules, not auditing every route handler.
+
+---
+
+## ADR-007
+
+Date:
+
+2026-07-23
+
+Decision:
+
+Keep React Compiler enabled (`reactCompiler: true` in `next.config.ts`,
+`babel-plugin-react-compiler` devDependency) as scaffolded by `create-next-app`
+in TASK-001, overriding that task's own `do_not: introduce experimental
+tooling`.
+
+Reason:
+
+Explicit user request during TASK-001 review. `npm run lint/typecheck/build`
+all pass with it enabled.
+
+Alternatives Considered:
+
+- Strip it per the do_not rule — rejected: user explicitly wants it kept.
+
+Consequences:
+
+- Future reviews of TASK-001 (or any task touching `next.config.ts`) should
+  not re-flag React Compiler as a violation — it's a deliberate exception,
+  not an oversight.
