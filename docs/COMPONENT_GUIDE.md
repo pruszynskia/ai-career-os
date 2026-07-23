@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines rules for creating React components in <Project Name>.
+This document defines rules for creating React components in AI Career OS.
 
 Goals:
 
@@ -302,9 +302,12 @@ Better:
 
 Use:
 
-- variants
+- variants (`class-variance-authority`, already used by shadcn/ui — extend it, don't work around it)
 - composition
 - slots
+
+This rule applies even under a lazy/fast-mode shortcut — a `variant` prop is
+not more work than a boolean, so there is no lazy excuse for booleans here.
 
 ---
 

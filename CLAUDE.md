@@ -1,4 +1,4 @@
-# <Project Name> - Claude Instructions
+# AI Career OS - Claude Instructions
 
 # Task Management
 
@@ -62,7 +62,7 @@ npm run format
 
 # Project Overview
 
-<Project Name> is a <one-line description of the product and its primary users>.
+AI Career OS is a single-user tool that helps the owner get more recruiter attention on LinkedIn and track every job application in one place: AI-tailored CVs and recruiter messages per offer, a duplicate-free application pipeline, and planned LinkedIn posts.
 
 Primary goals:
 

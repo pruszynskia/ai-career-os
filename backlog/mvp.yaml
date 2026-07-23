@@ -1,0 +1,1035 @@
+project:
+  name: AI Career OS MVP
+  version: 1.0
+  github:
+    repository: pruszynskia/ai-career-os
+    project: AI Career OS MVP
+  labels:
+    - architecture
+    - setup
+    - frontend
+    - backend
+    - database
+    - ui
+    - auth
+    - feature
+    - ai
+    - state
+    - testing
+    - quality
+    - deployment
+    - documentation
+  statuses:
+    - backlog
+    - todo
+    - in-progress
+    - review
+    - blocked
+    - done
+  priorities:
+    - P0
+    - P1
+    - P2
+    - P3
+  estimates:
+    - XS
+    - S
+    - M
+    - L
+    - XL
+tasks:
+  ###############################################################################
+  # TASK-001
+  ###############################################################################
+  - id: TASK-001
+    github:
+      issue: "1"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: XS
+    depends_on: []
+    title: Initialize repository foundation
+    goal: >
+      Create a production-ready Next.js + TypeScript project foundation with minimal, deterministic configuration for AI-assisted development.
+
+    scope:
+      - package.json
+      - next.config.*
+      - tsconfig.json
+      - eslint.config.*
+      - prettier.config.*
+      - .editorconfig
+      - .gitignore
+    deliverables:
+      - Next.js app builds successfully
+      - TypeScript strict mode enabled
+      - ESLint configured
+      - Prettier configured
+    tasks:
+      - Scaffold Next.js app (App Router)
+      - Configure TypeScript strict mode
+      - Configure ESLint
+      - Configure Prettier
+      - Add npm scripts (dev, build, lint, typecheck, format)
+      - Verify production build
+    acceptance:
+      - npm run build succeeds
+      - npm run lint succeeds
+      - npm run typecheck reports zero errors
+    done:
+      - Build passes
+      - Lint passes
+      - Configuration committed
+    labels:
+      - setup
+      - architecture
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/TECH_STACK.md
+      - docs/CODING_STANDARDS.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Follow all referenced documentation.
+
+      Keep implementation minimal.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add unnecessary dependencies
+      - Refactor unrelated files
+      - Introduce experimental tooling
+  ###############################################################################
+  # TASK-002
+  ###############################################################################
+  - id: TASK-002
+    github:
+      issue: "2"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: M
+    depends_on:
+      - TASK-001
+    title: Database schema and Prisma setup
+    goal: >
+      Define the PostgreSQL data model with Prisma covering the full MVP domain (profile, CV documents, job offers, applications, posts), provide a seed for the single-user setup, and establish the entity-service layering all backend tasks will follow, keeping later multi-user support additive per ADR-005.
+
+    scope:
+      - prisma/schema.prisma
+      - prisma/seed.ts
+      - src/shared/db/client.ts
+      - src/entities/**/service.ts
+      - .env.example
+    deliverables:
+      - Prisma configured against PostgreSQL
+      - Domain models and enums defined, each with id/ownerId/createdAt/updatedAt
+      - Initial migration created
+      - Seed script for single user and empty profile
+      - One service module per entity for later route handlers to call
+    tasks:
+      - Install and configure Prisma with PostgreSQL
+      - Define Profile model (summary, skills, experience)
+      - Define CvDocument model (master and tailored versions, downloadable content)
+      - Define JobOffer model (url, source, rawContent, company, title, description, matchScore, isFavorite)
+      - Define Application model (jobOffer, sentCv, recruiterMessage, status, timeline)
+      - Define Post model (content, status, scheduledAt, sentAt)
+      - Define enums ApplicationStatus, PostStatus, OfferSource
+      - Add id, ownerId (ADR-005), createdAt, updatedAt on every top-level model; index ownerId and foreign keys
+      - Create initial migration
+      - Add seed for single user and empty profile
+      - Add a shared Prisma client singleton (src/shared/db/client.ts)
+      - Add one empty/minimal service module per entity under src/entities/{entity}/service.ts as the only place later tasks query that entity (ADR-006)
+    acceptance:
+      - prisma migrate produces a clean initial migration
+      - prisma generate succeeds
+      - Seed runs without errors
+      - npm run typecheck reports zero errors
+    done:
+      - Schema and migration committed
+      - Seed verified
+      - Prisma client reused via shared singleton
+      - Entity service modules in place for later tasks to extend
+    labels:
+      - database
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/TECH_STACK.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Model exactly the entities listed in the task scope, no extra tables.
+
+      Keep the schema single-user in behavior, but add the ownerId column
+      called for by ADR-005 so multi-user is additive later, and the
+      id/createdAt/updatedAt/ownerId + index convention from ARCHITECTURE.md
+      "Backend & Data Layer" on every top-level model. Do not add
+      query-level multi-tenant filtering or a users table beyond the seed.
+
+      Create one service module per entity (src/entities/{entity}/service.ts)
+      per ADR-006 — later tasks' route handlers call these, never Prisma
+      directly.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add speculative tables or columns beyond ownerId/timestamps
+      - Introduce a second ORM or query builder
+      - Call Prisma from anywhere other than an entity service module
+      - Add multi-tenant query filtering or a users table
+  ###############################################################################
+  # TASK-003
+  ###############################################################################
+  - id: TASK-003
+    github:
+      issue: "3"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: S
+    depends_on:
+      - TASK-001
+      - TASK-002
+    title: Minimal single-user authentication
+    goal: >
+      Gate the application behind a single seeded account so only the owner can access it, without building multi-user infrastructure — but configure Auth.js so OAuth providers (Google, LinkedIn, GitHub, Email) can be added later as additive config per ADR-005.
+
+    scope:
+      - src/app/api/auth/[...nextauth]/route.ts
+      - src/shared/auth/config.ts
+      - src/middleware.ts
+      - .env.example
+    deliverables:
+      - Auth.js configured with a single credentials account from env
+      - App routes protected by middleware
+      - Sign-in and sign-out flow
+    tasks:
+      - Configure Auth.js with a credentials provider backed by env values, using the standard `providers` array so more providers are additive later
+      - Protect the application route group via middleware
+      - Add a minimal sign-in page
+      - Add sign-out action
+    acceptance:
+      - Unauthenticated requests to app routes redirect to sign-in
+      - Correct credentials establish a session
+      - npm run typecheck reports zero errors
+    done:
+      - Auth gate verified
+      - Sign-in and sign-out working
+      - Configuration committed
+    labels:
+      - auth
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/TECH_STACK.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use a single account sourced from environment variables. Do not add a
+      users table, registration, password reset, or OAuth providers now —
+      just use Auth.js's standard `providers` array/config shape so Google,
+      LinkedIn, GitHub, and Email providers are additive later (ADR-005), not
+      a framework change.
+
+      Keep it to the smallest working session gate.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add OAuth providers
+      - Add registration or multi-user support
+      - Store credentials in the database
+  ###############################################################################
+  # TASK-004
+  ###############################################################################
+  - id: TASK-004
+    github:
+      issue: "4"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: S
+    depends_on:
+      - TASK-001
+      - TASK-003
+    title: App shell, layout, navigation and providers
+    goal: >
+      Provide the application shell with Tailwind, shadcn/ui, navigation and the React Query and Zustand providers so feature work has a consistent host.
+
+    scope:
+      - src/app/layout.tsx
+      - src/app/(app)/layout.tsx
+      - src/app/providers.tsx
+      - src/shared/ui/**
+      - src/widgets/nav/**
+      - tailwind.config.*
+      - components.json
+    deliverables:
+      - Tailwind and shadcn/ui initialized
+      - Root layout with providers
+      - Sidebar navigation (Dashboard, Offers, Applications, Posts, Profile)
+      - React Query and Zustand providers wired
+    tasks:
+      - Initialize Tailwind CSS
+      - Initialize shadcn/ui and add base primitives (Button, Card, Dialog, Input)
+      - Create root layout and app providers
+      - Add React Query provider
+      - Add Zustand store scaffolding for UI state
+      - Build sidebar navigation widget with placeholder routes
+    acceptance:
+      - App renders the shell with working navigation
+      - Providers available to all app routes
+      - npm run build and npm run lint succeed
+    done:
+      - Shell renders
+      - Navigation works
+      - Providers wired and committed
+    labels:
+      - frontend
+      - ui
+      - state
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/TECH_STACK.md
+      - docs/COMPONENT_GUIDE.md
+      - docs/STATE_MANAGEMENT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse shadcn/ui primitives; do not hand-roll components that shadcn
+      provides. Any new reusable component uses a `variant` prop (cva) rather
+      than boolean props, per docs/COMPONENT_GUIDE.md. Keep placeholder
+      routes empty pending their feature tasks.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Implement feature screens here
+      - Store server data in Zustand
+      - Add unnecessary UI dependencies
+      - Add boolean props to reusable components where a variant fits
+  ###############################################################################
+  # TASK-005
+  ###############################################################################
+  - id: TASK-005
+    github:
+      issue: "5"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: M
+    depends_on:
+      - TASK-001
+    title: Provider-agnostic AI service layer
+    goal: >
+      Build a server-only AI service abstraction with Anthropic and OpenAI adapters, so all AI features (posts, CV, matching, messages) share one interface and never expose keys to the client.
+
+    scope:
+      - src/shared/ai/service.ts
+      - src/shared/ai/adapters/anthropic.ts
+      - src/shared/ai/adapters/openai.ts
+      - src/shared/ai/prompts/**
+      - src/shared/ai/types.ts
+      - .env.example
+    deliverables:
+      - AiService interface with a selectable provider
+      - Anthropic and OpenAI adapters
+      - Zod-validated structured output helper
+      - Prompts stored separately from code paths
+    tasks:
+      - Define the AiService interface and shared types
+      - Implement the Anthropic adapter
+      - Implement the OpenAI adapter
+      - Add provider selection via environment configuration
+      - Add a helper for Zod-validated structured responses
+      - Establish a prompts directory convention
+    acceptance:
+      - A sample structured call returns Zod-validated output from either provider
+      - No API keys are referenced in client code
+      - npm run typecheck reports zero errors
+    done:
+      - Both adapters implemented
+      - Structured output validated
+      - Server-only boundary enforced
+    labels:
+      - ai
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/TECH_STACK.md
+      - docs/API_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Keep the abstraction minimal: one interface, two adapters, one structured
+      output helper. Do not add caching, streaming, or retries unless required
+      by a later task.
+
+      All AI logic is server-only. Prompts live in the prompts directory.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Expose API keys or AI calls in the frontend
+      - Add a third provider or unused features
+      - Build a plugin or middleware framework
+  ###############################################################################
+  # TASK-006
+  ###############################################################################
+  - id: TASK-006
+    github:
+      issue: "6"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    depends_on:
+      - TASK-002
+      - TASK-004
+      - TASK-005
+    title: CV upload and parse into structured profile
+    goal: >
+      Let the user upload a PDF or DOCX CV, extract its text, and use AI to build a structured Profile and a stored master CvDocument.
+
+    scope:
+      - src/features/cv/**
+      - src/entities/profile/**
+      - src/entities/cv-document/**
+      - src/app/(app)/profile/**
+      - src/app/api/cv/upload/route.ts
+      - src/shared/ai/prompts/parse-cv.ts
+    deliverables:
+      - CV upload UI (PDF/DOCX)
+      - Text extraction via pdf-parse and mammoth
+      - AI structuring into Profile fields
+      - Master CvDocument persisted
+    tasks:
+      - Build the CV upload form and route handler
+      - Extract text from PDF with pdf-parse and DOCX with mammoth
+      - Send extracted text to the AI service to produce a structured Profile
+      - Persist Profile and master CvDocument
+      - Render the parsed profile for review
+    acceptance:
+      - Uploading a PDF or DOCX produces a saved Profile and master CvDocument
+      - Parsed profile is visible in the Profile screen
+      - npm run typecheck reports zero errors
+    done:
+      - Upload and parse verified for both formats
+      - Profile and master CV persisted
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/API_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the AI service from TASK-005 and the Prisma models from TASK-002.
+      Extraction is raw text to AI; do not build a custom layout parser.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Build a bespoke PDF layout parser
+      - Add OCR or image handling
+      - Duplicate the AI service abstraction
+  ###############################################################################
+  # TASK-007
+  ###############################################################################
+  - id: TASK-007
+    github:
+      issue: "7"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    depends_on:
+      - TASK-006
+      - TASK-005
+    title: Main CV optimization
+    goal: >
+      Use AI to optimize the user's master CV and let them download the improved version.
+
+    scope:
+      - src/features/cv/**
+      - src/app/(app)/profile/**
+      - src/app/api/cv/optimize/route.ts
+      - src/shared/ai/prompts/optimize-cv.ts
+    deliverables:
+      - AI optimization of the master CV
+      - Optimized version stored as a CvDocument
+      - Download of the optimized CV
+    tasks:
+      - Add an optimize action that sends the master CV to the AI service
+      - Persist the optimized result as a CvDocument version
+      - Present suggested improvements
+      - Provide a download of the optimized CV
+    acceptance:
+      - Optimizing the master CV yields a downloadable optimized version
+      - The optimized CvDocument is persisted
+      - npm run typecheck reports zero errors
+    done:
+      - Optimization verified
+      - Download works
+      - Feature committed
+    labels:
+      - feature
+      - ai
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the CV feature slice and AI service; optimization operates on the
+      master CvDocument from TASK-006.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add offer-specific tailoring here (that is TASK-009)
+      - Introduce a document editor
+      - Add export formats beyond what is needed to download
+  ###############################################################################
+  # TASK-008
+  ###############################################################################
+  - id: TASK-008
+    github:
+      issue: "8"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    depends_on:
+      - TASK-002
+      - TASK-004
+      - TASK-005
+    title: Add job offer by link with raw-text fallback
+    goal: >
+      Let the user paste a job offer URL (or raw text), fetch and strip the page, and use AI to extract structured offer fields into a saved JobOffer.
+
+    scope:
+      - src/features/job-offers/**
+      - src/entities/job-offer/**
+      - src/app/(app)/offers/**
+      - src/app/api/offers/route.ts
+      - src/shared/ai/prompts/parse-offer.ts
+    deliverables:
+      - Offer input accepting a URL or pasted raw text
+      - URL fetch and HTML-to-text stripping
+      - AI extraction of company, title, description, source
+      - JobOffer persisted with favorite toggle
+    tasks:
+      - Build the add-offer form supporting URL and raw-text modes
+      - Fetch the URL and strip HTML to text on the server
+      - Fall back to pasted raw text when fetching or parsing fails
+      - Send text to the AI service to extract offer fields
+      - Persist the JobOffer and support a favorite toggle
+      - List saved offers
+    acceptance:
+      - Pasting a URL creates a JobOffer with extracted fields
+      - Raw-text fallback creates a JobOffer when a URL cannot be parsed
+      - Favorite toggle persists
+      - npm run typecheck reports zero errors
+    done:
+      - Offer ingestion verified via URL and raw text
+      - Offers listed with favorite state
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/API_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Ingestion is fetch, strip to text, then AI extraction, with a raw-text
+      paste fallback. Do not add a headless browser or per-portal scrapers.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a headless browser or portal-specific scrapers
+      - Compute match scores here (that is TASK-009)
+      - Build application tracking here (that is TASK-011)
+  ###############################################################################
+  # TASK-009
+  ###############################################################################
+  - id: TASK-009
+    github:
+      issue: "9"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    depends_on:
+      - TASK-006
+      - TASK-007
+      - TASK-008
+      - TASK-005
+    title: Offer match, tailored CV and recruiter message
+    goal: >
+      Deliver the core value screen: for a saved offer, show a match percentage against the profile, generate and download an offer-tailored CV, and generate a recruiter message.
+
+    scope:
+      - src/features/job-offers/**
+      - src/app/(app)/offers/[id]/**
+      - src/app/api/offers/[id]/match/route.ts
+      - src/app/api/offers/[id]/tailor-cv/route.ts
+      - src/app/api/offers/[id]/recruiter-message/route.ts
+      - src/shared/ai/prompts/match-offer.ts
+      - src/shared/ai/prompts/tailor-cv.ts
+      - src/shared/ai/prompts/recruiter-message.ts
+    deliverables:
+      - Match percentage of offer to profile
+      - Offer-tailored CV generation and download
+      - Recruiter message generation
+      - A dedicated offer screen or modal presenting all three
+    tasks:
+      - Compute an AI match percentage between offer and profile and persist it
+      - Generate an offer-tailored CvDocument and provide download
+      - Generate a recruiter message for the offer
+      - Build the offer detail screen or modal presenting match, tailored CV, and message
+    acceptance:
+      - Opening an offer shows a match percentage
+      - A tailored CV can be generated and downloaded
+      - A recruiter message can be generated
+      - npm run typecheck reports zero errors
+    done:
+      - Match, tailored CV, and message verified end to end
+      - Match score persisted on the offer
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/COMPONENT_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the profile, CvDocument, JobOffer models and the AI service. Tailored
+      CVs are stored as CvDocument versions linked to the offer.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Re-implement offer ingestion or CV parsing
+      - Add application status tracking here (that is TASK-011)
+      - Add bulk or batch processing
+  ###############################################################################
+  # TASK-010
+  ###############################################################################
+  - id: TASK-010
+    github:
+      issue: "10"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    depends_on:
+      - TASK-008
+    title: Duplicate offer detection
+    goal: >
+      Warn the user when a newly added offer matches one already saved or applied to, so cross-portal duplicates are not tracked twice.
+
+    scope:
+      - src/features/job-offers/**
+      - src/shared/utils/offer-fingerprint.ts
+      - src/app/api/offers/route.ts
+    deliverables:
+      - Duplicate detection on offer add
+      - A clear warning surfaced to the user
+    tasks:
+      - Compute a fingerprint from normalized company and title, canonical URL, and a content hash
+      - Compare new offers against existing offers on add
+      - Surface a duplicate warning with a link to the existing offer
+    acceptance:
+      - Adding an equivalent offer from a different portal triggers a duplicate warning
+      - Distinct offers are not flagged
+      - npm run typecheck reports zero errors
+    done:
+      - Duplicate detection verified
+      - Warning surfaced in the add flow
+      - Feature committed
+    labels:
+      - feature
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use a normalized fingerprint (company plus title, canonical URL, content
+      hash). Do not add semantic or embedding-based similarity.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add embeddings or a vector store
+      - Auto-delete or merge offers without user action
+      - Change the offer ingestion pipeline
+  ###############################################################################
+  # TASK-011
+  ###############################################################################
+  - id: TASK-011
+    github:
+      issue: "11"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    depends_on:
+      - TASK-008
+      - TASK-009
+    title: Application tracking, status pipeline and company search
+    goal: >
+      Track applications linking an offer, the sent CV and the recruiter message, move each through the interview pipeline, and find them via a company search bar.
+
+    scope:
+      - src/features/applications/**
+      - src/entities/application/**
+      - src/app/(app)/applications/**
+      - src/app/api/applications/**
+      - src/widgets/company-search/**
+    deliverables:
+      - Application created from an offer with sent CV and recruiter message
+      - Status pipeline (applied, HR, technical, team, CEO or manager)
+      - Company search bar returning the full application bundle
+    tasks:
+      - Create an Application from an offer, capturing the sent CvDocument and recruiter message
+      - Implement status transitions across the interview pipeline
+      - Build a company search bar that returns the offer, sent CV, message, and status
+      - Allow updating the application status
+      - List applications with current status
+    acceptance:
+      - Searching a company returns its offer, sent CV, message, and status
+      - Status can be advanced through the pipeline and persists
+      - npm run typecheck reports zero errors
+    done:
+      - Application lifecycle verified
+      - Company search returns the full bundle
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - state
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/STATE_MANAGEMENT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the JobOffer, CvDocument and recruiter message from earlier tasks.
+      Status values come from the ApplicationStatus enum in TASK-002.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add calendar or email integrations
+      - Add notifications or reminders
+      - Introduce a second search implementation
+  ###############################################################################
+  # TASK-012
+  ###############################################################################
+  - id: TASK-012
+    github:
+      issue: "12"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    depends_on:
+      - TASK-005
+      - TASK-006
+      - TASK-004
+    title: LinkedIn post generation
+    goal: >
+      Generate LinkedIn post drafts from the user's profile and a topic, and let the user copy them for manual posting.
+
+    scope:
+      - src/features/linkedin-posts/**
+      - src/entities/post/**
+      - src/app/(app)/posts/**
+      - src/app/api/posts/generate/route.ts
+      - src/shared/ai/prompts/generate-post.ts
+    deliverables:
+      - AI post generation from profile and topic
+      - Drafts persisted as Post records
+      - Copy-to-clipboard action
+    tasks:
+      - Build the post generation form (topic and options)
+      - Generate post content via the AI service using profile context
+      - Persist generated posts as drafts
+      - List drafts with a copy action
+    acceptance:
+      - Generating a post creates a saved draft
+      - Draft content can be copied to the clipboard
+      - npm run typecheck reports zero errors
+    done:
+      - Generation verified
+      - Drafts listed and copyable
+      - Feature committed
+    labels:
+      - feature
+      - ai
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      No LinkedIn API. Output is copy-paste content saved as drafts. Reuse the
+      AI service and profile context.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Integrate the LinkedIn API or OAuth
+      - Add scheduling here (that is TASK-013)
+      - Add image generation
+  ###############################################################################
+  # TASK-013
+  ###############################################################################
+  - id: TASK-013
+    github:
+      issue: "13"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    depends_on:
+      - TASK-012
+      - TASK-002
+    title: Post planning and scheduling
+    goal: >
+      Schedule posts with dates and let AI plan the next posts using the user's already-sent posts as context.
+
+    scope:
+      - src/features/linkedin-posts/**
+      - src/app/(app)/posts/**
+      - src/app/api/posts/schedule/route.ts
+      - src/app/api/posts/plan/route.ts
+      - src/shared/ai/prompts/plan-posts.ts
+    deliverables:
+      - Scheduling posts with a date and status (draft, scheduled, sent)
+      - AI planning of next posts based on sent history
+    tasks:
+      - Add scheduling with a scheduledAt date and status transitions
+      - Mark posts as sent (sets sentAt)
+      - Plan next posts via AI using already-sent posts as context
+      - Present scheduled and planned posts in a simple timeline or list
+    acceptance:
+      - A post can be scheduled with a date and shows scheduled status
+      - AI planning produces next-post suggestions informed by sent posts
+      - npm run typecheck reports zero errors
+    done:
+      - Scheduling verified
+      - Planning uses sent-post history
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - state
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/STATE_MANAGEMENT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Planning context is the user's already-sent posts. Do not scrape LinkedIn
+      analytics or engagement data.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add auto-publishing or background jobs
+      - Scrape LinkedIn analytics
+      - Add a full calendar system
+  ###############################################################################
+  # TASK-014
+  ###############################################################################
+  - id: TASK-014
+    github:
+      issue: "14"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    depends_on:
+      - TASK-011
+      - TASK-013
+    title: Dashboard
+    goal: >
+      Present the most important information at a glance: the next scheduled post with its date, upcoming interviews, and favorite offers.
+
+    scope:
+      - src/features/dashboard/**
+      - src/app/(app)/dashboard/**
+      - src/widgets/dashboard/**
+    deliverables:
+      - Next scheduled post with date
+      - Upcoming interviews from applications
+      - Favorite offers list
+    tasks:
+      - Build a dashboard card for the next scheduled post and its date
+      - Build a card for upcoming interviews derived from application status
+      - Build a card listing favorite offers
+      - Compose the cards into the dashboard route
+    acceptance:
+      - Dashboard shows the next scheduled post with its date
+      - Dashboard lists upcoming interviews and favorite offers
+      - npm run typecheck reports zero errors
+    done:
+      - Dashboard cards render real data
+      - Route composed
+      - Feature committed
+    labels:
+      - feature
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/COMPONENT_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Compose data from applications, posts and offers already built. Do not add
+      new data models or fetching layers.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add charts or analytics libraries
+      - Introduce new entities
+      - Add configurable widgets
+  ###############################################################################
+  # TASK-015
+  ###############################################################################
+  - id: TASK-015
+    github:
+      issue: "15"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    depends_on:
+      - TASK-001
+    title: CI pipeline and Vercel deployment
+    goal: >
+      Add continuous integration and deployment so every change is linted, type-checked, tested and built before shipping to Vercel.
+
+    scope:
+      - .github/workflows/ci.yml
+      - vercel.json
+      - tests/smoke/**
+    deliverables:
+      - GitHub Actions pipeline (install, lint, typecheck, test, build)
+      - Vercel deployment configuration
+      - Minimal smoke test
+    tasks:
+      - Add a GitHub Actions workflow running install, lint, typecheck, test and build
+      - Add minimal Vitest and Playwright smoke tests
+      - Configure Vercel deployment
+    acceptance:
+      - CI runs and passes on a pull request
+      - Smoke tests pass
+      - A production build deploys to Vercel
+    done:
+      - CI green
+      - Deployment configured
+      - Configuration committed
+    labels:
+      - deployment
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/TECH_STACK.md
+      - docs/TESTING.md
+    prompt: |
+      Implement ONLY this task.
+
+      Keep CI to the standard pipeline and smoke tests only. Do not add
+      extensive test suites or release automation.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add heavy end-to-end suites
+      - Add release or changelog automation
+      - Introduce a second CI provider

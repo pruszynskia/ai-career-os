@@ -1,13 +1,9 @@
 # Technology Stack
 
-> This document lists the starter kit's **opinionated default stack**. It's a
-> real, runnable choice (matches `config/package.json`), not a placeholder —
-> keep it as-is if it fits, or replace any layer with your own `<Stack>` pick
-> and update this file to match.
-
 ## Purpose
 
-This document defines the technology stack used in `<Project Name>`.
+This document defines the technology stack used in AI Career OS. It uses the
+starter kit's default stack as-is (Next.js/TypeScript/Tailwind/shadcn/Prisma).
 
 Goals:
 
@@ -189,7 +185,7 @@ Usage:
 
 Examples:
 
-- `<primary resource>` list/detail queries
+- job offer and application list/detail queries
 - user profile
 - subscription data
 
@@ -340,7 +336,7 @@ PostgreSQL
 Usage:
 
 - users
-- `<primary domain entities>`
+- profiles, CV documents, job offers, applications, posts
 - subscriptions
 - analytics
 
@@ -368,36 +364,34 @@ Why:
 
 ## Authentication Solution
 
-Recommended:
-
-Auth.js
+Auth.js, credentials provider only
 
 Usage:
 
-- user authentication
-- sessions
-- OAuth providers
+- single seeded account (from environment variables)
+- session gate on the app route group
 
-Possible providers:
-
-- Google
-- GitHub
-- Email
+This is a single-user tool — no registration, no OAuth providers, no users
+table. See ADR-003 in `memory-bank/decisions.md`.
 
 ---
 
 # AI Integration
 
-`<Only if the product itself uses an LLM — remove this section otherwise.>`
-
 ## AI Provider
 
-`<Anthropic / OpenAI / other>`
+Provider-agnostic service layer (`src/shared/ai/`) with Anthropic and OpenAI
+adapters behind one interface, selected via environment configuration. See
+ADR-001 in `memory-bank/decisions.md`.
 
 Usage:
 
-- `<feature using AI>`
-- feedback / generation pipelines
+- CV parsing (uploaded PDF/DOCX → structured profile)
+- CV optimization
+- job offer field extraction from pasted URL/text
+- offer-to-profile match percentage
+- offer-tailored CV and recruiter message generation
+- LinkedIn post generation and planning
 
 Architecture:
 
@@ -406,22 +400,23 @@ Frontend
 
 ↓
 
-Backend API
+Backend API (Next.js route handlers)
 
 ↓
 
-AI Service Layer
+AI Service Layer (src/shared/ai — AiService interface + adapters)
 
 ↓
 
-LLM Provider
+Anthropic / OpenAI
 ```
 
 Rules:
 
 - never expose API keys in frontend
 - isolate AI logic from UI
-- store prompts separately
+- store prompts separately (`src/shared/ai/prompts/`)
+- validate structured AI output with Zod
 
 ---
 

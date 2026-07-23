@@ -2,25 +2,29 @@
 
 ## Product Name
 
-<Project Name>
+AI Career OS
 
 ---
 
 # Product Vision
 
-<One or two sentences: what does the product do, and for whom?>
+A single-user tool that helps the owner get more recruiter attention on
+LinkedIn and never lose track of a job application.
 
-<One sentence: what makes this worth building — the underlying goal.>
+Every job search generates scattered artifacts — offers across portals, CVs
+tailored ad hoc, one-off recruiter messages, inconsistent LinkedIn posting.
+AI Career OS centralizes all of it and uses AI to make each artifact better:
+matched, tailored, and consistent.
 
 ---
 
 # Product Mission
 
-Help `<target user>` achieve `<primary outcome>` by:
+Help `the owner (job-seeking professional)` land more interviews by:
 
-- `<capability 1>`
-- `<capability 2>`
-- `<capability 3>`
+- `keeping a consistent, AI-assisted LinkedIn presence`
+- `tailoring CV and recruiter messages to each job offer automatically`
+- `tracking every application, its status, and its interview pipeline without duplicates`
 
 ---
 
@@ -28,55 +32,62 @@ Help `<target user>` achieve `<primary outcome>` by:
 
 ## Primary Users
 
-### `<Primary user segment>`
+### The owner — a single job-seeking professional
 
 Especially:
 
-- `<sub-segment 1>`
-- `<sub-segment 2>`
+- someone applying to multiple roles across multiple portals at once
+- someone trying to build LinkedIn visibility alongside active applications
 
 Typical users:
 
-- `<user type 1>`
-- `<user type 2>`
+- the app owner (single-user tool, not multi-tenant)
 
 ---
 
 ## Secondary Users
 
-`<Who else benefits, and for what use case?>`
+None. This is a personal tool built for one user; there is no team or
+multi-tenant use case in the MVP.
 
 ---
 
 # User Problems
 
-Current `<domain>` has several problems:
+Current job search tooling has several problems:
 
-## `<Problem 1 name>`
+## Scattered application tracking
 
-`<What users do today, and why it falls short>`
-
----
-
-## `<Problem 2 name>`
-
-`<What's missing>`
+Offers, sent CVs, and recruiter messages live across email, job portals, and
+memory. When an interview invite arrives, reconstructing "what did I send
+this company" is manual and error-prone.
 
 ---
 
-## `<Problem 3 name>`
+## Inconsistent CV tailoring
 
-`<What's inaccessible, expensive, or slow today>`
+A CV tailored for one offer is forgotten by the next. There's no persistent
+"master" profile that every tailored version derives from, and no visibility
+into how well a CV actually matches a given offer.
+
+---
+
+## Inconsistent LinkedIn presence
+
+Recruiter attention rewards consistent posting, but planning and writing
+posts competes with the actual job search. Without a lightweight
+generate-and-schedule flow, posting lapses.
 
 ---
 
 # Product Solution
 
-`<Project Name>` provides:
+AI Career OS provides:
 
-1. `<capability 1>`
-2. `<capability 2>`
-3. `<capability 3>`
+1. A structured profile built once from an uploaded CV, reused as the basis for every tailored CV and match calculation.
+2. Per-offer AI output: a match percentage, a tailored CV, and a recruiter message — generated from a pasted offer link or raw text.
+3. An application pipeline (applied → HR → technical → team → CEO/manager) searchable by company, with duplicate-offer detection across portals.
+4. AI-generated LinkedIn posts, planned and scheduled using the user's own posting history as context.
 
 ---
 
@@ -84,27 +95,27 @@ Current `<domain>` has several problems:
 
 ## Step 1
 
-`<First user action>`
+Upload a CV (PDF/DOCX); AI Career OS parses it into a structured profile and stores it as the master CV.
 
 ## Step 2
 
-`<Configuration / setup step>`
+Optionally let AI optimize the master CV.
 
 ## Step 3
 
-`<Core value delivery step>`
+Paste a job offer link (or raw text if the page can't be fetched); AI extracts company, title, and description.
 
 ## Step 4
 
-`<Completion step>`
+Open the offer to see the match percentage against the profile, generate a tailored CV, and generate a recruiter message.
 
 ## Step 5
 
-`<Outcome / feedback step>`
+Submit the application; it's tracked with the offer, sent CV, and message. Advance its status as interviews progress.
 
 ## Step 6
 
-`<Return / retention step>`
+Search by company at any point (e.g. when an interview invite arrives) to instantly pull up the offer, CV sent, message sent, and current status. Meanwhile, generate and schedule LinkedIn posts from the dashboard to stay visible.
 
 ---
 
@@ -112,18 +123,55 @@ Current `<domain>` has several problems:
 
 ## Included Features
 
-### `<Feature 1>`
+### Profile & CV
 
 Users can:
 
-- `<action>`
-- `<action>`
+- upload a CV (PDF/DOCX) and have it parsed into a structured profile
+- optimize the master CV with AI and download the result
 
 ---
 
-### `<Feature 2>`
+### Job offer ingestion & matching
 
-`<what it delivers>`
+Users can:
+
+- add an offer by pasting a URL (with raw-text paste fallback when a page can't be fetched)
+- see a duplicate warning when an offer matches one already saved
+- see an AI match percentage against their profile
+- generate and download an offer-tailored CV
+- generate a recruiter message for the offer
+- favorite offers
+
+---
+
+### Application tracking
+
+Users can:
+
+- create an application from an offer, capturing the sent CV and message
+- move an application through the interview pipeline (applied, HR, technical, team, CEO/manager)
+- search by company name to retrieve the full bundle (offer, CV, message, status)
+
+---
+
+### LinkedIn posts
+
+Users can:
+
+- generate LinkedIn post drafts from their profile and a topic
+- copy a draft to paste into LinkedIn manually (no LinkedIn API integration)
+- schedule posts with a date and let AI plan the next posts using already-sent posts as context
+
+---
+
+### Dashboard
+
+Users can:
+
+- see the next scheduled post and its date
+- see upcoming interviews derived from application status
+- see favorite offers
 
 ---
 
@@ -131,37 +179,50 @@ Users can:
 
 The following features are intentionally postponed:
 
-## `<Deferred feature 1>`
+## Direct LinkedIn publishing via the LinkedIn API
 
 Reason:
 
-`<why it adds complexity right now>`
+Requires LinkedIn OAuth and app approval — disproportionate effort for a
+single-user MVP. Posts are generated in-app and copy-pasted manually instead.
 
 ---
 
-## `<Deferred feature 2>`
+## Multi-user / OAuth authentication
 
 Reason:
 
-`<why it's deferred>`
+This is a personal tool for one owner. A single seeded account is sufficient;
+multi-tenant auth adds data-isolation complexity with no current user to serve.
+
+---
+
+## Semantic/embedding-based duplicate detection
+
+Reason:
+
+Normalized company+title, canonical URL, and content-hash matching covers the
+realistic cross-portal duplicate case without the cost of a vector store.
 
 ---
 
 # Product Principles
 
-## `<Principle 1>`
+## Single source of truth per application
 
-`<What this means in practice>`
+Every application always links back to exactly one offer, one sent CV
+version, and one recruiter message — no ambiguity about what was sent where.
 
 Avoid:
 
-- `<anti-pattern>`
+- letting CVs or messages exist detached from an application
 
 ---
 
-## `<Principle 2>`
+## AI assists, the user decides
 
-`<What this means in practice>`
+Match scores, tailored CVs, and recruiter messages are AI-generated starting
+points the user reviews and downloads/copies — not auto-submitted anywhere.
 
 ---
 
@@ -183,15 +244,15 @@ Prefer:
 
 Activation:
 
-- `<first-value moment>`
+- first CV uploaded and parsed into a profile
 
 Engagement:
 
-- `<recurring usage signal>`
+- offers added and applications tracked per week
 
 Retention:
 
-- `<retention signal>`
+- returning to search by company when an interview invite arrives
 
 ---
 
@@ -199,8 +260,8 @@ Retention:
 
 Measure:
 
-- `<quality metric 1>`
-- `<quality metric 2>`
+- accuracy of AI-extracted offer fields (company/title/description)
+- duplicate offers correctly flagged
 
 ---
 
@@ -210,8 +271,10 @@ Measure:
 
 Possible features:
 
-- `<feature>`
-- `<feature>`
+- direct LinkedIn API publishing
+- browser extension for one-click offer capture
+- multi-user support with full OAuth (Google, LinkedIn, GitHub, Email) — the schema and auth module are already structured for this additively (ADR-005)
+- automations (e.g. scheduled offer re-checks, reminder notifications)
 
 ---
 
@@ -219,8 +282,8 @@ Possible features:
 
 Possible features:
 
-- `<feature>`
-- `<feature>`
+- semantic duplicate detection across offers
+- recruiter response tracking / analytics on post engagement
 
 ---
 
@@ -228,7 +291,7 @@ Possible features:
 
 The MVP must:
 
-- be simple enough for the team size building it
+- be simple enough for a single developer to build and maintain
 - demonstrate production engineering quality
 - support future expansion without a rewrite
 

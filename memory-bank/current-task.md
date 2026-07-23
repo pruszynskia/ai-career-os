@@ -2,18 +2,22 @@
 
 ## Current Sprint
 
-### Feature:
+### Feature: TASK-001 — Initialize repository foundation
 
 Status:
 
-TODO
+TODO — next task to implement (`/implement-task TASK-001`)
 
 Files:
 
+package.json, next.config.*, tsconfig.json, eslint.config.*, prettier.config.*, .editorconfig, .gitignore
+
 Notes:
+
+First task, no dependencies. See `backlog/mvp.yaml` for full acceptance criteria.
 
 ---
 
 ## Completed
 
-- TASK-ID: short description of what shipped, files touched, any caveats for the next task.
+- (none yet)

@@ -124,6 +124,26 @@ instead of:
 <Card showHeader showFooter showActions />
 ```
 
+## Variant Props Over Boolean Props
+
+For any reusable component, prefer one `variant` (and `size`) prop over
+multiple booleans — even when moving fast. This holds in lazy/fast-mode too:
+it is not extra work, since shadcn/ui components already ship with
+`class-variance-authority` (cva) variants — reuse that pattern instead of
+bolting booleans onto it.
+
+```tsx
+<Button variant="primary" size="lg" />
+```
+
+instead of:
+
+```tsx
+<Button primary large rounded />
+```
+
+See `docs/COMPONENT_GUIDE.md` for the full rule.
+
 ---
 
 # TypeScript Rules
@@ -258,6 +278,23 @@ Always consider:
 Avoid premature optimization.
 
 Optimize only where there is measurable impact.
+
+---
+
+# Backend and Data Access Rules
+
+Route Handlers stay thin: validate the request with Zod, call one service
+function, return a typed response. Never call Prisma from a route handler.
+
+All Prisma queries for one entity live in exactly one service module
+(`src/entities/{entity}/service.ts` or `src/features/{feature}/services/*.service.ts`),
+never scattered across route handlers or components.
+
+Every model has `id`, `ownerId`, `createdAt`, `updatedAt`. Schema changes only
+through `prisma migrate` — never a hand-edited database.
+
+See `ARCHITECTURE.md` "Backend & Data Layer" and ADR-006 in
+`memory-bank/decisions.md`.
 
 ---
 

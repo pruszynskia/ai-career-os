@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines API communication standards for <Project Name>.
+This document defines API communication standards for AI Career OS.
 
 Goals:
 
@@ -468,15 +468,41 @@ Update documentation.
 
 Never create API calls directly inside components.
 
-Future Backend Integration
+Backend Implementation
 
-Possible backend:
+Backend:
 
-Next.js API Routes
-NestJS
-Supabase
-Firebase
-Custom Node.js API
+Next.js Route Handlers (`src/app/api/**`) + Prisma + PostgreSQL. No separate
+backend service for MVP.
 
-Frontend architecture should remain independent.
-```
+Backend Flow
+
+Route Handler
+
+↓
+
+Zod validation (request boundary)
+
+↓
+
+Entity service (`src/entities/{entity}/service.ts` or
+`src/features/{feature}/services/*.service.ts`)
+
+↓
+
+Prisma Client (`src/shared/db/client.ts` singleton)
+
+↓
+
+PostgreSQL
+
+Rules:
+
+- Route handlers stay thin: validate input, call one service function, return a typed response. No Prisma calls inside route handlers.
+- Prisma queries for an entity live in exactly one service module — not scattered across route handlers or components.
+- This keeps ownership of each entity's data-access logic in one place, so later multi-tenant scoping (ADR-005) is a change in the service, not a hunt across route handlers.
+
+See ARCHITECTURE.md "Backend & Data Layer" for the full picture, and ADR-006
+in memory-bank/decisions.md for why this pattern was chosen over calling
+Prisma directly from route handlers or standing up a separate backend
+service (NestJS, etc.).
