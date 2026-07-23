@@ -2,15 +2,15 @@
 
 ## Current Sprint
 
-### Feature: TASK-006 — CV upload and parse into structured profile
+### Feature: TASK-007 — Main CV optimization
 
 Status:
 
-TODO — next task to implement (`/implement-task TASK-006`)
+TODO — next task to implement (`/implement-task TASK-007`)
 
 Notes:
 
-Depends on TASK-002, TASK-004, TASK-005 (all done). See `backlog/mvp.yaml` for full acceptance criteria.
+Depends on TASK-005, TASK-006 (both done). Operates on the master `CvDocument` established in TASK-006. See `backlog/mvp.yaml` for full acceptance criteria.
 
 ---
 
@@ -21,3 +21,4 @@ Depends on TASK-002, TASK-004, TASK-005 (all done). See `backlog/mvp.yaml` for f
 - TASK-003 — Minimal single-user authentication
 - TASK-004 — App shell, layout, navigation and providers
 - TASK-005 — Provider-agnostic AI service layer (`src/shared/ai/`: `AiService` interface, Anthropic + OpenAI adapters, `AI_PROVIDER` env selection, Zod-validated `generateStructured`, `prompts/` convention)
+- TASK-006 — CV upload and parse into structured profile (`src/features/cv/`: PDF/DOCX text extraction via pdf-parse/mammoth, AI structuring into `Profile` via the parse-cv prompt, master `CvDocument` persisted; `/profile` renders the parsed profile and upload form)

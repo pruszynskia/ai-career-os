@@ -26,14 +26,15 @@ Implemented:
 - TASK-003 Minimal single-user authentication
 - TASK-004 App shell, layout, navigation & providers
 - TASK-005 Provider-agnostic AI service layer
+- TASK-006 CV upload & parse → structured profile
 
 In Progress:
 
-- (none yet — next up is TASK-006, CV upload & parse)
+- (none yet — next up is TASK-007, main CV optimization)
 
 Planned:
 
-- TASK-006 CV upload & parse → structured profile
+- TASK-007 Main CV optimization
 - TASK-007 Main CV optimization
 - TASK-008 Add job offer by link (paste + fallback)
 - TASK-009 Offer match %, tailored CV & recruiter message
