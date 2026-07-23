@@ -21,19 +21,18 @@ status) without duplicates.
 
 Implemented:
 
-- (none yet)
-
-In Progress:
-
-- (none yet — next up is TASK-001, repository foundation)
-
-Planned:
-
 - TASK-001 Initialize repository foundation
 - TASK-002 Database schema & Prisma setup
 - TASK-003 Minimal single-user authentication
 - TASK-004 App shell, layout, navigation & providers
 - TASK-005 Provider-agnostic AI service layer
+
+In Progress:
+
+- (none yet — next up is TASK-006, CV upload & parse)
+
+Planned:
+
 - TASK-006 CV upload & parse → structured profile
 - TASK-007 Main CV optimization
 - TASK-008 Add job offer by link (paste + fallback)
