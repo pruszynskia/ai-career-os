@@ -2,6 +2,7 @@ import type { CvDocument, JobOffer } from '@prisma/client';
 
 export interface AddOfferResponse {
   jobOffer: JobOffer;
+  duplicateOfferId?: string;
 }
 
 export interface ToggleFavoriteResponse {
