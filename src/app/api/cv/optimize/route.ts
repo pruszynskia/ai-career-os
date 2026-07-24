@@ -15,6 +15,7 @@ export async function POST() {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }
 
+    console.error('Failed to optimize the CV', error);
     return NextResponse.json(
       { message: 'Failed to optimize the CV.' },
       { status: 500 },
