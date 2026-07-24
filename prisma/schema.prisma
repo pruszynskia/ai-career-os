@@ -50,12 +50,16 @@ model CvDocument {
   isMaster Boolean @default(false)
   content  String
 
+  jobOfferId String?
+  jobOffer   JobOffer? @relation(fields: [jobOfferId], references: [id])
+
   applications Application[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+  @@index([jobOfferId])
 }
 
 model JobOffer {
@@ -72,6 +76,7 @@ model JobOffer {
   isFavorite  Boolean     @default(false)
 
   applications Application[]
+  tailoredCvs  CvDocument[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
