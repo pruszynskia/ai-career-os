@@ -209,3 +209,65 @@ Consequences:
 - Future reviews of TASK-001 (or any task touching `next.config.ts`) should
   not re-flag React Compiler as a violation — it's a deliberate exception,
   not an oversight.
+
+## ADR-008
+
+Date:
+
+2026-07-24
+
+Decision:
+
+Update `ARCHITECTURE.md` and `docs/COMPONENT_GUIDE.md` to match the real,
+shipped folder structure (`src/shared/ui`, singular feature-slice names)
+instead of renaming code to match the docs, and make Feature-Sliced
+dependency direction machine-enforced via `import/no-restricted-paths` in
+`eslint.config.mjs` — including feature-to-feature isolation, with zones
+generated from the actual `src/features/*` directory names so a new slice is
+isolated automatically without editing the ESLint config again.
+
+Reason:
+
+Docs had drifted from the shipped code (`shared/components` vs. the real
+`shared/ui`), and nothing prevented direct feature-to-feature imports:
+`features/application` imported `getOfferOrThrow`/`OfferNotFoundError`/
+`downloadTextFile` from `features/job-offer`, and
+`features/job-offer/offer-detail.tsx` imported `features/application`'s
+`useCreateApplication` hook — a live circular dependency. As the roadmap adds
+many more feature slices, an unenforced rule would keep re-accumulating this
+coupling.
+
+Resolution of the application/job-offer coupling:
+
+- `getOfferOrThrow` and `OfferNotFoundError` moved from
+  `features/job-offer/services/get-offer.ts` into the entity layer
+  (`entities/job-offer/service.ts`, next to `jobOfferService`), since offer
+  lookup-or-throw is domain logic, not feature-specific.
+- `downloadTextFile` (duplicated identically in `features/job-offer/utils.ts`
+  and `features/cv/utils.ts`) consolidated into
+  `shared/utils/download-text-file.ts`.
+- `features/job-offer/components/offer-detail.tsx` no longer calls
+  `useCreateApplication` itself; it accepts the mutation state as props
+  (`onTrackApplication`, `isTrackingApplication`, `trackApplicationError`).
+  A new `widgets/offer-detail-panel/offer-detail-panel.tsx` composes
+  `OfferDetail` with the `application` feature's hook (widget → feature is an
+  allowed direction) and is what the offer detail page now renders.
+
+Alternatives Considered:
+
+- `eslint-plugin-boundaries` — rejected: `import/no-restricted-paths` from
+  `eslint-plugin-import` does the same job and needed zero new dependencies
+  (`eslint-plugin-import` is already present transitively via
+  `eslint-config-next`, with its TypeScript path resolver already configured).
+- Renaming `entities/job-offer/service.ts` exports or introducing a
+  `job-offer` "public API" barrel — rejected: unnecessary indirection for
+  three functions; the entity module is already the single file per entity
+  that owns its Prisma access.
+
+Consequences:
+
+- Any future direct import between two `src/features/*` slices, or from
+  `shared`/`entities` up into `features`/`widgets`/`app`, now fails
+  `npm run lint`.
+- Cross-feature composition must go through the widget layer, matching
+  `ARCHITECTURE.md`'s existing widget → feature dependency rule.

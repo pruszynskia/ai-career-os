@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { generateCoverLetter } from '@/features/job-offer/services/cover-letter.service';
 import { NoMasterCvError } from '@/features/job-offer/services/get-master-cv';
-import { OfferNotFoundError } from '@/features/job-offer/services/get-offer';
+import { OfferNotFoundError } from '@/entities/job-offer/service';
 
 export async function POST(
   request: Request,

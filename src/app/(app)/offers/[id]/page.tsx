@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 
 import { jobOfferService } from '@/entities/job-offer/service';
-import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { OfferDetailPanel } from '@/widgets/offer-detail-panel/offer-detail-panel';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,5 +23,5 @@ export default async function OfferPage({
 
   const { tailoredCvs, ...jobOffer } = offer;
 
-  return <OfferDetail offer={jobOffer} latestTailoredCv={tailoredCvs[0]} />;
+  return <OfferDetailPanel offer={jobOffer} latestTailoredCv={tailoredCvs[0]} />;
 }

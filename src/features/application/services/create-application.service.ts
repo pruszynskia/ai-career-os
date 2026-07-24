@@ -2,10 +2,10 @@ import 'server-only';
 
 import { applicationService } from '@/entities/application/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
-import { getOfferOrThrow } from '@/features/job-offer/services/get-offer';
+import { getOfferOrThrow } from '@/entities/job-offer/service';
 import { SEED_OWNER_ID } from '@/shared/auth/owner';
 
-export { OfferNotFoundError } from '@/features/job-offer/services/toggle-favorite.service';
+export { OfferNotFoundError } from '@/entities/job-offer/service';
 
 export class CvNotFoundError extends Error {
   constructor() {

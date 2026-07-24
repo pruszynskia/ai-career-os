@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { NoMasterCvError } from '@/features/job-offer/services/get-master-cv';
-import { OfferNotFoundError } from '@/features/job-offer/services/get-offer';
+import { OfferNotFoundError } from '@/entities/job-offer/service';
 import { matchOffer } from '@/features/job-offer/services/match-offer.service';
 
 export async function POST(

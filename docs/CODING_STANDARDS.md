@@ -119,15 +119,15 @@ Before creating a component, ask:
 Place it in:
 
 ```text
-shared/components
+shared/ui
 ```
 
 Examples:
 
 ```text
-shared/components/Button
-shared/components/Modal
-shared/components/Input
+shared/ui/Button
+shared/ui/Modal
+shared/ui/Input
 ```
 
 ---

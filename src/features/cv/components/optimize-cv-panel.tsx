@@ -1,7 +1,7 @@
 'use client';
 
 import { useOptimizeCv } from '@/features/cv/hooks/use-optimize-cv';
-import { downloadTextFile } from '@/features/cv/utils';
+import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
