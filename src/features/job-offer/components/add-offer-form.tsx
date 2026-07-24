@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -13,6 +14,9 @@ export function AddOfferForm() {
   const [mode, setMode] = useState<'url' | 'raw-text'>('url');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
+  const [duplicateOfferId, setDuplicateOfferId] = useState<string | null>(
+    null,
+  );
   const mutation = useAddOffer();
 
   function handleSubmit(event: React.FormEvent) {
@@ -22,10 +26,12 @@ export function AddOfferForm() {
       mode === 'url' ? { url: url.trim() } : { rawText: rawText.trim() };
     if (mode === 'url' ? !input.url : !input.rawText) return;
 
+    setDuplicateOfferId(null);
     mutation.mutate(input, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         setUrl('');
         setRawText('');
+        setDuplicateOfferId(response.duplicateOfferId ?? null);
         router.refresh();
       },
     });
@@ -80,6 +86,16 @@ export function AddOfferForm() {
       {mutation.isError && (
         <p role="alert" className="text-sm text-destructive">
           {mutation.error.message}
+        </p>
+      )}
+
+      {duplicateOfferId && (
+        <p role="status" className="text-sm text-amber-600">
+          This looks like an offer you already added.{' '}
+          <Link href={`/offers/${duplicateOfferId}`} className="underline">
+            View the existing offer
+          </Link>
+          .
         </p>
       )}
     </form>

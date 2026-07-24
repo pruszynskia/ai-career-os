@@ -9,6 +9,10 @@ import {
 } from '@/shared/ai/prompts/parse-offer';
 import { getAiService } from '@/shared/ai/service';
 import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import {
+  computeOfferFingerprint,
+  isDuplicateFingerprint,
+} from '@/shared/utils/offer-fingerprint';
 
 export interface AddOfferInput {
   url?: string;
@@ -28,7 +32,18 @@ export async function addOffer({ url, rawText }: AddOfferInput) {
     schemaName: 'parsed_job_offer',
   });
 
-  return jobOfferService.create({
+  const fingerprint = computeOfferFingerprint({ ...parsed, url, rawContent });
+  const existingOffers = await jobOfferService.findMany({
+    where: { ownerId: SEED_OWNER_ID },
+    select: { id: true, company: true, title: true, url: true, rawContent: true },
+  });
+  const duplicate = existingOffers.find((offer) =>
+    isDuplicateFingerprint(fingerprint, computeOfferFingerprint(offer)),
+  );
+
+  const jobOffer = await jobOfferService.create({
     data: { ownerId: SEED_OWNER_ID, url, source, rawContent, ...parsed },
   });
+
+  return { jobOffer, duplicateOfferId: duplicate?.id };
 }
