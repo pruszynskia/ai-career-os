@@ -5,8 +5,8 @@ import WebSocket from 'ws';
 // Never import this into request-handling code (route handlers, services).
 export function createAdminClient() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL!,
+    process.env.STORAGE_SUPABASE_SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: { autoRefreshToken: false, persistSession: false },
       // Node 20 has no native WebSocket; supabase-js always constructs a

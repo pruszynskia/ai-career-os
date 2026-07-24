@@ -8,8 +8,8 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY!,
     {
       // Node 20 (the Node.js runtime this code executes under, not Edge) has
       // no native WebSocket; supabase-js always constructs a RealtimeClient
