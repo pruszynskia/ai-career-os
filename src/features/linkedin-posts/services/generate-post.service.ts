@@ -21,7 +21,7 @@ export class NoProfileError extends Error {
 
 const generatedPostSchema = z.object({ content: z.string() });
 
-function buildProfileText(profile: {
+export function buildProfileText(profile: {
   summary: string;
   skills: string[];
   experience: unknown;
