@@ -4,21 +4,35 @@ import type { CvDocument, JobOffer } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { useCreateApplication } from '@/features/application/hooks/use-create-application';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
 import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
 import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
-import { downloadTextFile } from '@/features/job-offer/utils';
+import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+
+export interface CreateApplicationInput {
+  jobOfferId: string;
+  sentCvId: string;
+  recruiterMessage: string;
+}
 
 export function OfferDetail({
   offer,
   latestTailoredCv,
+  onTrackApplication,
+  isTrackingApplication,
+  trackApplicationError,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
+  onTrackApplication: (
+    input: CreateApplicationInput,
+    options: { onSuccess: () => void },
+  ) => void;
+  isTrackingApplication: boolean;
+  trackApplicationError?: string;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -26,7 +40,6 @@ export function OfferDetail({
   const tailorCvMutation = useTailorCv();
   const recruiterMessageMutation = useRecruiterMessage();
   const coverLetterMutation = useCoverLetter();
-  const createApplicationMutation = useCreateApplication();
 
   const sentCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
   const canTrackApplication = Boolean(sentCv) && recruiterMessageMutation.isSuccess;
@@ -188,13 +201,11 @@ export function OfferDetail({
           <Button
             variant="secondary"
             className="self-start"
-            disabled={
-              !canTrackApplication || createApplicationMutation.isPending
-            }
+            disabled={!canTrackApplication || isTrackingApplication}
             onClick={() =>
               sentCv &&
               recruiterMessageMutation.data &&
-              createApplicationMutation.mutate(
+              onTrackApplication(
                 {
                   jobOfferId: offer.id,
                   sentCvId: sentCv.id,
@@ -204,13 +215,11 @@ export function OfferDetail({
               )
             }
           >
-            {createApplicationMutation.isPending
-              ? 'Creating…'
-              : 'Track application'}
+            {isTrackingApplication ? 'Creating…' : 'Track application'}
           </Button>
-          {createApplicationMutation.isError && (
+          {trackApplicationError && (
             <p role="alert" className="text-sm text-destructive">
-              {createApplicationMutation.error.message}
+              {trackApplicationError}
             </p>
           )}
         </CardContent>

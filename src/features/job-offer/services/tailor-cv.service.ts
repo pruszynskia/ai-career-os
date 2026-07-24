@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { getMasterCvOrThrow } from '@/features/job-offer/services/get-master-cv';
-import { getOfferOrThrow } from '@/features/job-offer/services/get-offer';
+import { getOfferOrThrow } from '@/entities/job-offer/service';
 import {
   buildTailorCvUserMessage,
   tailorCvSystemPrompt,

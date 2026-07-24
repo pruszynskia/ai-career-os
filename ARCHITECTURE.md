@@ -112,11 +112,35 @@ feature → entity
 
 widget → feature
 
+widget → shared
+
+widget → entity
+
 Forbidden:
 
 shared → feature
 
 entity → feature
+
+feature → another feature
+
+widget → app
+
+This is lint-enforced via `import/no-restricted-paths` in `eslint.config.mjs`
+(zones generated from the real `src/features/*` directory names, so a new
+slice is isolated automatically).
+
+---
+
+# Feature Slices
+
+Real, shipped slice names (singular, canonical for all future slices):
+
+`job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`
+
+Cross-feature composition (e.g. the job-offer detail view triggering
+application creation) happens at the widget layer, not via direct
+feature-to-feature imports — see `src/widgets/offer-detail-panel`.
 
 ---
 

@@ -1,0 +1,28 @@
+'use client';
+
+import type { CvDocument, JobOffer } from '@prisma/client';
+
+import { useCreateApplication } from '@/features/application/hooks/use-create-application';
+import { OfferDetail } from '@/features/job-offer/components/offer-detail';
+
+export function OfferDetailPanel({
+  offer,
+  latestTailoredCv,
+}: {
+  offer: JobOffer;
+  latestTailoredCv?: CvDocument;
+}) {
+  const createApplicationMutation = useCreateApplication();
+
+  return (
+    <OfferDetail
+      offer={offer}
+      latestTailoredCv={latestTailoredCv}
+      onTrackApplication={(input, options) =>
+        createApplicationMutation.mutate(input, options)
+      }
+      isTrackingApplication={createApplicationMutation.isPending}
+      trackApplicationError={createApplicationMutation.error?.message}
+    />
+  );
+}

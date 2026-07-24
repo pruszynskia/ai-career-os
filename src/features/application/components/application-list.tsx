@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import type { ApplicationBundle } from '@/entities/application/types';
 import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
-import { downloadTextFile } from '@/features/job-offer/utils';
+import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Button } from '@/shared/ui/button';
 import {
   Card,

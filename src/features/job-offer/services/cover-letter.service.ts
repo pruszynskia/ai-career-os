@@ -3,7 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 
 import { getMasterCvOrThrow } from '@/features/job-offer/services/get-master-cv';
-import { getOfferOrThrow } from '@/features/job-offer/services/get-offer';
+import { getOfferOrThrow } from '@/entities/job-offer/service';
 import {
   buildCoverLetterUserMessage,
   coverLetterSystemPrompt,

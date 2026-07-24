@@ -23,7 +23,7 @@ Components are divided into three categories:
 Location:
 
 ```
-src/shared/components
+src/shared/ui
 ```
 
 Purpose:
@@ -204,7 +204,7 @@ Before creating a new component ask:
 Search:
 
 ```
-src/shared/components
+src/shared/ui
 src/features
 ```
 
@@ -219,7 +219,7 @@ YES:
 Create:
 
 ```
-shared/components
+shared/ui
 ```
 
 NO:
@@ -539,7 +539,7 @@ types.ts
 Shared component:
 
 ```
-shared/components/
+shared/ui/
 
 Button/
 
