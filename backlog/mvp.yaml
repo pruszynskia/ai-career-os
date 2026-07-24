@@ -19,6 +19,11 @@ project:
     - quality
     - deployment
     - documentation
+  milestones:
+    - MVP
+    - "Stage 0 - MVP Stabilization"
+    - "Stage 1 - Product Refinement"
+    - "Stage 2 - Core Value"
   statuses:
     - backlog
     - todo
@@ -48,6 +53,7 @@ tasks:
     status: todo
     priority: P0
     estimate: XS
+    milestone: MVP
     depends_on: []
     title: Initialize repository foundation
     goal: >
@@ -116,6 +122,7 @@ tasks:
     status: todo
     priority: P0
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-001
     title: Database schema and Prisma setup
@@ -199,6 +206,7 @@ tasks:
     status: todo
     priority: P0
     estimate: S
+    milestone: MVP
     depends_on:
       - TASK-001
       - TASK-002
@@ -265,6 +273,7 @@ tasks:
     status: todo
     priority: P0
     estimate: S
+    milestone: MVP
     depends_on:
       - TASK-001
       - TASK-003
@@ -338,6 +347,7 @@ tasks:
     status: todo
     priority: P0
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-001
     title: Provider-agnostic AI service layer
@@ -407,6 +417,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-002
       - TASK-004
@@ -475,6 +486,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-006
       - TASK-005
@@ -536,6 +548,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-002
       - TASK-004
@@ -605,6 +618,7 @@ tasks:
     status: todo
     priority: P1
     estimate: L
+    milestone: MVP
     depends_on:
       - TASK-006
       - TASK-007
@@ -676,6 +690,7 @@ tasks:
     status: todo
     priority: P2
     estimate: S
+    milestone: MVP
     depends_on:
       - TASK-008
     title: Duplicate offer detection
@@ -733,6 +748,7 @@ tasks:
     status: todo
     priority: P1
     estimate: L
+    milestone: MVP
     depends_on:
       - TASK-008
       - TASK-009
@@ -798,6 +814,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-005
       - TASK-006
@@ -861,6 +878,7 @@ tasks:
     status: todo
     priority: P2
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-012
       - TASK-002
@@ -924,6 +942,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
+    milestone: MVP
     depends_on:
       - TASK-011
       - TASK-013
@@ -985,6 +1004,7 @@ tasks:
     status: todo
     priority: P2
     estimate: S
+    milestone: MVP
     depends_on:
       - TASK-001
     title: CI pipeline and Vercel deployment
@@ -1033,3 +1053,670 @@ tasks:
       - Add heavy end-to-end suites
       - Add release or changelog automation
       - Introduce a second CI provider
+  ###############################################################################
+  # TASK-016
+  ###############################################################################
+  - id: TASK-016
+    github:
+      issue: "31"
+      project_item: null
+    status: todo
+    priority: P0
+    estimate: L
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-015
+    title: Architecture normalization and Feature-Sliced Architecture enforcement
+    goal: >
+      Close the drift between documented and actual project structure, and make the Feature-Sliced Architecture dependency rules in ARCHITECTURE.md machine-enforced via ESLint, so the codebase stays consistent and safely AI-editable as the roadmap adds many more features.
+
+    scope:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+      - eslint.config.*
+      - memory-bank/decisions.md
+      - src/entities/job-offer/**
+      - src/shared/utils/**
+      - src/features/application/**
+      - src/features/job-offer/**
+    deliverables:
+      - ARCHITECTURE.md and docs/COMPONENT_GUIDE.md updated to reference real, current paths
+      - An ESLint rule enforcing Feature-Sliced dependency direction, including no feature-to-feature imports
+      - The existing circular dependency between src/features/application and src/features/job-offer resolved
+      - ADR recording the normalization decision
+    tasks:
+      - Update ARCHITECTURE.md and docs/COMPONENT_GUIDE.md so documented paths match reality (shared UI lives in src/shared/ui, not src/shared/components) and document the existing singular feature-slice naming (job-offer, application, cv, linkedin-posts, dashboard) as the canonical convention for all future slices
+      - Add an ESLint rule (eslint-plugin-boundaries or import/no-restricted-paths, whichever needs fewer new dependencies) enforcing that shared and entities never import from features, widgets, or app; features never import from widgets, app, or another feature; widgets never import from app
+      - Resolve the existing circular dependency between src/features/application and src/features/job-offer: move getOfferOrThrow, OfferNotFoundError and downloadTextFile out of src/features/job-offer into src/entities/job-offer or src/shared/utils, and change offer-detail.tsx's direct import of the application feature's hook to a callback prop (or a widget-level composition), so neither feature imports the other directly
+      - Record an ADR in memory-bank/decisions.md documenting that docs were updated to match code (not the reverse), that layering including feature-to-feature isolation is now lint-enforced, and how the application/job-offer coupling was resolved
+    acceptance:
+      - ARCHITECTURE.md and docs/COMPONENT_GUIDE.md reference only paths that exist in src/
+      - A deliberate shared-to-features import and a deliberate feature-to-feature import both trigger an ESLint error (verified, then reverted)
+      - Neither src/features/application nor src/features/job-offer imports from the other
+      - npm run lint, npm run typecheck and npm run build succeed
+      - A new ADR is recorded in memory-bank/decisions.md
+    done:
+      - Documentation matches the real folder structure
+      - Dependency-direction ESLint rule active and verified, including feature-to-feature isolation
+      - application/job-offer circular dependency resolved
+      - ADR recorded
+    labels:
+      - architecture
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+      - docs/CODING_STANDARDS.md
+    prompt: |
+      Implement ONLY this task.
+
+      Do not rename any existing feature or entity folder. The real,
+      shipped folder names (singular: job-offer, application, cv,
+      linkedin-posts, dashboard) are canonical — fix the documentation and
+      add lint enforcement to match them, not the other way around.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Rename existing feature or entity folders
+      - Change any public API or runtime behavior
+      - Introduce a new state manager or routing library
+  ###############################################################################
+  # TASK-017
+  ###############################################################################
+  - id: TASK-017
+    github:
+      issue: "32"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-004
+      - TASK-016
+    title: Shared Design System - enterprise color, typography and UI principles
+    goal: >
+      Replace the default shadcn palette with a deliberate enterprise visual identity - Deep Navy, Electric Blue and Emerald, conveying Trust, Intelligence and Progress - expressed as design tokens in globals.css, and document it under docs/design-system/ so it is the single source of truth for every future screen.
+
+    scope:
+      - src/app/globals.css
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - ARCHITECTURE.md
+      - memory-bank/decisions.md
+    deliverables:
+      - Deep Navy / Electric Blue / Emerald token palette applied in light and dark mode
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - ARCHITECTURE.md Design System section pointing at docs/design-system/*
+    tasks:
+      - Redefine the shadcn semantic tokens (--primary, --secondary, --accent, --destructive, --background, --card, --border, and related) in the :root and .dark blocks of src/app/globals.css to a Deep Navy / Electric Blue / Emerald palette, adding a --success token for Emerald where shadcn does not already provide one. Use these as anchor values, adjusting lightness per light/dark mode for AA contrast while keeping hue stable - primary/Deep Navy near oklch(0.28 0.06 255), accent/Electric Blue near oklch(0.62 0.19 255), success/Emerald near oklch(0.6 0.14 155)
+      - Confirm or adjust the existing type scale (next/font, --font-sans) for an enterprise feel without adding a new font-loading dependency
+      - Write docs/design-system/colors.md documenting palette values, semantic token usage, light/dark pairs and WCAG AA contrast notes
+      - Write docs/design-system/typography.md documenting the font, scale and usage rules
+      - Write docs/design-system/ui-principles.md documenting the brand direction (Trust, Intelligence, Progress), explicit guidance against generic AI-fluff gradients and glow effects, and spacing/elevation principles
+      - Update the ARCHITECTURE.md Design System section to point at docs/design-system/*
+      - Record an ADR in memory-bank/decisions.md documenting the color and brand decision
+    acceptance:
+      - New tokens render correctly in light and dark mode across existing shadcn primitives (Button, Card, Dialog, Input), spot-checked in the browser
+      - The primary, accent and success tokens fall within the Deep Navy / Electric Blue / Emerald hue ranges documented in colors.md, not shadcn's default zinc/blue palette
+      - docs/design-system/colors.md, typography.md and ui-principles.md exist and are referenced from ARCHITECTURE.md
+      - Documented text/background pairs meet WCAG AA contrast
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Token palette applied and verified in both themes
+      - Design-system docs written and linked from ARCHITECTURE.md
+      - ADR recorded
+    labels:
+      - ui
+      - architecture
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+      - docs/TECH_STACK.md
+    prompt: |
+      Implement ONLY this task.
+
+      Apply the Deep Navy / Electric Blue / Emerald palette as CSS custom
+      properties consumed by the existing shadcn token names; do not
+      introduce a second theming mechanism. Do not add new components or
+      redesign layouts here - that is TASK-019 and TASK-020.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a new component library or new components
+      - Redesign page layouts
+      - Add a new font-loading dependency
+  ###############################################################################
+  # TASK-018
+  ###############################################################################
+  - id: TASK-018
+    github:
+      issue: "33"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-017
+    title: Playwright visual-QA and Claude Code UI-engineer workflow
+    goal: >
+      Give Claude Code a repeatable way to see the running application and iterate on UI quality screen by screen against the TASK-017 design system and named enterprise benchmarks, via a Playwright MCP server plus a slash command, instead of judging visual correctness from code alone.
+
+    scope:
+      - .mcp.json
+      - .claude/commands/design-review.md
+      - docs/DESIGN_REVIEW_WORKFLOW.md
+    deliverables:
+      - Playwright MCP server configured for the project
+      - docs/DESIGN_REVIEW_WORKFLOW.md describing the screen-by-screen review loop
+      - /design-review slash command implementing the workflow
+    tasks:
+      - Add .mcp.json configuring the official Playwright MCP server (npx @playwright/mcp@latest), additive to the existing @playwright/test runner from TASK-015
+      - Note in docs/DESIGN_REVIEW_WORKFLOW.md that Playwright browser binaries must be installed once via npx playwright install chromium before the MCP server can drive a real browser
+      - Write docs/DESIGN_REVIEW_WORKFLOW.md describing the loop -  start npm run dev, navigate to and screenshot the target screen via the Playwright MCP tools, compare against docs/design-system/*.md and named enterprise-SaaS benchmarks (Linear, Vercel Dashboard, Stripe Dashboard), propose and apply a scoped diff, re-screenshot to verify, move to the next screen
+      - Add .claude/commands/design-review.md, a slash command taking a route argument, that loads docs/design-system/*.md and docs/DESIGN_REVIEW_WORKFLOW.md, starts the dev server if needed, and runs one screen through the review loop, mirroring the structure of .claude/commands/implement-task.md
+    acceptance:
+      - .mcp.json is valid and the Playwright MCP server starts
+      - /design-review is invocable and its instructions load docs/design-system/*.md and docs/DESIGN_REVIEW_WORKFLOW.md before touching any UI
+      - Running /design-review against one real route produces at least one applied, screenshot-verified visual improvement
+      - npm run lint, npm run typecheck and npm run build are unaffected
+    done:
+      - Playwright MCP server configured and verified
+      - Workflow documentation written
+      - /design-review command implemented and exercised on at least one route
+    labels:
+      - ui
+      - testing
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - docs/COMPONENT_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      The Playwright MCP server is a dev-time visual tool for Claude Code,
+      separate from the @playwright/test e2e smoke suite added in TASK-015 -
+      do not merge or replace either with the other. Do not touch CI
+      configuration.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Replace or duplicate the existing @playwright/test e2e smoke suite
+      - Add a visual-regression or screenshot-diff library
+      - Modify CI configuration
+  ###############################################################################
+  # TASK-019
+  ###############################################################################
+  - id: TASK-019
+    github:
+      issue: "34"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-017
+    title: Reusable components library
+    goal: >
+      Extract the composite UI patterns repeated across features - status badges, empty states, page headers, stat cards, skeleton loaders - into src/shared/ui, built on the TASK-017 tokens and existing shadcn primitives, and document them so new screens reuse instead of reinvent.
+
+    scope:
+      - src/shared/ui/**
+      - docs/design-system/components.md
+    deliverables:
+      - New shared composite components in src/shared/ui with variant APIs
+      - docs/design-system/components.md
+      - At least two screens updated to use the new shared components
+    tasks:
+      - Audit src/features/**/components for inline UI patterns duplicated across two or more features (status/priority badges, empty states, loading skeletons, page headers)
+      - Extract each into src/shared/ui using cva variants (no boolean-prop explosion, per docs/COMPONENT_GUIDE.md), built on existing shadcn primitives without adding a new UI dependency
+      - Add a barrel export from src/shared/ui
+      - Write docs/design-system/components.md documenting each new component's purpose, props, variants and a usage example
+      - Swap the dashboard and at least one other screen's duplicated inline markup to use the new shared components, preserving existing behavior
+    acceptance:
+      - Each new shared component has a typed variant API and passes lint and typecheck
+      - docs/design-system/components.md documents every new component
+      - At least two screens use the new shared components in place of duplicated inline markup
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Shared components extracted and documented
+      - Two or more screens migrated to the shared components
+      - No behavior regressions
+    labels:
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/COMPONENT_GUIDE.md
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse existing shadcn primitives and the TASK-017 tokens; do not
+      change the visual language beyond applying those tokens. Visual
+      redesign of screens happens later via the TASK-018 workflow, not here.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add Storybook or any component-dev-environment dependency
+      - Change visual language beyond applying TASK-017 tokens
+      - Duplicate an existing shadcn primitive
+  ###############################################################################
+  # TASK-020
+  ###############################################################################
+  - id: TASK-020
+    github:
+      issue: "35"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: S
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-016
+      - TASK-017
+    title: Shared layouts
+    goal: >
+      Extract the repeated page-shell structure - title and actions header plus content container, list/detail split, form page - out of the individual route files under src/app/(app) into src/shared/layouts, so every route composes from one shell instead of re-implementing spacing and structure.
+
+    scope:
+      - src/shared/layouts/**
+      - src/app/(app)/**/page.tsx
+      - src/widgets/nav/**
+    deliverables:
+      - AppPageLayout shared layout component
+      - SplitLayout shared layout component for list/detail screens
+      - All app routes wired to the shared layouts
+    tasks:
+      - Identify duplicated page-shell code across the dashboard, offers, applications, posts and profile route files
+      - Build an AppPageLayout component (title, actions, content) and a SplitLayout component (list plus detail) for the offers and applications screens
+      - Wire existing routes to the new layouts with no behavior or data-fetching changes
+      - Add a Layouts section to docs/design-system/ui-principles.md
+    acceptance:
+      - Every route under src/app/(app) uses a shared layout component
+      - No route's visible content or data-fetching changes beyond consistent shell spacing
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Shared layouts implemented and adopted by every app route
+      - ui-principles.md documents the layouts
+    labels:
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+      - docs/design-system/ui-principles.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is a structural extraction only - preserve each route's existing
+      data-fetching and behavior exactly. Do not add page-transition
+      animation or a new layout/routing library.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change route data-fetching logic
+      - Introduce a new routing or layout library
+      - Add global page-transition animation
+  ###############################################################################
+  # TASK-021
+  ###############################################################################
+  - id: TASK-021
+    github:
+      issue: "36"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-002
+      - TASK-016
+    title: Data layer and repository pattern
+    goal: >
+      Formalize the entity-service convention established by ADR-006 into a consistent, ownerId-scoped interface per entity, closing gaps such as src/entities/cv-document/service.ts today being a raw prisma.cvDocument passthrough with no scoping.
+
+    scope:
+      - src/entities/*/service.ts
+      - src/features/*/services/*.service.ts
+      - src/shared/db/**
+      - memory-bank/decisions.md
+    deliverables:
+      - Shared ownerId scoping helper and pagination types in src/shared/db
+      - Every entity service exposing consistent list/get/create/update methods
+      - ADR extending ADR-006 with the formalized interface
+    tasks:
+      - Audit every entity and feature service module, and every route handler, for direct Prisma calls or unscoped queries, per ADR-006
+      - Add a shared scoping helper (for example withOwnerScope) and shared pagination types in src/shared/db
+      - Refactor each entity service, including cv-document, to expose consistent list/get/create/update methods that use the shared helper instead of a raw Prisma delegate
+      - Fix any route handler found calling Prisma directly so it goes through its entity service
+      - Extend ADR-006 (or add a new ADR) in memory-bank/decisions.md documenting the formalized interface
+    acceptance:
+      - Searching src/app/api, src/features/**/components and src/features/**/hooks for direct prisma. or @prisma/client PrismaClient usage outside entity and feature service modules returns nothing
+      - Every entity service exposes ownerId-scoped list/get/create/update methods
+      - npm run typecheck, npm run lint, npm run build and npm run test succeed
+    done:
+      - All entity services conform to the formalized interface
+      - No route handler calls Prisma directly
+      - ADR recorded
+    labels:
+      - backend
+      - database
+      - architecture
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/CODING_STANDARDS.md
+    prompt: |
+      Implement ONLY this task.
+
+      Build on ADR-006's existing layering (Route Handler -> Zod validation
+      -> entity service -> Prisma client); do not introduce a new ORM,
+      query builder, or an abstraction beyond what Prisma already provides.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Build an ORM-agnostic abstraction beyond what Prisma provides
+      - Add caching or query batching
+      - Change the Prisma schema
+  ###############################################################################
+  # TASK-022
+  ###############################################################################
+  - id: TASK-022
+    github:
+      issue: "37"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: S
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-005
+      - TASK-016
+    title: AI services layer hardening
+    goal: >
+      Consolidate the ad hoc, per-route AI error handling - the isRateLimitError check currently duplicated only in the posts/plan route - into the shared AI service layer so every AI-backed route returns consistent error responses, and document the now-three-provider (Anthropic, OpenAI, Gemini) reality left undocumented since ADR-001.
+
+    scope:
+      - src/shared/ai/**
+      - src/app/api/**/route.ts
+      - docs/API_GUIDE.md
+      - memory-bank/decisions.md
+    deliverables:
+      - Shared AI error-classification helper in src/shared/ai
+      - Every AI-backed route using the shared helper
+      - ADR documenting the Gemini adapter and AI_PROVIDER values
+    tasks:
+      - Extract isRateLimitError and a toAiErrorResponse(error) helper from src/app/api/posts/plan/route.ts into src/shared/ai/errors.ts
+      - Apply the shared helper to every AI route handler (cv upload and optimize; offers parse, match, tailor-cv, recruiter-message, cover-letter; posts generate and plan)
+      - Add or extend an ADR in memory-bank/decisions.md documenting the Gemini adapter and the AI_PROVIDER values it supports
+      - Update the AI routes error-response section of docs/API_GUIDE.md
+    acceptance:
+      - Exactly one implementation of rate-limit and error classification exists, imported by every AI route handler
+      - All AI routes return the same response shape for the same error classes (validation, rate-limit, generic), spot-checked
+      - npm run typecheck, npm run lint, npm run build and npm run test succeed
+    done:
+      - Shared AI error helper adopted by every AI route
+      - docs/API_GUIDE.md updated
+      - ADR recorded
+    labels:
+      - ai
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+      - docs/TECH_STACK.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing AiService abstraction and adapters from TASK-005;
+      only consolidate error handling and documentation. Do not add
+      retries, streaming, or a queue/background-job system.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add retries, streaming, or a queue/background-job system
+      - Change provider-selection behavior beyond documenting it
+      - Add a fourth AI provider
+  ###############################################################################
+  # TASK-023
+  ###############################################################################
+  - id: TASK-023
+    github:
+      issue: "38"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-006
+      - TASK-007
+      - TASK-009
+      - TASK-021
+    title: Document module refactor
+    goal: >
+      Consolidate CvDocument creation, versioning and lookup - currently split between src/features/cv (upload, optimize) and src/features/job-offer (get-master-cv, tailor-cv, cover-letter) - into one code path owned by src/entities/cv-document.
+
+    scope:
+      - src/entities/cv-document/**
+      - src/features/cv/**
+      - src/features/job-offer/services/get-master-cv.ts
+      - src/features/job-offer/services/tailor-cv.service.ts
+      - src/features/job-offer/services/cover-letter.service.ts
+    deliverables:
+      - Single master-CV lookup path in src/entities/cv-document/service.ts
+      - Single "create and persist a CvDocument version" helper reused by optimize, tailor and cover-letter flows
+    tasks:
+      - Move master-CV lookup into src/entities/cv-document/service.ts as the single read path, replacing job-offer's get-master-cv.ts
+      - Extract a shared "create and persist a CvDocument version" helper into src/entities/cv-document/service.ts, used identically by optimize-cv, tailor-cv and cover-letter generation
+      - Keep feature-specific AI prompt orchestration inside each feature's own service file; only persistence and versioning route through the shared entity helper
+      - Update all callers (cv and job-offer features) to use the shared entity helpers instead of their own duplicated logic
+    acceptance:
+      - Only one implementation exists for "create and persist a CvDocument version" and for "fetch master CvDocument", both in src/entities/cv-document/service.ts
+      - optimize-cv, tailor-cv and cover-letter flows all call the shared implementation
+      - Upload, optimize, tailor, cover-letter and download flows all still work end to end, manually verified
+      - npm run typecheck, npm run lint, npm run build and npm run test succeed
+    done:
+      - CvDocument creation and lookup logic consolidated
+      - All CV-related flows verified end to end
+      - Feature committed
+    labels:
+      - backend
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/PRODUCT.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is a consolidation of existing, already-shipped logic - preserve
+      every current CV flow's behavior exactly. Do not merge the cv and
+      job-offer feature slices into one.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change the CvDocument Prisma schema
+      - Add a rich-text document editor
+      - Merge the cv and job-offer feature slices into one
+  ###############################################################################
+  # TASK-024
+  ###############################################################################
+  - id: TASK-024
+    github:
+      issue: "39"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-002
+      - TASK-016
+    title: Domain models
+    goal: >
+      Give every top-level entity one canonical types.ts (Prisma-derived type plus Zod schema) under src/entities/{entity}/, closing the gap where cv-document has none and where the cv and job-offer feature types.ts files redeclare entity-shaped DTOs ad hoc.
+
+    scope:
+      - src/entities/*/types.ts
+      - src/features/*/types.ts
+      - src/app/api/**/route.ts
+      - ARCHITECTURE.md
+    deliverables:
+      - src/entities/cv-document/types.ts with a canonical type and Zod schema
+      - Every top-level entity's canonical shape and validation schema consolidated under src/entities
+      - ARCHITECTURE.md documenting the "entity types are canonical" rule
+    tasks:
+      - Add src/entities/cv-document/types.ts with the canonical CvDocument type and a Zod schema
+      - Audit src/features/{cv,job-offer,linkedin-posts,application}/types.ts for entity-shaped DTOs that duplicate what belongs on the entity; move the canonical shape and schema to the entity's types.ts, leaving the feature's types.ts holding only feature-specific request/response wrappers that compose entity types
+      - Update route handlers to import validation schemas from src/entities/*/types.ts instead of inline or duplicated schemas
+      - Document the "entity types are canonical" rule in ARCHITECTURE.md
+    acceptance:
+      - Every top-level entity has a types.ts under src/entities with a Zod schema
+      - No feature types.ts redefines a Zod schema for an entity's own fields; feature types only compose entity types
+      - npm run typecheck, npm run lint, npm run build and npm run test succeed
+    done:
+      - Canonical entity types and schemas in place for every entity
+      - Feature type files trimmed to feature-specific DTOs
+      - ARCHITECTURE.md updated
+    labels:
+      - architecture
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/CODING_STANDARDS.md
+    prompt: |
+      Implement ONLY this task.
+
+      Do not change the Prisma schema; this task only consolidates
+      TypeScript/Zod types that already describe it. Do not rewrite
+      unrelated business logic while moving types.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change the Prisma schema
+      - Add a validation library other than Zod
+      - Rewrite unrelated business logic
+  ###############################################################################
+  # TASK-025
+  ###############################################################################
+  - id: TASK-025
+    github:
+      issue: "40"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-011
+      - TASK-012
+      - TASK-013
+      - TASK-014
+      - TASK-016
+    title: Application state refactor
+    goal: >
+      Consolidate the router.refresh() calls currently scattered inside component onSuccess callbacks into their mutation hooks, and document the server-rendered-reads pattern this app actually uses - list and detail data comes from React Server Components, not useQuery, so mutations revalidate via router.refresh() rather than React Query cache invalidation - since docs/STATE_MANAGEMENT.md currently only describes the useQuery/invalidateQueries model.
+
+    scope:
+      - src/features/*/hooks/**
+      - src/features/*/components/**
+      - docs/STATE_MANAGEMENT.md
+      - src/shared/store/**
+    deliverables:
+      - Every mutation hook that needs a post-success refresh calling router.refresh() itself, not the calling component
+      - docs/STATE_MANAGEMENT.md documenting the server-rendered-reads + router.refresh() pattern actually used by this app
+    tasks:
+      - Move the router.refresh() call currently passed as an onSuccess callback from component call sites (offer-list.tsx, add-offer-form.tsx, cv-upload-form.tsx, application-status-select.tsx, post-list.tsx, plan-posts-button.tsx, generate-post-form.tsx) into their corresponding mutation hooks, so components call the hook without wiring the refresh themselves
+      - Add a "Server-Rendered Reads" section to docs/STATE_MANAGEMENT.md documenting that list/detail data is fetched via React Server Components, not useQuery, and that mutation hooks revalidate it with router.refresh() rather than queryClient.invalidateQueries()
+      - Confirm src/shared/store/ui-store.ts stays UI-only, and that the "one small store per concern, not one global store" rule from docs/STATE_MANAGEMENT.md is followed as new UI state is added
+    acceptance:
+      - Every mutation hook under src/features/*/hooks that needs a post-success refresh calls router.refresh() itself; no component passes an onSuccess callback solely to call router.refresh()
+      - docs/STATE_MANAGEMENT.md documents the router.refresh()-based revalidation pattern actually used by this app, alongside the existing useQuery/invalidateQueries guidance for any future client-cached reads
+      - npm run typecheck, npm run lint, npm run build and npm run test succeed
+    done:
+      - router.refresh() calls consolidated into mutation hooks
+      - docs/STATE_MANAGEMENT.md updated to reflect the actual server-rendered-reads pattern
+      - Feature committed
+    labels:
+      - state
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/STATE_MANAGEMENT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Do not add useQuery/client-cached reads to replace the existing
+      Server Component reads - this task documents and consolidates the
+      router.refresh() pattern already in use, it does not change the data-
+      fetching strategy. Add the new doc section without rewriting the
+      existing useQuery/invalidateQueries guidance, which still applies if a
+      future task adds client-cached reads.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Introduce a new state-management library
+      - Add optimistic updates where none exist today
+      - Change any API contract
+      - Replace existing Server Component reads with client-side useQuery reads

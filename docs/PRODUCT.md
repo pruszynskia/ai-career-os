@@ -267,6 +267,10 @@ Measure:
 
 # Future Roadmap
 
+For the staged, task-level execution plan (Stage 0 stabilization through the
+subscriptions milestone), see `docs/ROADMAP.md`. Phase 2/3 below are the
+longer-horizon feature ideas that plan draws from.
+
 ## Phase 2
 
 Possible features:
