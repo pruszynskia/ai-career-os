@@ -1,6 +1,7 @@
 import type { ParsedProfile } from '@/entities/profile/types';
 import { profileService } from '@/entities/profile/service';
 import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
+import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
 import { SEED_OWNER_ID } from '@/shared/auth/owner';
 
@@ -18,13 +19,16 @@ export default async function ProfilePage() {
       <CvUploadForm />
 
       {profile ? (
-        <ProfileSummary
-          profile={{
-            summary: profile.summary,
-            skills: profile.skills,
-            experience: profile.experience as ParsedProfile['experience'],
-          }}
-        />
+        <>
+          <ProfileSummary
+            profile={{
+              summary: profile.summary,
+              skills: profile.skills,
+              experience: profile.experience as ParsedProfile['experience'],
+            }}
+          />
+          <OptimizeCvPanel />
+        </>
       ) : (
         <p className="text-sm text-muted-foreground">
           No profile yet — upload your CV to get started.
