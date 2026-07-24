@@ -184,7 +184,9 @@ Monitor:
 # Backend & Data Layer
 
 Backend surface: Next.js Route Handlers (`src/app/api/**`). Database:
-PostgreSQL via Prisma. See ADR-006 in `memory-bank/decisions.md`.
+Supabase PostgreSQL, accessed via `@supabase/supabase-js` (no ORM). See
+ADR-009 in `memory-bank/decisions.md` (supersedes ADR-006's Prisma-based
+layering).
 
 Flow:
 
@@ -201,23 +203,25 @@ Entity service (`src/entities/{entity}/service.ts` or
 
 ↓
 
-Prisma Client (`src/shared/db/client.ts` singleton)
+Supabase client (`src/shared/db/client.ts`, created per-request via
+`@supabase/ssr`)
 
 ↓
 
-PostgreSQL
+Supabase PostgreSQL (Row Level Security enforces owner scoping)
 
 Rules:
 
-- Route handlers validate and delegate; they never call Prisma directly.
-- All Prisma queries for one entity live in one service module, not scattered across route handlers.
-- Schema changes only via `prisma migrate` — never hand-edited in the database.
-- Every model carries `id`, `ownerId` (ADR-005), `createdAt`, `updatedAt`; index `ownerId` and foreign keys.
-- `DATABASE_URL` and all secrets come from environment variables, never hardcoded.
+- Route handlers validate and delegate; they never call the Supabase client directly.
+- All Supabase queries for one entity live in one service module, not scattered across route handlers.
+- Schema changes only via `supabase/migrations/*.sql` — never hand-edited in the database.
+- Every table carries `id`, `owner_id` (references `auth.users`, ADR-005/ADR-009), `created_at`, `updated_at`; RLS policies scope every row to `owner_id = auth.uid()`.
+- Supabase URL/keys and all secrets come from environment variables, never hardcoded; `SUPABASE_SERVICE_ROLE_KEY` is server-only and never used in request-handling code.
 
 This keeps each entity's data-access logic AI-discoverable in one file, and
-means SaaS-scale concerns (tenant scoping, query pagination, auditing via
-timestamps) are changes to one service module, not a rewrite.
+means SaaS-scale concerns (multi-tenant scoping is already enforced by RLS,
+query pagination, auditing via timestamps) are changes to one service module,
+not a rewrite.
 
 ---
 
@@ -226,17 +230,17 @@ timestamps) are changes to one service module, not a rewrite.
 MVP is single-user (see ADR-003 in `memory-bank/decisions.md`), but the
 architecture must let later features — automations, new integrations, and
 multi-user with full OAuth (Google, LinkedIn, GitHub, Email) — be **additive**,
-not a rewrite. See ADR-005.
+not a rewrite. See ADR-005/ADR-009.
 
 Rules:
 
-- Top-level domain models (Profile, JobOffer, Application, Post) carry an
-  `ownerId` column from the first migration, defaulted to the single seeded
-  user. Adding real multi-user support later means enforcing/filtering by
-  `ownerId`, not a schema migration.
-- Auth stays on Auth.js from day one, configured with only a credentials
-  provider for MVP. Adding Google/LinkedIn/GitHub/Email providers later is
-  additive config in the same `providers` array, not a framework swap.
+- Top-level domain tables (`profiles`, `job_offers`, `applications`, `posts`)
+  carry an `owner_id uuid references auth.users` column from the first
+  migration. Adding real multi-user support later means the RLS policies
+  already enforce per-owner isolation — no new scoping logic needed.
+- Auth stays on Supabase Auth from day one, configured with a single seeded
+  user (email/password). Adding Google/LinkedIn/GitHub OAuth providers later
+  is a toggle in the Supabase dashboard, not a framework swap.
 - The AI service layer (`src/shared/ai/`) is already provider-agnostic
   (ADR-001) — new automations call the same `AiService` interface, they don't
   bypass it.

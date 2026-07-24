@@ -13,7 +13,7 @@ import {
   planPostsSystemPrompt,
 } from '@/shared/ai/prompts/plan-posts';
 import { getAiService } from '@/shared/ai/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 const plannedPostsSchema = z.object({
   posts: z.array(z.object({ content: z.string() })),
@@ -22,17 +22,15 @@ const plannedPostsSchema = z.object({
 export { NoProfileError };
 
 export async function planPosts() {
-  const profile = await profileService.findUnique({
-    where: { ownerId: SEED_OWNER_ID },
-  });
+  const ownerId = await getOwnerId();
+  const profile = await profileService.findUnique(ownerId);
 
   if (!profile) throw new NoProfileError();
 
-  const sentPosts = await postService.findMany({
-    where: { ownerId: SEED_OWNER_ID, status: 'SENT' },
-    orderBy: { sentAt: 'desc' },
-    take: 10,
-  });
+  const sentPosts = await postService.findMany(
+    { ownerId, status: 'SENT' },
+    { orderBy: 'sentAt', take: 10 },
+  );
 
   const sentPostsText =
     sentPosts.length > 0
@@ -57,11 +55,9 @@ export async function planPosts() {
   const posts = await Promise.all(
     plannedPosts.map((plannedPost) =>
       postService.create({
-        data: {
-          ownerId: SEED_OWNER_ID,
-          content: plannedPost.content,
-          status: 'DRAFT',
-        },
+        ownerId,
+        content: plannedPost.content,
+        status: 'DRAFT',
       }),
     ),
   );

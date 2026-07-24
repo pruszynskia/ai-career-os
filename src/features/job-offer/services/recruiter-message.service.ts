@@ -9,14 +9,16 @@ import {
   recruiterMessageSystemPrompt,
 } from '@/shared/ai/prompts/recruiter-message';
 import { getAiService } from '@/shared/ai/service';
+import { getOwnerId } from '@/shared/auth/session';
 
 const recruiterMessageSchema = z.object({
   message: z.string(),
 });
 
 export async function generateRecruiterMessage(id: string) {
+  const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow();
+  const masterCv = await getMasterCvOrThrow(ownerId);
 
   return getAiService().generateStructured({
     messages: [

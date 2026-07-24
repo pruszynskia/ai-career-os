@@ -6,9 +6,7 @@ import {
 } from '@/features/linkedin-posts/services/plan-posts.service';
 
 function isRateLimitError(error: unknown): boolean {
-  return (
-    error instanceof Error && 'status' in error && error.status === 429
-  );
+  return error instanceof Error && 'status' in error && error.status === 429;
 }
 
 export async function POST() {

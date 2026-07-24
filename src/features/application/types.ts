@@ -1,10 +1,9 @@
 import type {
   Application,
+  ApplicationBundle,
   ApplicationStatus,
-  JobOffer,
-} from '@prisma/client';
-
-import type { ApplicationBundle } from '@/entities/application/types';
+} from '@/entities/application/types';
+import type { JobOffer } from '@/entities/job-offer/types';
 
 export interface CreateApplicationResponse {
   application: Application;

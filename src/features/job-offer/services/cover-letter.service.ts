@@ -9,14 +9,16 @@ import {
   coverLetterSystemPrompt,
 } from '@/shared/ai/prompts/cover-letter';
 import { getAiService } from '@/shared/ai/service';
+import { getOwnerId } from '@/shared/auth/session';
 
 const coverLetterSchema = z.object({
   content: z.string(),
 });
 
 export async function generateCoverLetter(id: string) {
+  const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow();
+  const masterCv = await getMasterCvOrThrow(ownerId);
 
   return getAiService().generateStructured({
     messages: [

@@ -4,26 +4,19 @@ import { postService } from '@/entities/post/service';
 import { FavoriteOffersCard } from '@/features/dashboard/components/favorite-offers-card';
 import { NextPostCard } from '@/features/dashboard/components/next-post-card';
 import { UpcomingInterviewsCard } from '@/features/dashboard/components/upcoming-interviews-card';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+  const ownerId = await getOwnerId();
   const [posts, applications, offers] = await Promise.all([
-    postService.findMany({
-      where: { ownerId: SEED_OWNER_ID, status: 'SCHEDULED' },
-      orderBy: { scheduledAt: 'asc' },
-      take: 1,
-    }),
-    applicationService.findMany({
-      where: { ownerId: SEED_OWNER_ID, status: { not: 'APPLIED' } },
-      include: { jobOffer: true, sentCv: true },
-      orderBy: { updatedAt: 'desc' },
-    }),
-    jobOfferService.findMany({
-      where: { ownerId: SEED_OWNER_ID, isFavorite: true },
-      orderBy: { createdAt: 'desc' },
-    }),
+    postService.findMany(
+      { ownerId, status: 'SCHEDULED' },
+      { orderBy: 'scheduledAt', take: 1 },
+    ),
+    applicationService.findMany({ ownerId, statusNot: 'APPLIED' }),
+    jobOfferService.findMany({ ownerId, isFavorite: true }),
   ]);
 
   return (

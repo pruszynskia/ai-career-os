@@ -3,7 +3,7 @@ import 'server-only';
 import { applicationService } from '@/entities/application/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export { OfferNotFoundError } from '@/entities/job-offer/service';
 
@@ -19,19 +19,19 @@ export async function createApplication(input: {
   sentCvId: string;
   recruiterMessage: string;
 }) {
+  const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(input.jobOfferId);
 
   const sentCv = await cvDocumentService.findFirst({
-    where: { id: input.sentCvId, ownerId: SEED_OWNER_ID },
+    id: input.sentCvId,
+    ownerId,
   });
   if (!sentCv || sentCv.jobOfferId !== offer.id) throw new CvNotFoundError();
 
   return applicationService.create({
-    data: {
-      ownerId: SEED_OWNER_ID,
-      jobOfferId: offer.id,
-      sentCvId: sentCv.id,
-      recruiterMessage: input.recruiterMessage,
-    },
+    ownerId,
+    jobOfferId: offer.id,
+    sentCvId: sentCv.id,
+    recruiterMessage: input.recruiterMessage,
   });
 }

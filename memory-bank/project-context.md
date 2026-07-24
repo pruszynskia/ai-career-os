@@ -22,8 +22,8 @@ status) without duplicates.
 Implemented:
 
 - TASK-001 Initialize repository foundation
-- TASK-002 Database schema & Prisma setup
-- TASK-003 Minimal single-user authentication
+- TASK-002 Database schema & Prisma setup (migrated to Supabase Postgres/RLS — see ADR-009)
+- TASK-003 Minimal single-user authentication (migrated to Supabase Auth — see ADR-009)
 - TASK-004 App shell, layout, navigation & providers
 - TASK-005 Provider-agnostic AI service layer
 - TASK-006 CV upload & parse → structured profile
@@ -59,11 +59,11 @@ Server state: TanStack React Query
 
 Client state: Zustand
 
-Database: PostgreSQL + Prisma
+Database: Supabase PostgreSQL, accessed via `@supabase/supabase-js` (no ORM), RLS-scoped by owner
 
 AI: provider-agnostic service layer (Anthropic + OpenAI adapters, server-only)
 
-Auth: Auth.js, single seeded credentials account (no OAuth, no multi-user)
+Auth: Supabase Auth, single seeded email/password account (no OAuth, no multi-user) — see ADR-009
 
 ---
 

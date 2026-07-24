@@ -4,7 +4,9 @@ import type {
   SchedulePostResponse,
 } from '@/features/linkedin-posts/types';
 
-export async function generatePost(topic: string): Promise<GeneratePostResponse> {
+export async function generatePost(
+  topic: string,
+): Promise<GeneratePostResponse> {
   const response = await fetch('/api/posts/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

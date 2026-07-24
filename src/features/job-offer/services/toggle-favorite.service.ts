@@ -1,19 +1,15 @@
 import 'server-only';
 
-import { jobOfferService, OfferNotFoundError } from '@/entities/job-offer/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import {
+  getOfferOrThrow,
+  jobOfferService,
+  OfferNotFoundError,
+} from '@/entities/job-offer/service';
 
 export { OfferNotFoundError };
 
 export async function toggleFavorite(id: string, isFavorite: boolean) {
-  const existing = await jobOfferService.findFirst({
-    where: { id, ownerId: SEED_OWNER_ID },
-  });
+  await getOfferOrThrow(id);
 
-  if (!existing) throw new OfferNotFoundError();
-
-  return jobOfferService.update({
-    where: { id },
-    data: { isFavorite },
-  });
+  return jobOfferService.update(id, { isFavorite });
 }

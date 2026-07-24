@@ -1,9 +1,9 @@
 import 'server-only';
 
-import type { ApplicationStatus } from '@prisma/client';
+import type { ApplicationStatus } from '@/entities/application/types';
 
 import { applicationService } from '@/entities/application/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export class ApplicationNotFoundError extends Error {
   constructor() {
@@ -16,13 +16,9 @@ export async function updateApplicationStatus(
   id: string,
   status: ApplicationStatus,
 ) {
-  const existing = await applicationService.findFirst({
-    where: { id, ownerId: SEED_OWNER_ID },
-  });
+  const ownerId = await getOwnerId();
+  const existing = await applicationService.findFirst({ id, ownerId });
   if (!existing) throw new ApplicationNotFoundError();
 
-  return applicationService.update({
-    where: { id },
-    data: { status },
-  });
+  return applicationService.update(id, { status });
 }

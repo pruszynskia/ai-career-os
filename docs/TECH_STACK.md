@@ -3,7 +3,8 @@
 ## Purpose
 
 This document defines the technology stack used in AI Career OS. It uses the
-starter kit's default stack as-is (Next.js/TypeScript/Tailwind/shadcn/Prisma).
+starter kit's default stack (Next.js/TypeScript/Tailwind/shadcn) with
+Supabase as the backend platform.
 
 Goals:
 
@@ -331,32 +332,32 @@ Usage:
 
 ## Database
 
-PostgreSQL
+Supabase PostgreSQL
 
 Usage:
 
-- users
+- users (Supabase Auth's `auth.users`)
 - profiles, CV documents, job offers, applications, posts
 - subscriptions
 - analytics
 
 ---
 
-## ORM
+## Data access
 
-Prisma
+`@supabase/supabase-js` — no ORM
 
 Usage:
 
-- database access
-- schema management
-- migrations
+- database access via the Supabase query builder
+- schema management via `supabase/migrations/*.sql`
+- authorization enforced by Row Level Security (`owner_id = auth.uid()`)
 
 Why:
 
-- excellent TypeScript support
-- developer friendly
-- AI friendly
+- Postgres + auth + storage from one platform, no separate ORM/connection layer to maintain
+- RLS enforces owner scoping at the database level instead of app code
+- AI friendly — plain query-builder calls per entity service
 
 ---
 
@@ -364,15 +365,15 @@ Why:
 
 ## Authentication Solution
 
-Auth.js, credentials provider only
+Supabase Auth, email/password
 
 Usage:
 
-- single seeded account (from environment variables)
-- session gate on the app route group
+- single seeded account (created via `scripts/create-owner-user.ts`)
+- session handled by `@supabase/ssr`, gate enforced in `src/middleware.ts`
 
-This is a single-user tool — no registration, no OAuth providers, no users
-table. See ADR-003 in `memory-bank/decisions.md`.
+This is a single-user tool — no registration flow, no OAuth providers enabled
+yet. See ADR-003 and ADR-009 in `memory-bank/decisions.md`.
 
 ---
 

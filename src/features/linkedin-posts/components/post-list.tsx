@@ -1,6 +1,6 @@
 'use client';
 
-import type { Post } from '@prisma/client';
+import type { Post } from '@/entities/post/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 

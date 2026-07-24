@@ -10,15 +10,16 @@ import {
   tailorCvSystemPrompt,
 } from '@/shared/ai/prompts/tailor-cv';
 import { getAiService } from '@/shared/ai/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 const tailoredCvSchema = z.object({
   content: z.string(),
 });
 
 export async function tailorCv(id: string) {
+  const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow();
+  const masterCv = await getMasterCvOrThrow(ownerId);
 
   const { content } = await getAiService().generateStructured({
     messages: [
@@ -34,11 +35,9 @@ export async function tailorCv(id: string) {
   });
 
   return cvDocumentService.create({
-    data: {
-      ownerId: SEED_OWNER_ID,
-      isMaster: false,
-      content,
-      jobOfferId: offer.id,
-    },
+    ownerId,
+    isMaster: false,
+    content,
+    jobOfferId: offer.id,
   });
 }
