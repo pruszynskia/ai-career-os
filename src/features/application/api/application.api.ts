@@ -62,9 +62,7 @@ export async function searchApplicationsAndOffers(
   );
 
   if (!response.ok) {
-    throw new Error(
-      await parseErrorMessage(response, 'Failed to search.'),
-    );
+    throw new Error(await parseErrorMessage(response, 'Failed to search.'));
   }
 
   return response.json();

@@ -1,6 +1,7 @@
 'use client';
 
-import type { CvDocument, JobOffer } from '@prisma/client';
+import type { CvDocument } from '@/entities/cv-document/types';
+import type { JobOffer } from '@/entities/job-offer/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -42,7 +43,8 @@ export function OfferDetail({
   const coverLetterMutation = useCoverLetter();
 
   const sentCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
-  const canTrackApplication = Boolean(sentCv) && recruiterMessageMutation.isSuccess;
+  const canTrackApplication =
+    Boolean(sentCv) && recruiterMessageMutation.isSuccess;
 
   return (
     <div className="flex flex-col gap-6">

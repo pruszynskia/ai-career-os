@@ -10,14 +10,16 @@ import {
   matchOfferSystemPrompt,
 } from '@/shared/ai/prompts/match-offer';
 import { getAiService } from '@/shared/ai/service';
+import { getOwnerId } from '@/shared/auth/session';
 
 const matchScoreSchema = z.object({
   matchScore: z.number().int().min(0).max(100),
 });
 
 export async function matchOffer(id: string) {
+  const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow();
+  const masterCv = await getMasterCvOrThrow(ownerId);
 
   const { matchScore } = await getAiService().generateStructured({
     messages: [
@@ -34,8 +36,5 @@ export async function matchOffer(id: string) {
     schemaName: 'offer_match_score',
   });
 
-  return jobOfferService.update({
-    where: { id: offer.id },
-    data: { matchScore },
-  });
+  return jobOfferService.update(offer.id, { matchScore });
 }

@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'AI Career OS',
-  description: 'AI-tailored CVs, recruiter messages, and application tracking for one owner.',
+  description:
+    'AI-tailored CVs, recruiter messages, and application tracking for one owner.',
 };
 
 export default function RootLayout({

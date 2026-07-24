@@ -3,14 +3,13 @@ import { profileService } from '@/entities/profile/service';
 import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage() {
-  const profile = await profileService.findUnique({
-    where: { ownerId: SEED_OWNER_ID },
-  });
+  const ownerId = await getOwnerId();
+  const profile = await profileService.findUnique(ownerId);
 
   return (
     <div className="flex flex-col gap-6">

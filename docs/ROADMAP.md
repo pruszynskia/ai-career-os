@@ -15,9 +15,10 @@ own "Future Roadmap" (Phase 2/3) section is a subset of the ideas staged here.
 
 AI Career OS starts as a single-user tool (see `docs/PRODUCT.md`), but is
 architected from day one so it can become a sellable multi-user product
-without a rewrite (ADR-005: `ownerId` on every model, Auth.js configured for
-additive OAuth providers). The roadmap below is the path from "working
-prototype" to "product people would pay for."
+without a rewrite (ADR-005/ADR-009: `owner_id` on every table enforced by
+Row Level Security, Supabase Auth ready for additive OAuth providers). The
+roadmap below is the path from "working prototype" to "product people would
+pay for."
 
 ---
 
@@ -90,9 +91,9 @@ MVP." After this stage the product should look and feel professional.
 
 After Stage 2, the user has a complete workflow: **start selling
 subscriptions.** This is the point multi-user support and billing become
-real, near-term requirements — not speculative ones. ADR-005's `ownerId` +
-Auth.js groundwork exists specifically so this milestone doesn't require a
-schema or auth rewrite.
+real, near-term requirements — not speculative ones. ADR-005/ADR-009's
+`owner_id` + RLS + Supabase Auth groundwork exists specifically so this
+milestone doesn't require a schema or auth rewrite.
 
 ---
 

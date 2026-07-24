@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { cvDocumentService } from '@/entities/cv-document/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
 
 export class NoMasterCvError extends Error {
   constructor() {
@@ -10,9 +9,10 @@ export class NoMasterCvError extends Error {
   }
 }
 
-export async function getMasterCvOrThrow() {
+export async function getMasterCvOrThrow(ownerId: string) {
   const masterCv = await cvDocumentService.findFirst({
-    where: { ownerId: SEED_OWNER_ID, isMaster: true },
+    ownerId,
+    isMaster: true,
   });
 
   if (!masterCv) throw new NoMasterCvError();

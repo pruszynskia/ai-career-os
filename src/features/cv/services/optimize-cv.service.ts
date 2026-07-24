@@ -7,7 +7,7 @@ import {
   optimizeCvSystemPrompt,
 } from '@/shared/ai/prompts/optimize-cv';
 import { getAiService } from '@/shared/ai/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export class NoMasterCvError extends Error {
   constructor() {
@@ -17,8 +17,10 @@ export class NoMasterCvError extends Error {
 }
 
 export async function optimizeCv() {
+  const ownerId = await getOwnerId();
   const masterCv = await cvDocumentService.findFirst({
-    where: { ownerId: SEED_OWNER_ID, isMaster: true },
+    ownerId,
+    isMaster: true,
   });
 
   if (!masterCv) {
@@ -37,11 +39,9 @@ export async function optimizeCv() {
     });
 
   const cvDocument = await cvDocumentService.create({
-    data: {
-      ownerId: SEED_OWNER_ID,
-      isMaster: false,
-      content: optimizedContent,
-    },
+    ownerId,
+    isMaster: false,
+    content: optimizedContent,
   });
 
   return { cvDocument, improvements };

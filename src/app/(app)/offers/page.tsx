@@ -1,15 +1,13 @@
 import { jobOfferService } from '@/entities/job-offer/service';
 import { AddOfferForm } from '@/features/job-offer/components/add-offer-form';
 import { OfferList } from '@/features/job-offer/components/offer-list';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function OffersPage() {
-  const offers = await jobOfferService.findMany({
-    where: { ownerId: SEED_OWNER_ID },
-    orderBy: { createdAt: 'desc' },
-  });
+  const ownerId = await getOwnerId();
+  const offers = await jobOfferService.findMany({ ownerId });
 
   return (
     <div className="flex flex-col gap-6">

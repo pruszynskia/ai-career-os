@@ -1,4 +1,4 @@
-import type { JobOffer } from '@prisma/client';
+import type { JobOffer } from '@/entities/job-offer/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 

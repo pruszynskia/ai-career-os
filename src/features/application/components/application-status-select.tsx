@@ -1,6 +1,6 @@
 'use client';
 
-import type { ApplicationStatus } from '@prisma/client';
+import type { ApplicationStatus } from '@/entities/application/types';
 import { useRouter } from 'next/navigation';
 
 import { useUpdateApplicationStatus } from '@/features/application/hooks/use-update-application-status';

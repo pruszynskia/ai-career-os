@@ -1,6 +1,6 @@
 'use client';
 
-import type { JobOffer } from '@prisma/client';
+import type { JobOffer } from '@/entities/job-offer/types';
 import { useState } from 'react';
 
 import type { ApplicationBundle } from '@/entities/application/types';

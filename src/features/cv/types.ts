@@ -1,4 +1,5 @@
-import type { CvDocument, Profile } from '@prisma/client';
+import type { CvDocument } from '@/entities/cv-document/types';
+import type { Profile } from '@/entities/profile/types';
 import { z } from 'zod';
 
 export interface UploadCvResponse {

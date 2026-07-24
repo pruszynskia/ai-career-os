@@ -284,16 +284,18 @@ Optimize only where there is measurable impact.
 # Backend and Data Access Rules
 
 Route Handlers stay thin: validate the request with Zod, call one service
-function, return a typed response. Never call Prisma from a route handler.
+function, return a typed response. Never call the Supabase client from a
+route handler.
 
-All Prisma queries for one entity live in exactly one service module
+All Supabase queries for one entity live in exactly one service module
 (`src/entities/{entity}/service.ts` or `src/features/{feature}/services/*.service.ts`),
 never scattered across route handlers or components.
 
-Every model has `id`, `ownerId`, `createdAt`, `updatedAt`. Schema changes only
-through `prisma migrate` — never a hand-edited database.
+Every table has `id`, `owner_id`, `created_at`, `updated_at`, and RLS policies
+enforcing `owner_id = auth.uid()`. Schema changes only through
+`supabase/migrations/*.sql` — never a hand-edited database.
 
-See `ARCHITECTURE.md` "Backend & Data Layer" and ADR-006 in
+See `ARCHITECTURE.md` "Backend & Data Layer" and ADR-009 in
 `memory-bank/decisions.md`.
 
 ---

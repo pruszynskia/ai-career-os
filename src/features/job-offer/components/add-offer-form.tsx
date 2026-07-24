@@ -14,9 +14,7 @@ export function AddOfferForm() {
   const [mode, setMode] = useState<'url' | 'raw-text'>('url');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
-  const [duplicateOfferId, setDuplicateOfferId] = useState<string | null>(
-    null,
-  );
+  const [duplicateOfferId, setDuplicateOfferId] = useState<string | null>(null);
   const mutation = useAddOffer();
 
   function handleSubmit(event: React.FormEvent) {

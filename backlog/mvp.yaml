@@ -119,50 +119,41 @@ tasks:
     github:
       issue: "2"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: M
     milestone: MVP
     depends_on:
       - TASK-001
-    title: Database schema and Prisma setup
+    title: Database schema and Supabase Postgres setup
     goal: >
-      Define the PostgreSQL data model with Prisma covering the full MVP domain (profile, CV documents, job offers, applications, posts), provide a seed for the single-user setup, and establish the entity-service layering all backend tasks will follow, keeping later multi-user support additive per ADR-005.
+      Define the Supabase PostgreSQL data model covering the full MVP domain (profile, CV documents, job offers, applications, posts), enforce per-owner authorization with Row Level Security instead of app-level filtering, and establish the entity-service layering all backend tasks follow, keeping later multi-user support additive per ADR-005/ADR-009.
 
     scope:
-      - prisma/schema.prisma
-      - prisma/seed.ts
+      - supabase/migrations/*.sql
       - src/shared/db/client.ts
+      - src/shared/db/admin.ts
       - src/entities/**/service.ts
+      - src/entities/**/types.ts
       - .env.example
     deliverables:
-      - Prisma configured against PostgreSQL
-      - Domain models and enums defined, each with id/ownerId/createdAt/updatedAt
-      - Initial migration created
-      - Seed script for single user and empty profile
+      - Supabase Postgres schema and RLS policies committed as SQL migrations
+      - Domain tables and enums defined, each with id/owner_id/created_at/updated_at
+      - Per-request Supabase server client and a service-role admin client
       - One service module per entity for later route handlers to call
     tasks:
-      - Install and configure Prisma with PostgreSQL
-      - Define Profile model (summary, skills, experience)
-      - Define CvDocument model (master and tailored versions, downloadable content)
-      - Define JobOffer model (url, source, rawContent, company, title, description, matchScore, isFavorite)
-      - Define Application model (jobOffer, sentCv, recruiterMessage, status, timeline)
-      - Define Post model (content, status, scheduledAt, sentAt)
-      - Define enums ApplicationStatus, PostStatus, OfferSource
-      - Add id, ownerId (ADR-005), createdAt, updatedAt on every top-level model; index ownerId and foreign keys
-      - Create initial migration
-      - Add seed for single user and empty profile
-      - Add a shared Prisma client singleton (src/shared/db/client.ts)
-      - Add one empty/minimal service module per entity under src/entities/{entity}/service.ts as the only place later tasks query that entity (ADR-006)
+      - Write supabase/migrations/*.sql defining every table (profiles, cv_documents, job_offers, applications, posts) and enum (application_status, post_status, offer_source)
+      - Add id, owner_id (references auth.users, ADR-005/ADR-009), created_at, updated_at on every top-level table; index owner_id and foreign keys
+      - Enable Row Level Security on every table with an owner_id = auth.uid() policy
+      - Add a per-request Supabase server client (src/shared/db/client.ts) and a service-role admin client (src/shared/db/admin.ts, never used in request-handling code)
+      - Add one service module per entity under src/entities/{entity}/service.ts as the only place later tasks query that entity (ADR-006/ADR-009), plus a canonical types.ts per entity
     acceptance:
-      - prisma migrate produces a clean initial migration
-      - prisma generate succeeds
-      - Seed runs without errors
+      - supabase/migrations/*.sql applies cleanly against a Supabase project
+      - RLS is enabled with an owner-scoped policy on every table
       - npm run typecheck reports zero errors
     done:
-      - Schema and migration committed
-      - Seed verified
-      - Prisma client reused via shared singleton
+      - Schema and RLS policies committed as SQL migrations
+      - Supabase client singleton pattern in place (per-request server client + admin client)
       - Entity service modules in place for later tasks to extend
     labels:
       - database
@@ -180,21 +171,21 @@ tasks:
 
       Model exactly the entities listed in the task scope, no extra tables.
 
-      Keep the schema single-user in behavior, but add the ownerId column
-      called for by ADR-005 so multi-user is additive later, and the
-      id/createdAt/updatedAt/ownerId + index convention from ARCHITECTURE.md
-      "Backend & Data Layer" on every top-level model. Do not add
-      query-level multi-tenant filtering or a users table beyond the seed.
+      Keep the schema single-user in behavior, but add the owner_id column
+      called for by ADR-005/ADR-009 so multi-user is additive later, and the
+      id/created_at/updated_at/owner_id + index convention from
+      ARCHITECTURE.md "Backend & Data Layer" on every top-level table.
+      Enforce owner scoping via RLS policies, not query-level filtering.
 
       Create one service module per entity (src/entities/{entity}/service.ts)
-      per ADR-006 — later tasks' route handlers call these, never Prisma
-      directly.
+      per ADR-006/ADR-009 — later tasks' route handlers call these, never the
+      Supabase client directly.
 
       Stop immediately after acceptance criteria are met.
     do_not:
-      - Add speculative tables or columns beyond ownerId/timestamps
-      - Introduce a second ORM or query builder
-      - Call Prisma from anywhere other than an entity service module
+      - Add speculative tables or columns beyond owner_id/timestamps
+      - Introduce an ORM
+      - Call the Supabase client from anywhere other than an entity service module
       - Add multi-tenant query filtering or a users table
   ###############################################################################
   # TASK-003
@@ -203,7 +194,7 @@ tasks:
     github:
       issue: "3"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: S
     milestone: MVP
@@ -212,22 +203,24 @@ tasks:
       - TASK-002
     title: Minimal single-user authentication
     goal: >
-      Gate the application behind a single seeded account so only the owner can access it, without building multi-user infrastructure — but configure Auth.js so OAuth providers (Google, LinkedIn, GitHub, Email) can be added later as additive config per ADR-005.
+      Gate the application behind a single seeded Supabase Auth account so only the owner can access it, without building multi-user infrastructure — OAuth providers (Google, LinkedIn, GitHub) can be added later as a Supabase dashboard toggle per ADR-005/ADR-009.
 
     scope:
-      - src/app/api/auth/[...nextauth]/route.ts
-      - src/shared/auth/config.ts
+      - scripts/create-owner-user.ts
+      - src/shared/auth/session.ts
+      - src/shared/auth/actions.ts
       - src/middleware.ts
+      - src/app/sign-in/page.tsx
       - .env.example
     deliverables:
-      - Auth.js configured with a single credentials account from env
-      - App routes protected by middleware
+      - Single Supabase Auth account provisioned via a one-off admin script
+      - App routes protected by middleware using @supabase/ssr session handling
       - Sign-in and sign-out flow
     tasks:
-      - Configure Auth.js with a credentials provider backed by env values, using the standard `providers` array so more providers are additive later
-      - Protect the application route group via middleware
-      - Add a minimal sign-in page
-      - Add sign-out action
+      - Add scripts/create-owner-user.ts using the Supabase admin client to provision the single owner account from env values
+      - Protect the application route group via middleware using @supabase/ssr's session-refresh pattern
+      - Add a minimal sign-in page calling supabase.auth.signInWithPassword
+      - Add a sign-out server action calling supabase.auth.signOut
     acceptance:
       - Unauthenticated requests to app routes redirect to sign-in
       - Correct credentials establish a session
@@ -250,11 +243,10 @@ tasks:
     prompt: |
       Implement ONLY this task.
 
-      Use a single account sourced from environment variables. Do not add a
-      users table, registration, password reset, or OAuth providers now —
-      just use Auth.js's standard `providers` array/config shape so Google,
-      LinkedIn, GitHub, and Email providers are additive later (ADR-005), not
-      a framework change.
+      Use a single account provisioned in Supabase Auth. Do not add a
+      registration flow, password reset, or OAuth providers now — Supabase
+      Auth already supports adding Google/LinkedIn/GitHub as a dashboard
+      toggle later (ADR-005/ADR-009), not a framework change.
 
       Keep it to the smallest working session gate.
 
@@ -262,7 +254,7 @@ tasks:
     do_not:
       - Add OAuth providers
       - Add registration or multi-user support
-      - Store credentials in the database
+      - Store credentials outside Supabase Auth
   ###############################################################################
   # TASK-004
   ###############################################################################
@@ -1009,7 +1001,7 @@ tasks:
       - TASK-001
     title: CI pipeline and Vercel deployment
     goal: >
-      Add continuous integration and deployment so every change is linted, type-checked, tested and built before shipping to Vercel.
+      Add continuous integration and deployment so every change is linted, type-checked, tested and built before shipping to Vercel, with Supabase project credentials configured for both production and preview environments.
 
     scope:
       - .github/workflows/ci.yml
@@ -1017,12 +1009,13 @@ tasks:
       - tests/smoke/**
     deliverables:
       - GitHub Actions pipeline (install, lint, typecheck, test, build)
-      - Vercel deployment configuration
+      - Vercel deployment configuration with Supabase env vars for production and preview
       - Minimal smoke test
     tasks:
       - Add a GitHub Actions workflow running install, lint, typecheck, test and build
       - Add minimal Vitest and Playwright smoke tests
       - Configure Vercel deployment
+      - Add NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY to the Vercel project (production and preview environments)
     acceptance:
       - CI runs and passes on a pull request
       - Smoke tests pass
@@ -1401,7 +1394,7 @@ tasks:
     github:
       issue: "36"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 0 - MVP Stabilization"
@@ -1410,7 +1403,7 @@ tasks:
       - TASK-016
     title: Data layer and repository pattern
     goal: >
-      Formalize the entity-service convention established by ADR-006 into a consistent, ownerId-scoped interface per entity, closing gaps such as src/entities/cv-document/service.ts today being a raw prisma.cvDocument passthrough with no scoping.
+      Formalize the entity-service convention established by ADR-006/ADR-009 into a consistent interface per entity, with owner scoping enforced by Row Level Security instead of an app-level scoping helper, closing gaps such as src/entities/cv-document/service.ts previously being a raw prisma.cvDocument passthrough with no scoping.
 
     scope:
       - src/entities/*/service.ts
@@ -1418,23 +1411,23 @@ tasks:
       - src/shared/db/**
       - memory-bank/decisions.md
     deliverables:
-      - Shared ownerId scoping helper and pagination types in src/shared/db
-      - Every entity service exposing consistent list/get/create/update methods
-      - ADR extending ADR-006 with the formalized interface
+      - Every entity service exposing consistent list/get/create/update methods over the Supabase client
+      - RLS policies enforcing owner_id = auth.uid() on every table (supabase/migrations/*.sql, added in TASK-002)
+      - ADR (ADR-009) documenting the formalized interface
     tasks:
-      - Audit every entity and feature service module, and every route handler, for direct Prisma calls or unscoped queries, per ADR-006
-      - Add a shared scoping helper (for example withOwnerScope) and shared pagination types in src/shared/db
-      - Refactor each entity service, including cv-document, to expose consistent list/get/create/update methods that use the shared helper instead of a raw Prisma delegate
-      - Fix any route handler found calling Prisma directly so it goes through its entity service
-      - Extend ADR-006 (or add a new ADR) in memory-bank/decisions.md documenting the formalized interface
+      - Audit every entity and feature service module, and every route handler, for direct Supabase client calls or unscoped queries
+      - Refactor each entity service, including cv-document, to expose consistent list/get/create/update methods over the Supabase query builder instead of a raw Prisma delegate
+      - Rely on RLS (owner_id = auth.uid()) for owner scoping instead of a shared app-level scoping helper
+      - Fix any route handler found calling the Supabase client directly so it goes through its entity service
+      - Document the formalized interface in memory-bank/decisions.md (ADR-009)
     acceptance:
-      - Searching src/app/api, src/features/**/components and src/features/**/hooks for direct prisma. or @prisma/client PrismaClient usage outside entity and feature service modules returns nothing
-      - Every entity service exposes ownerId-scoped list/get/create/update methods
+      - Searching src/app/api, src/features/**/components and src/features/**/hooks for direct Supabase client or @prisma/client usage outside entity and feature service modules returns nothing
+      - Every entity service exposes a consistent list/get/create/update interface
       - npm run typecheck, npm run lint, npm run build and npm run test succeed
     done:
       - All entity services conform to the formalized interface
-      - No route handler calls Prisma directly
-      - ADR recorded
+      - No route handler calls the Supabase client directly
+      - ADR-009 recorded
     labels:
       - backend
       - database
@@ -1450,15 +1443,15 @@ tasks:
     prompt: |
       Implement ONLY this task.
 
-      Build on ADR-006's existing layering (Route Handler -> Zod validation
-      -> entity service -> Prisma client); do not introduce a new ORM,
-      query builder, or an abstraction beyond what Prisma already provides.
+      Build on ADR-006/ADR-009's layering (Route Handler -> Zod validation
+      -> entity service -> Supabase client, RLS-enforced); do not introduce
+      an ORM, query builder, or an abstraction beyond plain Supabase queries.
 
       Stop immediately after acceptance criteria are met.
     do_not:
-      - Build an ORM-agnostic abstraction beyond what Prisma provides
+      - Build an app-level ownerId scoping helper — RLS already enforces this
       - Add caching or query batching
-      - Change the Prisma schema
+      - Change the Supabase schema
   ###############################################################################
   # TASK-022
   ###############################################################################
@@ -1586,7 +1579,7 @@ tasks:
 
       Stop immediately after acceptance criteria are met.
     do_not:
-      - Change the CvDocument Prisma schema
+      - Change the CvDocument Supabase schema
       - Add a rich-text document editor
       - Merge the cv and job-offer feature slices into one
   ###############################################################################
@@ -1605,7 +1598,7 @@ tasks:
       - TASK-016
     title: Domain models
     goal: >
-      Give every top-level entity one canonical types.ts (Prisma-derived type plus Zod schema) under src/entities/{entity}/, closing the gap where cv-document has none and where the cv and job-offer feature types.ts files redeclare entity-shaped DTOs ad hoc.
+      Give every top-level entity one canonical types.ts (a hand-written type mirroring the Supabase schema, plus a Zod schema) under src/entities/{entity}/, closing the gap where cv-document has none and where the cv and job-offer feature types.ts files redeclare entity-shaped DTOs ad hoc.
 
     scope:
       - src/entities/*/types.ts
@@ -1643,13 +1636,13 @@ tasks:
     prompt: |
       Implement ONLY this task.
 
-      Do not change the Prisma schema; this task only consolidates
+      Do not change the Supabase schema; this task only consolidates
       TypeScript/Zod types that already describe it. Do not rewrite
       unrelated business logic while moving types.
 
       Stop immediately after acceptance criteria are met.
     do_not:
-      - Change the Prisma schema
+      - Change the Supabase schema
       - Add a validation library other than Zod
       - Rewrite unrelated business logic
   ###############################################################################

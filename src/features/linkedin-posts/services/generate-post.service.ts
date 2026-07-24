@@ -10,7 +10,7 @@ import {
   generatePostSystemPrompt,
 } from '@/shared/ai/prompts/generate-post';
 import { getAiService } from '@/shared/ai/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
+import { getOwnerId } from '@/shared/auth/session';
 
 export class NoProfileError extends Error {
   constructor() {
@@ -38,9 +38,8 @@ export function buildProfileText(profile: {
 }
 
 export async function generatePost(topic: string) {
-  const profile = await profileService.findUnique({
-    where: { ownerId: SEED_OWNER_ID },
-  });
+  const ownerId = await getOwnerId();
+  const profile = await profileService.findUnique(ownerId);
 
   if (!profile) throw new NoProfileError();
 
@@ -49,19 +48,14 @@ export async function generatePost(topic: string) {
       { role: 'system', content: generatePostSystemPrompt },
       {
         role: 'user',
-        content: buildGeneratePostUserMessage(
-          buildProfileText(profile),
-          topic,
-        ),
+        content: buildGeneratePostUserMessage(buildProfileText(profile), topic),
       },
     ],
     schema: generatedPostSchema,
     schemaName: 'generated_post',
   });
 
-  const post = await postService.create({
-    data: { ownerId: SEED_OWNER_ID, content, status: 'DRAFT' },
-  });
+  const post = await postService.create({ ownerId, content, status: 'DRAFT' });
 
   return { post };
 }

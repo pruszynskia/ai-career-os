@@ -1,14 +1,42 @@
-import { auth } from '@/shared/auth/config';
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
-export default auth((req) => {
-  const isSignedIn = Boolean(req.auth);
-  const isSignInPage = req.nextUrl.pathname === '/sign-in';
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+        },
+      },
+    },
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isSignedIn = Boolean(user);
+  const isSignInPage = request.nextUrl.pathname === '/sign-in';
 
   if (!isSignedIn && !isSignInPage) {
-    return Response.redirect(new URL('/sign-in', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/sign-in', request.url));
   }
-});
+
+  return response;
+}
 
 export const config = {
-  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

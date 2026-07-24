@@ -472,8 +472,8 @@ Backend Implementation
 
 Backend:
 
-Next.js Route Handlers (`src/app/api/**`) + Prisma + PostgreSQL. No separate
-backend service for MVP.
+Next.js Route Handlers (`src/app/api/**`) + Supabase (PostgreSQL, no ORM). No
+separate backend service for MVP.
 
 Backend Flow
 
@@ -490,19 +490,18 @@ Entity service (`src/entities/{entity}/service.ts` or
 
 ↓
 
-Prisma Client (`src/shared/db/client.ts` singleton)
+Supabase client (`src/shared/db/client.ts`, per-request via `@supabase/ssr`)
 
 ↓
 
-PostgreSQL
+Supabase PostgreSQL (RLS enforces owner scoping)
 
 Rules:
 
-- Route handlers stay thin: validate input, call one service function, return a typed response. No Prisma calls inside route handlers.
-- Prisma queries for an entity live in exactly one service module — not scattered across route handlers or components.
-- This keeps ownership of each entity's data-access logic in one place, so later multi-tenant scoping (ADR-005) is a change in the service, not a hunt across route handlers.
+- Route handlers stay thin: validate input, call one service function, return a typed response. No Supabase client calls inside route handlers.
+- Supabase queries for an entity live in exactly one service module — not scattered across route handlers or components.
+- This keeps ownership of each entity's data-access logic in one place; multi-tenant scoping (ADR-005) is already enforced by RLS, not app-level filtering.
 
-See ARCHITECTURE.md "Backend & Data Layer" for the full picture, and ADR-006
-in memory-bank/decisions.md for why this pattern was chosen over calling
-Prisma directly from route handlers or standing up a separate backend
-service (NestJS, etc.).
+See ARCHITECTURE.md "Backend & Data Layer" for the full picture, and ADR-009
+in memory-bank/decisions.md for why this pattern (Supabase client + RLS)
+replaced Prisma + app-level `ownerId` filtering.

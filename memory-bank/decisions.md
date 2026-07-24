@@ -271,3 +271,46 @@ Consequences:
   `npm run lint`.
 - Cross-feature composition must go through the widget layer, matching
   `ARCHITECTURE.md`'s existing widget → feature dependency rule.
+
+## ADR-009
+
+Date:
+
+2026-07-24
+
+Decision:
+
+Migrate the backend from Prisma + PostgreSQL + Auth.js to Supabase: Supabase
+PostgreSQL accessed directly via `@supabase/supabase-js` (no ORM), with
+per-owner authorization enforced by Row Level Security (`owner_id =
+auth.uid()`) instead of app-level `ownerId` filtering, and Supabase Auth
+(single seeded email/password user via `scripts/create-owner-user.ts`,
+session handled by `@supabase/ssr`) replacing Auth.js. This supersedes
+ADR-006's Prisma/PostgreSQL layering and amends ADR-005's mechanism (the
+`ownerId` column becomes `owner_id uuid references auth.users`, and "Auth.js
+configured for additive OAuth providers" becomes "Supabase Auth, OAuth
+providers are a dashboard toggle"). ADR-003's decision — one seeded owner
+account, no registration, no multi-user — is unchanged; only its mechanism
+is.
+
+Reason:
+
+Supabase provides Postgres, auth, and (when needed) storage as one platform
+with Vercel-friendly deployment, removing a separate ORM/connection layer and
+an Auth.js credentials setup that had to be hand-rolled for a "single user"
+model Auth.js isn't really built around. RLS enforces owner scoping at the
+database level, which is a stronger guarantee than the app-level scoping
+helper ADR-005/TASK-021 had planned, and needs no additional code per entity.
+
+Alternatives Considered:
+
+- Keep Prisma, point `DATABASE_URL` at Supabase's Postgres connection string — rejected: still requires Prisma's client/migration workflow on top of a platform (Supabase) that already provides equivalent tooling (SQL migrations, generated types); doesn't get RLS-based authorization without extra app-level plumbing anyway.
+- Keep Auth.js, add a Supabase Postgres-backed adapter — rejected: Auth.js's credentials-only single-user setup and Supabase Auth's session/user model would have run in parallel, doubling the auth surface instead of replacing it.
+
+Consequences:
+
+- `prisma/`, `@prisma/client`, `prisma`, and `next-auth` are removed entirely; `@supabase/supabase-js` and `@supabase/ssr` are the only backend dependencies.
+- Every entity service (`src/entities/*/service.ts`) now calls the Supabase query builder directly with plain-argument methods (no Prisma-shaped `{where, data}` objects), mapping snake_case rows to the same camelCase domain shapes callers already expected.
+- `src/shared/auth/owner.ts` (the `SEED_OWNER_ID` constant) is replaced by `src/shared/auth/session.ts`'s `getOwnerId()`, which reads the real signed-in Supabase Auth user's id per request.
+- Canonical domain types (`Profile`, `CvDocument`, `JobOffer`, `Application`, `ApplicationStatus`, `ApplicationBundle`, `Post`) now live under `src/entities/*/types.ts` instead of being imported from `@prisma/client` — this also closes the gap TASK-024 had flagged (no `cv-document/types.ts`, ad hoc DTOs).
+- TASK-021's planned "shared ownerId scoping helper" is superseded by RLS; no such helper was built.

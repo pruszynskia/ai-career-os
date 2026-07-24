@@ -15,7 +15,9 @@ export function PlanPostsButton() {
         type="button"
         variant="outline"
         disabled={mutation.isPending}
-        onClick={() => mutation.mutate(undefined, { onSuccess: () => router.refresh() })}
+        onClick={() =>
+          mutation.mutate(undefined, { onSuccess: () => router.refresh() })
+        }
       >
         {mutation.isPending ? 'Planning…' : 'Plan next posts'}
       </Button>

@@ -16,3 +16,13 @@ export const parsedProfileSchema = z.object({
 
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
 export type ParsedProfileExperience = ParsedProfile['experience'][number];
+
+export interface Profile {
+  id: string;
+  ownerId: string;
+  summary: string;
+  skills: string[];
+  experience: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+}

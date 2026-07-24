@@ -54,11 +54,15 @@ export function Sidebar() {
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium hover:bg-muted',
-                  isActive ? 'bg-muted text-foreground' : 'text-muted-foreground',
+                  isActive
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground',
                 )}
               >
                 <Icon aria-hidden="true" className="size-4 shrink-0" />
-                <span className={isSidebarOpen ? undefined : 'sr-only'}>{label}</span>
+                <span className={isSidebarOpen ? undefined : 'sr-only'}>
+                  {label}
+                </span>
               </Link>
             </li>
           );

@@ -8,10 +8,10 @@ import {
   parseCvSystemPrompt,
 } from '@/shared/ai/prompts/parse-cv';
 import { getAiService } from '@/shared/ai/service';
-import { SEED_OWNER_ID } from '@/shared/auth/owner';
-import { prisma } from '@/shared/db/client';
+import { getOwnerId } from '@/shared/auth/session';
 
 export async function uploadCv(text: string) {
+  const ownerId = await getOwnerId();
   const parsed = await getAiService().generateStructured({
     messages: [
       { role: 'system', content: parseCvSystemPrompt },
@@ -21,20 +21,18 @@ export async function uploadCv(text: string) {
     schemaName: 'parsed_profile',
   });
 
-  const [, profile, cvDocument] = await prisma.$transaction([
-    cvDocumentService.updateMany({
-      where: { ownerId: SEED_OWNER_ID, isMaster: true },
-      data: { isMaster: false },
-    }),
-    profileService.upsert({
-      where: { ownerId: SEED_OWNER_ID },
-      create: { ownerId: SEED_OWNER_ID, ...parsed },
-      update: { ...parsed },
-    }),
-    cvDocumentService.create({
-      data: { ownerId: SEED_OWNER_ID, isMaster: true, content: text },
-    }),
-  ]);
+  // ponytail: sequential awaits, not one DB transaction — see the
+  // cvDocumentService.updateMany note in src/entities/cv-document/service.ts.
+  await cvDocumentService.updateMany(
+    { ownerId, isMaster: true },
+    { isMaster: false },
+  );
+  const profile = await profileService.upsert(ownerId, parsed);
+  const cvDocument = await cvDocumentService.create({
+    ownerId,
+    isMaster: true,
+    content: text,
+  });
 
   return { profile, cvDocument };
 }
