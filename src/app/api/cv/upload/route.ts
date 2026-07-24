@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }
 
+    console.error('Failed to process the CV', error);
     return NextResponse.json(
       { message: 'Failed to process the CV.' },
       { status: 500 },
