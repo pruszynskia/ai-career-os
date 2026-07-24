@@ -44,6 +44,44 @@ fi
 
 
 ###############################################################################
+# Milestones
+# Ensures every milestone declared in project.milestones exists on GitHub.
+# gh issue create/edit --milestone requires the milestone to already exist,
+# it will not create one on the fly.
+###############################################################################
+
+ensure_milestones(){
+
+
+REPO=$(yq '.project.github.repository' "$FILE")
+
+EXISTING_MILESTONES=$(gh api "repos/$REPO/milestones?state=all" --paginate -q '.[].title' 2>/dev/null || true)
+
+MILESTONE_COUNT=$(yq '.project.milestones | length' "$FILE")
+
+
+
+for ((m=0;m<MILESTONE_COUNT;m++))
+do
+
+MS_TITLE=$(yq ".project.milestones[$m]" "$FILE")
+
+if ! grep -Fxq "$MS_TITLE" <<< "$EXISTING_MILESTONES"
+
+then
+
+echo "🏁 Creating milestone: $MS_TITLE"
+gh api "repos/$REPO/milestones" -f title="$MS_TITLE" -f state=open >/dev/null
+
+fi
+
+done
+
+}
+
+
+
+###############################################################################
 # PUSH
 # YAML → GitHub Issues
 ###############################################################################
@@ -52,6 +90,10 @@ push_sync(){
 
 
 echo "⬆️ Syncing YAML → GitHub"
+
+
+
+ensure_milestones
 
 
 
@@ -139,6 +181,32 @@ LABELS=$(yq ".tasks[$i].labels[]?" "$FILE" 2>/dev/null | tr '\n' ',' | sed 's/,$
 
 
 ###############################################################################
+# Milestone
+###############################################################################
+
+MILESTONE=$(yq ".tasks[$i].milestone" "$FILE")
+
+if [ "$MILESTONE" = "null" ] || [ -z "$MILESTONE" ]
+
+then
+
+MILESTONE=""
+
+fi
+
+MILESTONE_ARGS=()
+
+if [ -n "$MILESTONE" ]
+
+then
+
+MILESTONE_ARGS=(--milestone "$MILESTONE")
+
+fi
+
+
+
+###############################################################################
 # Check Issue from YAML
 ###############################################################################
 
@@ -194,7 +262,8 @@ echo "♻️ Updating $ID (#$EXISTING)"
 
 
 gh issue edit "$EXISTING" \
---body-file "$BODY_FILE"
+--body-file "$BODY_FILE" \
+"${MILESTONE_ARGS[@]}"
 
 
 
@@ -220,7 +289,8 @@ then
 
 ISSUE_URL=$(gh issue create \
 --title "[$ID] $TITLE" \
---body-file "$BODY_FILE")
+--body-file "$BODY_FILE" \
+"${MILESTONE_ARGS[@]}")
 
 
 else
@@ -229,7 +299,8 @@ else
 ISSUE_URL=$(gh issue create \
 --title "[$ID] $TITLE" \
 --body-file "$BODY_FILE" \
---label "$LABELS")
+--label "$LABELS" \
+"${MILESTONE_ARGS[@]}")
 
 
 fi
@@ -340,6 +411,22 @@ yq -i \
 ".tasks[$i].status = \"done\"" \
 "$FILE"
 
+
+fi
+
+
+
+MILESTONE_TITLE=$(gh issue view "$ISSUE" \
+--json milestone \
+--jq '.milestone.title // ""')
+
+if [ -n "$MILESTONE_TITLE" ]
+
+then
+
+yq -i \
+".tasks[$i].milestone = \"$MILESTONE_TITLE\"" \
+"$FILE"
 
 fi
 
