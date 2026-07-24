@@ -14,9 +14,14 @@ export default async function OfferPage({
   const { id } = await params;
   const offer = await jobOfferService.findFirst({
     where: { id, ownerId: SEED_OWNER_ID },
+    include: {
+      tailoredCvs: { orderBy: { createdAt: 'desc' }, take: 1 },
+    },
   });
 
   if (!offer) notFound();
 
-  return <OfferDetail offer={offer} />;
+  const { tailoredCvs, ...jobOffer } = offer;
+
+  return <OfferDetail offer={jobOffer} latestTailoredCv={tailoredCvs[0]} />;
 }

@@ -1,8 +1,10 @@
 'use client';
 
-import type { JobOffer } from '@prisma/client';
+import type { CvDocument, JobOffer } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useCreateApplication } from '@/features/application/hooks/use-create-application';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
 import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
@@ -11,12 +13,23 @@ import { downloadTextFile } from '@/features/job-offer/utils';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
-export function OfferDetail({ offer }: { offer: JobOffer }) {
+export function OfferDetail({
+  offer,
+  latestTailoredCv,
+}: {
+  offer: JobOffer;
+  latestTailoredCv?: CvDocument;
+}) {
+  const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
   const matchMutation = useMatchOffer();
   const tailorCvMutation = useTailorCv();
   const recruiterMessageMutation = useRecruiterMessage();
   const coverLetterMutation = useCoverLetter();
+  const createApplicationMutation = useCreateApplication();
+
+  const sentCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
+  const canTrackApplication = Boolean(sentCv) && recruiterMessageMutation.isSuccess;
 
   return (
     <div className="flex flex-col gap-6">
@@ -153,6 +166,52 @@ export function OfferDetail({ offer }: { offer: JobOffer }) {
             >
               Download cover letter
             </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Track application</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {!sentCv && (
+            <p className="text-sm text-muted-foreground">
+              Generate a tailored CV before tracking this application.
+            </p>
+          )}
+          {sentCv && !recruiterMessageMutation.isSuccess && (
+            <p className="text-sm text-muted-foreground">
+              Generate a recruiter message before tracking this application.
+            </p>
+          )}
+          <Button
+            variant="secondary"
+            className="self-start"
+            disabled={
+              !canTrackApplication || createApplicationMutation.isPending
+            }
+            onClick={() =>
+              sentCv &&
+              recruiterMessageMutation.data &&
+              createApplicationMutation.mutate(
+                {
+                  jobOfferId: offer.id,
+                  sentCvId: sentCv.id,
+                  recruiterMessage: recruiterMessageMutation.data.message,
+                },
+                { onSuccess: () => router.push('/applications') },
+              )
+            }
+          >
+            {createApplicationMutation.isPending
+              ? 'Creating…'
+              : 'Track application'}
+          </Button>
+          {createApplicationMutation.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              {createApplicationMutation.error.message}
+            </p>
           )}
         </CardContent>
       </Card>
