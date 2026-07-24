@@ -1,5 +1,9 @@
 import type {
   AddOfferResponse,
+  CoverLetterResponse,
+  MatchOfferResponse,
+  RecruiterMessageResponse,
+  TailorCvResponse,
   ToggleFavoriteResponse,
 } from '@/features/job-offer/types';
 
@@ -41,4 +45,49 @@ export async function toggleFavorite(
   }
 
   return response.json();
+}
+
+async function postOfferAction<T>(
+  id: string,
+  action: string,
+  fallbackMessage: string,
+): Promise<T> {
+  const response = await fetch(`/api/offers/${id}/${action}`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? fallbackMessage);
+  }
+
+  return response.json();
+}
+
+export function matchOffer(id: string): Promise<MatchOfferResponse> {
+  return postOfferAction(id, 'match', 'Failed to match the offer.');
+}
+
+export function tailorCv(id: string): Promise<TailorCvResponse> {
+  return postOfferAction(id, 'tailor-cv', 'Failed to tailor the CV.');
+}
+
+export function generateRecruiterMessage(
+  id: string,
+): Promise<RecruiterMessageResponse> {
+  return postOfferAction(
+    id,
+    'recruiter-message',
+    'Failed to generate the recruiter message.',
+  );
+}
+
+export function generateCoverLetter(id: string): Promise<CoverLetterResponse> {
+  return postOfferAction(
+    id,
+    'cover-letter',
+    'Failed to generate the cover letter.',
+  );
 }

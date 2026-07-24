@@ -1,6 +1,7 @@
 'use client';
 
 import type { JobOffer } from '@prisma/client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
@@ -31,9 +32,14 @@ export function OfferList({ offers }: { offers: JobOffer[] }) {
       {offers.map((offer) => (
         <Card key={offer.id}>
           <CardHeader>
-            <CardTitle>{offer.title}</CardTitle>
+            <CardTitle>
+              <Link href={`/offers/${offer.id}`} className="hover:underline">
+                {offer.title}
+              </Link>
+            </CardTitle>
             <CardDescription>
               {offer.company} · {offer.source}
+              {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
             </CardDescription>
             <CardAction>
               <Button
