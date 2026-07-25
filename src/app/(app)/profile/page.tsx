@@ -4,8 +4,8 @@ import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
 import { getOwnerId } from '@/shared/auth/session';
+import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { PageHeader } from '@/shared/ui/page-header';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +14,7 @@ export default async function ProfilePage() {
   const profile = await profileService.findUnique(ownerId);
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Profile" />
-
+    <AppPageLayout title="Profile">
       <CvUploadForm />
 
       {profile ? (
@@ -33,6 +31,6 @@ export default async function ProfilePage() {
       ) : (
         <EmptyState message="No profile yet — upload your CV to get started." />
       )}
-    </div>
+    </AppPageLayout>
   );
 }

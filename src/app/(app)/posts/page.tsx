@@ -3,7 +3,7 @@ import { GeneratePostForm } from '@/features/linkedin-posts/components/generate-
 import { PlanPostsButton } from '@/features/linkedin-posts/components/plan-posts-button';
 import { PostList } from '@/features/linkedin-posts/components/post-list';
 import { getOwnerId } from '@/shared/auth/session';
-import { PageHeader } from '@/shared/ui/page-header';
+import { AppPageLayout } from '@/shared/layouts';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,14 +12,12 @@ export default async function PostsPage() {
   const posts = await postService.findMany({ ownerId });
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Posts" />
-
+    <AppPageLayout title="Posts">
       <GeneratePostForm />
 
       <PlanPostsButton />
 
       <PostList posts={posts} />
-    </div>
+    </AppPageLayout>
   );
 }

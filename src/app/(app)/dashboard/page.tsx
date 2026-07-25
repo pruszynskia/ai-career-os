@@ -5,7 +5,8 @@ import { FavoriteOffersCard } from '@/features/dashboard/components/favorite-off
 import { NextPostCard } from '@/features/dashboard/components/next-post-card';
 import { UpcomingInterviewsCard } from '@/features/dashboard/components/upcoming-interviews-card';
 import { getOwnerId } from '@/shared/auth/session';
-import { Grid, Heading, VStack } from '@/shared/ui/primitives';
+import { AppPageLayout } from '@/shared/layouts';
+import { Grid } from '@/shared/ui/primitives';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,14 +22,12 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <VStack gap={6}>
-      <Heading level={1}>Dashboard</Heading>
-
+    <AppPageLayout title="Dashboard">
       <Grid cols={1} colsMd={2} gap={6}>
         <NextPostCard post={posts[0] ?? null} />
         <UpcomingInterviewsCard applications={applications} />
         <FavoriteOffersCard offers={offers} />
       </Grid>
-    </VStack>
+    </AppPageLayout>
   );
 }
