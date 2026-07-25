@@ -230,6 +230,7 @@ Rules:
 - Schema changes only via `supabase/migrations/*.sql` — never hand-edited in the database.
 - Every table carries `id`, `owner_id` (references `auth.users`, ADR-005/ADR-009), `created_at`, `updated_at`; RLS policies scope every row to `owner_id = auth.uid()`.
 - Supabase URL/keys and all secrets come from environment variables, never hardcoded; `SUPABASE_SERVICE_ROLE_KEY` is server-only and never used in request-handling code.
+- Entity types are canonical: each top-level entity has one `src/entities/{entity}/types.ts` with a hand-written type mirroring the Supabase schema and a Zod schema for that same shape (e.g. `applicationSchema`, `jobOfferSchema`). Route handlers and feature `types.ts` files never redeclare an entity's own fields as a new Zod schema — they import and compose (`.pick`/`.extend`) the entity schema, or import the entity type for request/response DTOs.
 
 This keeps each entity's data-access logic AI-discoverable in one file, and
 means SaaS-scale concerns (multi-tenant scoping is already enforced by RLS,

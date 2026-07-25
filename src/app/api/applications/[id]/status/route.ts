@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { applicationStatusSchema } from '@/entities/application/types';
 import {
   ApplicationNotFoundError,
   updateApplicationStatus,
 } from '@/features/application/services/update-status.service';
 
 const updateStatusSchema = z.object({
-  status: z.enum(['APPLIED', 'HR', 'TECHNICAL', 'TEAM', 'CEO_OR_MANAGER']),
+  status: applicationStatusSchema,
 });
 
 export async function PATCH(

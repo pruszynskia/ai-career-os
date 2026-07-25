@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
+import { applicationSchema } from '@/entities/application/types';
 import {
   CvNotFoundError,
   createApplication,
@@ -8,10 +8,10 @@ import {
 } from '@/features/application/services/create-application.service';
 import { searchApplicationsAndOffers } from '@/features/application/services/search-applications.service';
 
-const createApplicationSchema = z.object({
-  jobOfferId: z.string().min(1),
-  sentCvId: z.string().min(1),
-  recruiterMessage: z.string().min(1),
+const createApplicationSchema = applicationSchema.pick({
+  jobOfferId: true,
+  sentCvId: true,
+  recruiterMessage: true,
 });
 
 export async function POST(request: Request) {
