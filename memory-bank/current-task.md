@@ -25,3 +25,4 @@ Depends on TASK-005, TASK-006, TASK-007, TASK-008 (all done). See `backlog/mvp.y
 - TASK-007 — Main CV optimization
 - TASK-008 — Add job offer by link with raw-text fallback (`src/features/job-offer/`: URL fetch + `html-to-text` stripping with raw-text fallback, AI structuring into `JobOffer` via the parse-offer prompt, favorite toggle; `/offers` lists offers and the add-offer form)
 - TASK-017 — Shared Design System (Deep Navy / Electric Blue / Emerald tokens in `src/app/globals.css`; docs under `docs/design-system/`; see ADR-010)
+- TASK-018 — Playwright visual-QA workflow (`.mcp.json` Playwright MCP server, `docs/DESIGN_REVIEW_WORKFLOW.md`, `/design-review` command, conditional Step 4 visual-QA sub-step in `/implement-task` and `/fix-task`; exercised against `/sign-in`, which also surfaced and fixed a pre-existing missing `'use client'` on `src/shared/ui/button.tsx`)
