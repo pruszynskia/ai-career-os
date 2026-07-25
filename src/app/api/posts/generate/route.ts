@@ -5,6 +5,7 @@ import {
   NoProfileError,
   generatePost,
 } from '@/features/linkedin-posts/services/generate-post.service';
+import { isRateLimitError } from '@/shared/ai/service';
 
 const generatePostSchema = z.object({
   topic: z.string().min(1),
@@ -27,6 +28,16 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof NoProfileError) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+
+    if (isRateLimitError(error)) {
+      return NextResponse.json(
+        {
+          message:
+            'The AI provider rate limit or quota was exceeded. Try again later.',
+        },
+        { status: 429 },
+      );
     }
 
     console.error('Failed to generate the post', error);

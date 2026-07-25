@@ -4,10 +4,7 @@ import {
   NoProfileError,
   planPosts,
 } from '@/features/linkedin-posts/services/plan-posts.service';
-
-function isRateLimitError(error: unknown): boolean {
-  return error instanceof Error && 'status' in error && error.status === 429;
-}
+import { isRateLimitError } from '@/shared/ai/service';
 
 export async function POST() {
   try {
