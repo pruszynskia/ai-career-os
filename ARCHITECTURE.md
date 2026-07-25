@@ -162,6 +162,13 @@ Icons:
 
 Lucide React
 
+Palette, typography and UI principles (Deep Navy / Electric Blue / Emerald
+brand identity, expressed as tokens in `src/app/globals.css`):
+
+- [docs/design-system/colors.md](docs/design-system/colors.md)
+- [docs/design-system/typography.md](docs/design-system/typography.md)
+- [docs/design-system/ui-principles.md](docs/design-system/ui-principles.md)
+
 ---
 
 # Performance
