@@ -3,6 +3,13 @@ import 'server-only';
 import { createClient } from '@/shared/db/client';
 import type { CvDocument } from '@/entities/cv-document/types';
 
+export class NoMasterCvError extends Error {
+  constructor(message = 'Upload a CV before using it.') {
+    super(message);
+    this.name = 'NoMasterCvError';
+  }
+}
+
 export function toCvDocument(row: Record<string, unknown>): CvDocument {
   return {
     id: row.id as string,
@@ -81,5 +88,33 @@ export const cvDocumentService = {
       .eq('is_master', filter.isMaster);
 
     if (error) throw error;
+  },
+
+  async getMasterOrThrow(
+    ownerId: string,
+    message?: string,
+  ): Promise<CvDocument> {
+    const masterCv = await this.findFirst({ ownerId, isMaster: true });
+    if (!masterCv) throw new NoMasterCvError(message);
+    return masterCv;
+  },
+
+  // Flips any existing master off only when the new version is itself the
+  // master (upload's pattern); optimize/tailor pass isMaster:false and skip
+  // the flip — the same 2-line sequence upload-cv already had, hoisted here
+  // so all three creators share it.
+  async createVersion(values: {
+    ownerId: string;
+    content: string;
+    isMaster: boolean;
+    jobOfferId?: string;
+  }): Promise<CvDocument> {
+    if (values.isMaster) {
+      await this.updateMany(
+        { ownerId: values.ownerId, isMaster: true },
+        { isMaster: false },
+      );
+    }
+    return this.create(values);
   },
 };

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import {
-  NoMasterCvError,
-  optimizeCv,
-} from '@/features/cv/services/optimize-cv.service';
+import { NoMasterCvError } from '@/entities/cv-document/service';
+import { optimizeCv } from '@/features/cv/services/optimize-cv.service';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 
 export async function POST() {
