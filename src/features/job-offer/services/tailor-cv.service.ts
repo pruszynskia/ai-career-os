@@ -3,7 +3,6 @@ import 'server-only';
 import { z } from 'zod';
 
 import { cvDocumentService } from '@/entities/cv-document/service';
-import { getMasterCvOrThrow } from '@/features/job-offer/services/get-master-cv';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
 import {
   buildTailorCvUserMessage,
@@ -19,7 +18,10 @@ const tailoredCvSchema = z.object({
 export async function tailorCv(id: string) {
   const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow(ownerId);
+  const masterCv = await cvDocumentService.getMasterOrThrow(
+    ownerId,
+    'Upload a CV before using it for this offer.',
+  );
 
   const { content } = await getAiService().generateStructured({
     messages: [
@@ -34,7 +36,7 @@ export async function tailorCv(id: string) {
     maxTokens: 4096,
   });
 
-  return cvDocumentService.create({
+  return cvDocumentService.createVersion({
     ownerId,
     isMaster: false,
     content,

@@ -21,14 +21,8 @@ export async function uploadCv(text: string) {
     schemaName: 'parsed_profile',
   });
 
-  // ponytail: sequential awaits, not one DB transaction — see the
-  // cvDocumentService.updateMany note in src/entities/cv-document/service.ts.
-  await cvDocumentService.updateMany(
-    { ownerId, isMaster: true },
-    { isMaster: false },
-  );
   const profile = await profileService.upsert(ownerId, parsed);
-  const cvDocument = await cvDocumentService.create({
+  const cvDocument = await cvDocumentService.createVersion({
     ownerId,
     isMaster: true,
     content: text,

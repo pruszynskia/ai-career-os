@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { generateCoverLetter } from '@/features/job-offer/services/cover-letter.service';
-import { NoMasterCvError } from '@/features/job-offer/services/get-master-cv';
+import { NoMasterCvError } from '@/entities/cv-document/service';
 import { OfferNotFoundError } from '@/entities/job-offer/service';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 

@@ -2,8 +2,8 @@ import 'server-only';
 
 import { z } from 'zod';
 
+import { cvDocumentService } from '@/entities/cv-document/service';
 import { jobOfferService } from '@/entities/job-offer/service';
-import { getMasterCvOrThrow } from '@/features/job-offer/services/get-master-cv';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
 import {
   buildMatchOfferUserMessage,
@@ -19,7 +19,10 @@ const matchScoreSchema = z.object({
 export async function matchOffer(id: string) {
   const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow(ownerId);
+  const masterCv = await cvDocumentService.getMasterOrThrow(
+    ownerId,
+    'Upload a CV before using it for this offer.',
+  );
 
   const { matchScore } = await getAiService().generateStructured({
     messages: [

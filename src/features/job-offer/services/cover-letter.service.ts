@@ -2,7 +2,7 @@ import 'server-only';
 
 import { z } from 'zod';
 
-import { getMasterCvOrThrow } from '@/features/job-offer/services/get-master-cv';
+import { cvDocumentService } from '@/entities/cv-document/service';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
 import {
   buildCoverLetterUserMessage,
@@ -18,7 +18,10 @@ const coverLetterSchema = z.object({
 export async function generateCoverLetter(id: string) {
   const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(id);
-  const masterCv = await getMasterCvOrThrow(ownerId);
+  const masterCv = await cvDocumentService.getMasterOrThrow(
+    ownerId,
+    'Upload a CV before using it for this offer.',
+  );
 
   return getAiService().generateStructured({
     messages: [

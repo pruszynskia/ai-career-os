@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { NoMasterCvError } from '@/features/job-offer/services/get-master-cv';
+import { NoMasterCvError } from '@/entities/cv-document/service';
 import { OfferNotFoundError } from '@/entities/job-offer/service';
 import { tailorCv } from '@/features/job-offer/services/tailor-cv.service';
 import { toAiErrorResponse } from '@/shared/ai/errors';
