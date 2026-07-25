@@ -9,6 +9,7 @@ import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
 import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
 import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
+import { AppPageLayout } from '@/shared/layouts';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -47,12 +48,7 @@ export function OfferDetail({
     Boolean(sentCv) && recruiterMessageMutation.isSuccess;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{offer.title}</h1>
-        <p className="text-sm text-muted-foreground">{offer.company}</p>
-      </div>
-
+    <AppPageLayout title={offer.title} subtitle={offer.company}>
       <Card>
         <CardHeader>
           <CardTitle>Match</CardTitle>
@@ -226,6 +222,6 @@ export function OfferDetail({
           )}
         </CardContent>
       </Card>
-    </div>
+    </AppPageLayout>
   );
 }

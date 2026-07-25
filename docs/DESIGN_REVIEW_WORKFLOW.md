@@ -20,23 +20,35 @@ npx playwright install chromium
 For each screen (route) under review:
 
 1. **Load context.** Read `docs/design-system/colors.md`,
-   `docs/design-system/typography.md`, `docs/design-system/ui-principles.md`.
+   `docs/design-system/typography.md`, `docs/design-system/ui-principles.md`,
+   `docs/design-system/components.md`, `src/shared/ui/primitives/README.md`.
 2. **Start the app.** Ensure `npm run dev` is running (start it if not);
    the app serves at `http://localhost:3000`.
-3. **See the screen.** Navigate to the target route and take a screenshot
-   via the Playwright MCP tools (in both light and dark mode where the
-   screen supports it).
-4. **Compare.** Judge the screenshot against `docs/design-system/*.md` and
-   these named enterprise-SaaS benchmarks: **Linear**, **Vercel Dashboard**,
-   **Stripe Dashboard** — clean, low-chroma-except-for-purpose, generous
-   whitespace, no decorative gradients/glow (see `ui-principles.md`'s
-   "Explicitly avoid" section).
-5. **Propose and apply a scoped diff.** Fix only what's visually wrong,
-   following `CLAUDE.md`'s "modify as few files as possible" — reuse
-   `src/shared/ui` primitives and design-system tokens, don't introduce new
-   components or a new color outside the palette.
-6. **Re-screenshot to verify** the fix actually rendered as intended.
-7. Move to the next screen, if reviewing more than one.
+3. **Screenshot, then immediately judge it — never just capture and move
+   on.** Every screenshot or snapshot taken via the Playwright MCP tools
+   (in both light and dark mode where the screen supports it) must be
+   checked before doing anything else, against:
+   - **Design-system compliance:** colors/type only from `colors.md` /
+     `typography.md`; spacing, radius, elevation only from the scales in
+     `ui-principles.md`.
+   - **Component reuse:** the screen composes `src/shared/ui` primitives
+     and composites (`EmptyState`, `PageHeader`, etc. — `components.md`,
+     `primitives/README.md`) instead of hand-rolled markup that merely
+     happens to use the right tokens.
+   - **Enterprise-SaaS bar:** consistent alignment/spacing rhythm, clear
+     visual hierarchy, generous whitespace, no decorative gradients/glow
+     (see `ui-principles.md`'s "Explicitly avoid" section) — judged
+     against the named benchmarks: **Linear**, **Vercel Dashboard**,
+     **Stripe Dashboard**.
+4. **If anything fails the checklist, fix it before continuing.** Apply a
+   scoped diff — fix only what's visually wrong, following `CLAUDE.md`'s
+   "modify as few files as possible" — reuse `src/shared/ui` primitives and
+   design-system tokens, don't introduce new components or a new color
+   outside the palette.
+5. **Re-screenshot and re-judge (step 3) until the screen passes.** Skipping
+   the re-check after a fix is not allowed — a fix isn't verified until its
+   own screenshot has been judged.
+6. Move to the next screen, if reviewing more than one.
 
 ## When this runs automatically
 

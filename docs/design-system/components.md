@@ -8,6 +8,11 @@ the existing shadcn components (`Button`, `Card`, `Dialog`, `Input`,
 `PageHeader` instead of hand-rolling the same Tailwind markup again — import
 them from the barrel at `@/shared/ui`.
 
+Page-shell components (`AppPageLayout`, `SplitLayout`) are documented here
+too but live in a sibling directory,
+[`src/shared/layouts`](../../src/shared/layouts) — import them from
+`@/shared/layouts`, not `@/shared/ui`.
+
 ## EmptyState
 
 Purpose: the "nothing here yet" message shown when a list has no items —
@@ -40,6 +45,7 @@ Props:
 | Prop | Type | Required | Notes |
 |---|---|---|---|
 | `title` | `string` | yes | Rendered via the `Heading` primitive (`level={1}`) |
+| `subtitle` | `string` | no | Rendered under the title via the `Text` primitive (`size="sm" color="muted"`) |
 | `action` | `React.ReactNode` | no | Optional trailing action (e.g. a "New" button) |
 
 ```tsx
@@ -48,10 +54,60 @@ import { PageHeader } from '@/shared/ui';
 <PageHeader title="Offers" />
 ```
 
-Note: `PageHeader` only replaces the title line itself. The page-shell
-wrapper around it (`<div className="flex flex-col gap-6">`) is intentionally
-left alone — extracting that shared page-shell structure is a separate,
-later task (`AppPageLayout`).
+## AppPageLayout
+
+Purpose: the full route shell — `PageHeader` plus a `gap-6` content stack —
+replacing the `<div className="flex flex-col gap-6"><PageHeader .../>…</div>`
+markup that was duplicated identically across 4 app pages (and re-implemented
+with raw primitives on the dashboard, and a raw `<h1>`/`<p>` in the offer
+detail view). Lives in
+[`src/shared/layouts`](../../src/shared/layouts/app-page-layout), not
+`src/shared/ui`, since it's a layout, not a UI primitive.
+
+Props:
+
+| Prop | Type | Required | Notes |
+|---|---|---|---|
+| `title` | `string` | yes | Forwarded to `PageHeader` |
+| `subtitle` | `string` | no | Forwarded to `PageHeader` |
+| `action` | `React.ReactNode` | no | Forwarded to `PageHeader` |
+| `children` | `React.ReactNode` | yes | Route content, stacked with `gap-6` |
+
+```tsx
+import { AppPageLayout } from '@/shared/layouts';
+
+<AppPageLayout title="Offers">
+  <OfferList offers={offers} />
+</AppPageLayout>
+```
+
+Nests inside the `Screen` primitive already applied once in
+`src/app/(app)/layout.tsx` — it never adds its own outer padding or scroll
+container.
+
+## SplitLayout
+
+Purpose: a two-pane list/detail shell for a screen with a persistent list
+beside a detail view. Lives in
+[`src/shared/layouts`](../../src/shared/layouts/split-layout). No screen
+uses it yet — no list/detail split UI exists in this codebase today, so
+this is built ready for the next screen that genuinely needs one, not
+retrofitted onto today's single-pane `offers`/`applications` pages (which
+would be a page redesign, not a shell extraction).
+
+Props:
+
+| Prop | Type | Required | Notes |
+|---|---|---|---|
+| `list` | `React.ReactNode` | yes | Fixed-width list rail (`w-80`), own scroll, right border on `md`+ |
+| `detail` | `React.ReactNode` | yes | Flexible detail pane, own scroll |
+| `className` | `string` | no | Extra classes merged via `cn` |
+
+```tsx
+import { SplitLayout } from '@/shared/layouts';
+
+<SplitLayout list={<OfferList offers={offers} />} detail={<OfferDetail offer={offer} />} />
+```
 
 ## Not built here
 
