@@ -57,6 +57,18 @@ Reads a prior review's findings, inspects related files, implements fixes,
 re-runs lint/test/build, and summarizes what changed. Same conditional
 `ui`-scope Playwright-MCP visual-QA sub-step as `/implement-task`.
 
+## Version Control
+
+### `/commit-and-push`
+
+File: `claude/commands/commit-and-push.md`
+
+Stages all changes (after a secrets/credentials sanity check), drafts a
+Conventional Commit message from the actual diff following this repo's Git
+Rules, commits, and pushes the current branch. Covers the "Commit" step in
+CLAUDE.md's `TASK CREATED → Implementation → Review → Fix → Commit → Next
+TASK` workflow.
+
 ## Deployment
 
 Not yet defined. See `WORKFLOW.md` step 8 and `github/workflows/ci.yml` for
