@@ -1,7 +1,6 @@
 'use client';
 
 import type { Post } from '@/entities/post/types';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useMarkPostSent } from '@/features/linkedin-posts/hooks/use-mark-post-sent';
@@ -33,7 +32,6 @@ export function PostList({ posts }: { posts: Post[] }) {
 }
 
 function PostCard({ post }: { post: Post }) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [scheduledAtInput, setScheduledAtInput] = useState('');
   const scheduleMutation = useSchedulePost();
@@ -52,14 +50,14 @@ function PostCard({ post }: { post: Post }) {
   function handleSchedule() {
     if (!scheduledAtInput) return;
 
-    scheduleMutation.mutate(
-      { id: post.id, scheduledAt: new Date(scheduledAtInput) },
-      { onSuccess: () => router.refresh() },
-    );
+    scheduleMutation.mutate({
+      id: post.id,
+      scheduledAt: new Date(scheduledAtInput),
+    });
   }
 
   function handleMarkSent() {
-    markSentMutation.mutate(post.id, { onSuccess: () => router.refresh() });
+    markSentMutation.mutate(post.id);
   }
 
   return (

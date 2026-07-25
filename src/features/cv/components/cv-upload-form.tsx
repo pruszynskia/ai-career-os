@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 import { useUploadCv } from '@/features/cv/hooks/use-upload-cv';
@@ -8,7 +7,6 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
 export function CvUploadForm() {
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const mutation = useUploadCv();
@@ -21,7 +19,6 @@ export function CvUploadForm() {
       onSuccess: () => {
         setFile(null);
         if (inputRef.current) inputRef.current.value = '';
-        router.refresh();
       },
     });
   }

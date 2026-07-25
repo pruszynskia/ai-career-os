@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useGeneratePost } from '@/features/linkedin-posts/hooks/use-generate-post';
@@ -8,7 +7,6 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
 export function GeneratePostForm() {
-  const router = useRouter();
   const [topic, setTopic] = useState('');
   const mutation = useGeneratePost();
 
@@ -19,10 +17,7 @@ export function GeneratePostForm() {
     if (!trimmedTopic) return;
 
     mutation.mutate(trimmedTopic, {
-      onSuccess: () => {
-        setTopic('');
-        router.refresh();
-      },
+      onSuccess: () => setTopic(''),
     });
   }
 

@@ -465,6 +465,61 @@ GET /api/resources
 
 ---
 
+# Server-Rendered Reads
+
+The pattern above (`useQuery` for reads) is the general recommendation, but
+it is not what this app's list/detail pages actually use today — no `useQuery`
+call exists anywhere in `src/features`.
+
+Actual pattern:
+
+```
+Page (Server Component, src/app/**/page.tsx)
+
+↓
+
+Entity service (src/entities/{entity}/service.ts)
+
+↓
+
+Supabase
+```
+
+List and detail data (offers, applications, posts, profile) is fetched
+directly in `async` Server Components via the entity's service module, not
+via `useQuery`. There is no client-side read cache to invalidate.
+
+Mutations still use React Query `useMutation` (see `# Mutations` above), but
+they revalidate the server-rendered data by calling `router.refresh()`
+(`next/navigation`) in the mutation hook's own `onSuccess`, not
+`queryClient.invalidateQueries()`:
+
+```ts
+export function useToggleFavorite() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean }) =>
+      toggleFavorite(id, isFavorite),
+    onSuccess: () => router.refresh(),
+  });
+}
+```
+
+`router.refresh()` re-runs the Server Component tree for the current route,
+so the page re-fetches via the entity service and renders fresh data.
+
+Components should not wire `router.refresh()` themselves — call the mutation
+hook and let it own revalidation. A component's own `onSuccess` (passed to
+`mutate()`) is only for component-local concerns: resetting form state,
+reading the mutation response, etc.
+
+The `useQuery`/`invalidateQueries()` guidance above still applies to any
+future feature that adds genuine client-cached reads (e.g. polling, or data
+that doesn't come from a Server Component page).
+
+---
+
 # API Separation
 
 Never call APIs directly inside components.

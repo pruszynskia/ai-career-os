@@ -2,7 +2,6 @@
 
 import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { Button } from '@/shared/ui/button';
@@ -17,7 +16,6 @@ import {
 import { EmptyState } from '@/shared/ui/empty-state';
 
 export function OfferList({ offers }: { offers: JobOffer[] }) {
-  const router = useRouter();
   const mutation = useToggleFavorite();
 
   if (offers.length === 0) {
@@ -44,10 +42,10 @@ export function OfferList({ offers }: { offers: JobOffer[] }) {
                 size="sm"
                 disabled={mutation.isPending}
                 onClick={() =>
-                  mutation.mutate(
-                    { id: offer.id, isFavorite: !offer.isFavorite },
-                    { onSuccess: () => router.refresh() },
-                  )
+                  mutation.mutate({
+                    id: offer.id,
+                    isFavorite: !offer.isFavorite,
+                  })
                 }
               >
                 {offer.isFavorite ? 'Favorited' : 'Favorite'}
