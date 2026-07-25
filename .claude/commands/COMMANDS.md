@@ -19,7 +19,9 @@ File: `claude/commands/implement-task.md`
 
 Loads the task from `backlog/mvp.yaml` plus `CLAUDE.md`/`ARCHITECTURE.md`/
 `docs/CODING_STANDARDS.md`, implements only that task's scope, runs
-lint/test/build, and prepares a commit message.
+lint/test/build, and prepares a commit message. For tasks labeled `ui` or
+touching `src/app`/`src/widgets`/a components directory, Step 4 also runs
+the `docs/DESIGN_REVIEW_WORKFLOW.md` Playwright-MCP visual-QA loop.
 
 ## Review
 
@@ -30,6 +32,14 @@ File: `claude/commands/review-task.md`
 Checks a task's changed files against architecture, language/framework
 conventions, and typing rules; reports issues by severity with an approval
 status.
+
+### `/design-review ROUTE`
+
+File: `claude/commands/design-review.md`
+
+Loads `docs/design-system/*.md` and `docs/DESIGN_REVIEW_WORKFLOW.md`, then
+runs one screen through the Playwright-MCP screenshot/compare/fix/verify
+loop against the design system and named enterprise-SaaS benchmarks.
 
 ## Refactoring
 
@@ -44,7 +54,8 @@ instead of a TASK-ID.
 File: `claude/commands/fix-task.md`
 
 Reads a prior review's findings, inspects related files, implements fixes,
-re-runs lint/test/build, and summarizes what changed.
+re-runs lint/test/build, and summarizes what changed. Same conditional
+`ui`-scope Playwright-MCP visual-QA sub-step as `/implement-task`.
 
 ## Deployment
 
