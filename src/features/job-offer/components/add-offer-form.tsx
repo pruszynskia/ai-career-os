@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { useAddOffer } from '@/features/job-offer/hooks/use-add-offer';
@@ -10,7 +9,6 @@ import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 
 export function AddOfferForm() {
-  const router = useRouter();
   const [mode, setMode] = useState<'url' | 'raw-text'>('url');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
@@ -30,7 +28,6 @@ export function AddOfferForm() {
         setUrl('');
         setRawText('');
         setDuplicateOfferId(response.duplicateOfferId ?? null);
-        router.refresh();
       },
     });
   }

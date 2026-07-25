@@ -1,12 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-
 import { usePlanPosts } from '@/features/linkedin-posts/hooks/use-plan-posts';
 import { Button } from '@/shared/ui/button';
 
 export function PlanPostsButton() {
-  const router = useRouter();
   const mutation = usePlanPosts();
 
   return (
@@ -15,9 +12,7 @@ export function PlanPostsButton() {
         type="button"
         variant="outline"
         disabled={mutation.isPending}
-        onClick={() =>
-          mutation.mutate(undefined, { onSuccess: () => router.refresh() })
-        }
+        onClick={() => mutation.mutate()}
       >
         {mutation.isPending ? 'Planning…' : 'Plan next posts'}
       </Button>

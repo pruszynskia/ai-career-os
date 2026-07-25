@@ -1,7 +1,6 @@
 'use client';
 
 import type { ApplicationStatus } from '@/entities/application/types';
-import { useRouter } from 'next/navigation';
 
 import { useUpdateApplicationStatus } from '@/features/application/hooks/use-update-application-status';
 
@@ -20,7 +19,6 @@ export function ApplicationStatusSelect({
   applicationId: string;
   status: ApplicationStatus;
 }) {
-  const router = useRouter();
   const mutation = useUpdateApplicationStatus();
 
   return (
@@ -28,13 +26,10 @@ export function ApplicationStatusSelect({
       value={status}
       disabled={mutation.isPending}
       onChange={(event) =>
-        mutation.mutate(
-          {
-            id: applicationId,
-            status: event.target.value as ApplicationStatus,
-          },
-          { onSuccess: () => router.refresh() },
-        )
+        mutation.mutate({
+          id: applicationId,
+          status: event.target.value as ApplicationStatus,
+        })
       }
       aria-label="Application status"
       className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
