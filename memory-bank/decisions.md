@@ -314,3 +314,48 @@ Consequences:
 - `src/shared/auth/owner.ts` (the `SEED_OWNER_ID` constant) is replaced by `src/shared/auth/session.ts`'s `getOwnerId()`, which reads the real signed-in Supabase Auth user's id per request.
 - Canonical domain types (`Profile`, `CvDocument`, `JobOffer`, `Application`, `ApplicationStatus`, `ApplicationBundle`, `Post`) now live under `src/entities/*/types.ts` instead of being imported from `@prisma/client` — this also closes the gap TASK-024 had flagged (no `cv-document/types.ts`, ad hoc DTOs).
 - TASK-021's planned "shared ownerId scoping helper" is superseded by RLS; no such helper was built.
+
+## ADR-010
+
+Date:
+
+2026-07-25
+
+Decision:
+
+Replace shadcn's default zinc/blue starter palette with a Deep Navy /
+Electric Blue / Emerald enterprise identity, applied as OKLCH values on the
+existing shadcn semantic token names in `src/app/globals.css` (`--primary`,
+`--accent`, `--secondary`, `--muted`, `--border`, `--ring`, and a new
+`--success` token), and documented under `docs/design-system/` (`colors.md`,
+`typography.md`, `ui-principles.md`) as the single source of truth for
+future screens.
+
+Reason:
+
+The app conveys Trust (Deep Navy), Intelligence (Electric Blue), and
+Progress (Emerald) as its brand attributes; the shadcn starter palette
+carries no such identity. Reusing the existing token names (rather than a
+parallel theming layer) keeps every current and future `shared/ui`
+component, feature, and widget on the same system with zero component code
+changes.
+
+Alternatives Considered:
+
+- A separate design-tokens package/theming abstraction on top of shadcn's
+  tokens — rejected: no second consumer exists yet, and it would duplicate
+  the token names shadcn/Tailwind already resolve through `@theme inline`.
+- Leaving the destructive/error hue in the same brand-navy family — rejected:
+  red carries the correct semantic meaning for errors independent of brand
+  color; only its contrast pairing was re-verified, not its hue.
+
+Consequences:
+
+- `src/app/globals.css` is the only source of color values; no component
+  hardcodes an OKLCH/hex color.
+- `docs/design-system/*.md` is required reading before any new screen adds
+  color or typography (referenced from `ARCHITECTURE.md`'s Design System
+  section) — TASK-019/020 layout work builds on top of these tokens rather
+  than picking new colors.
+- `bg-success` / `text-success-foreground` become available Tailwind
+  utilities alongside the existing `bg-destructive` pattern.

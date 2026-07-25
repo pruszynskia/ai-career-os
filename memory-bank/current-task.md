@@ -24,3 +24,4 @@ Depends on TASK-005, TASK-006, TASK-007, TASK-008 (all done). See `backlog/mvp.y
 - TASK-006 — CV upload and parse into structured profile (`src/features/cv/`: PDF/DOCX text extraction via pdf-parse/mammoth, AI structuring into `Profile` via the parse-cv prompt, master `CvDocument` persisted; `/profile` renders the parsed profile and upload form)
 - TASK-007 — Main CV optimization
 - TASK-008 — Add job offer by link with raw-text fallback (`src/features/job-offer/`: URL fetch + `html-to-text` stripping with raw-text fallback, AI structuring into `JobOffer` via the parse-offer prompt, favorite toggle; `/offers` lists offers and the add-offer form)
+- TASK-017 — Shared Design System (Deep Navy / Electric Blue / Emerald tokens in `src/app/globals.css`; docs under `docs/design-system/`; see ADR-010)
