@@ -261,3 +261,6 @@ Rules:
 - Feature-Sliced layout isolates each feature under `src/features/*`; new
   features (automations, integrations) are added as new slices without
   touching existing ones.
+- Monorepo tooling (npm workspaces + Turborepo) was evaluated and deferred
+  (ADR-012) — see [docs/MONOREPO.md](docs/MONOREPO.md) for the audit,
+  readiness criteria, and the future mobile (React Native/Expo) strategy.

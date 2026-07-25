@@ -164,12 +164,14 @@ when it arrives:
 - **Auth/ownership** (ADR-005) already anticipates the subscriptions
   milestone — don't add anything that would need to be undone when
   multi-user/billing lands.
-- **Monorepo/mobile** (Stage 0 TASK-027) — the `apps/web` move stays
-  deferred until a second app (a future React Native/Expo mobile client)
-  actually starts being built. Until then, keep code that would eventually
-  move into `packages/*` (design tokens, domain types, API-client shapes)
-  easy to lift out of `src/shared` and `src/entities` rather than tightly
-  coupled to Next.js-only APIs.
+- **Monorepo/mobile** (Stage 0 TASK-027) — npm workspaces + Turborepo were
+  evaluated and deferred (ADR-012 in `memory-bank/decisions.md`); see
+  [docs/MONOREPO.md](MONOREPO.md) for the readiness criteria. The
+  `apps/web` move stays deferred until a second app (a future React
+  Native/Expo mobile client) actually starts being built. Until then, keep
+  code that would eventually move into `packages/*` (design tokens, domain
+  types, API-client shapes) easy to lift out of `src/shared` and
+  `src/entities` rather than tightly coupled to Next.js-only APIs.
 
 This complements `ARCHITECTURE.md`'s "Future Extensibility" section, which
 covers the same intent at the architecture-rule level rather than the

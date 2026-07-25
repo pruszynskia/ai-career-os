@@ -413,3 +413,57 @@ Consequences:
   domain-error `instanceof` checks.
 - No behavior change to provider selection itself — this ADR is
   documentation plus an error-response bug fix, not a new capability.
+
+## ADR-012
+
+Date:
+
+2026-07-25
+
+Decision:
+
+Defer adding npm workspaces + Turborepo (`turbo.json`, `package.json`
+`"workspaces"`, `packages/*`). Audited the repo first: no `turbo.json`, no
+`pnpm-workspace.yaml`, no `yarn` workspaces, no `"workspaces"` field in
+`package.json`, and no `packages/` or `apps/` directory exist today — the
+repo is a single Next.js app with `src/` at the root. No monorepo tooling
+is scaffolded by this ADR; readiness criteria for revisiting are recorded
+in `docs/MONOREPO.md`.
+
+Reason:
+
+There is no second app or package consuming shared code yet, so npm
+workspaces + Turborepo would be infrastructure with nothing to serve.
+Scaffolding `packages/typescript-config` and `packages/eslint-config` now
+would be exactly the kind of empty-placeholder package this task's own
+`do_not` list forbids, and runs against the project's stated
+avoid-premature-abstraction convention (`CLAUDE.md`). `docs/ROADMAP.md`'s
+Forward-Compatibility Notes already anticipated this: the monorepo move is
+tied to a second app (mobile) actually starting, which hasn't happened.
+
+Alternatives Considered:
+
+- Scaffold `packages/typescript-config` + `packages/eslint-config` now,
+  ahead of any real consumer — rejected: no code would import from them,
+  making them dead weight that has to be kept in sync with the root config
+  for no benefit until a second app/package exists.
+- Move `src/` into `apps/web` now, ahead of a second app — rejected:
+  explicitly disallowed by this task; would invalidate every existing
+  backlog task's `scope:` file paths for no immediate benefit.
+- Add Turborepo without npm workspaces, just to get task-graph caching for
+  the single existing app — rejected: `npm run build`/`lint`/`typecheck`
+  already run in seconds on this single-package repo; Turborepo's caching
+  and parallelization only pay off once there's more than one
+  package/app to orchestrate.
+
+Consequences:
+
+- No `turbo.json`, no `"workspaces"` field, no `packages/*` exist after this
+  ADR — root `package.json` scripts (`dev`, `build`, `lint`, `typecheck`,
+  `test`, `format`) are unchanged.
+- `docs/MONOREPO.md` records the concrete trigger for revisiting (a second
+  app — e.g. a React Native/Expo mobile client — actually starting, or a
+  second package gaining a real consumer) and what would be scaffolded at
+  that point.
+- Every existing backlog task's `scope:` paths under `src/` remain valid —
+  nothing moved.
