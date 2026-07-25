@@ -2,6 +2,7 @@ import 'server-only';
 
 import mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
+import { CanvasFactory } from 'pdf-parse/worker';
 
 export class UnsupportedFileTypeError extends Error {
   constructor() {
@@ -22,7 +23,7 @@ export async function extractCvText(
   const extension = filename.toLowerCase().split('.').pop();
 
   if (extension === 'pdf') {
-    const parser = new PDFParse({ data: buffer });
+    const parser = new PDFParse({ data: buffer, CanvasFactory });
     try {
       const result = await parser.getText();
       return result.text;
