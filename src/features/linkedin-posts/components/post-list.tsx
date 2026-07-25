@@ -15,15 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 
 export function PostList({ posts }: { posts: Post[] }) {
   if (posts.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No posts yet — generate one above.
-      </p>
-    );
+    return <EmptyState message="No posts yet — generate one above." />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import type { JobOffer } from '@/entities/job-offer/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function FavoriteOffersCard({ offers }: { offers: JobOffer[] }) {
   return (
@@ -10,9 +11,7 @@ export function FavoriteOffersCard({ offers }: { offers: JobOffer[] }) {
       </CardHeader>
       <CardContent>
         {offers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No favorite offers yet.
-          </p>
+          <EmptyState message="No favorite offers yet." />
         ) : (
           <ul className="flex flex-col gap-2">
             {offers.map((offer) => (

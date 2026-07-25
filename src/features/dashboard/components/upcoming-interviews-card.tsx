@@ -1,5 +1,6 @@
 import type { ApplicationBundle } from '@/entities/application/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function UpcomingInterviewsCard({
   applications,
@@ -13,9 +14,7 @@ export function UpcomingInterviewsCard({
       </CardHeader>
       <CardContent>
         {applications.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No interviews in progress.
-          </p>
+          <EmptyState message="No interviews in progress." />
         ) : (
           <ul className="flex flex-col gap-2">
             {applications.map((application) => (

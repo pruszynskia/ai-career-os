@@ -1,4 +1,5 @@
 import { searchApplicationsAndOffers } from '@/features/application/services/search-applications.service';
+import { PageHeader } from '@/shared/ui/page-header';
 import { CompanySearch } from '@/widgets/company-search/company-search';
 
 export const dynamic = 'force-dynamic';
@@ -8,7 +9,7 @@ export default async function ApplicationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Applications</h1>
+      <PageHeader title="Applications" />
 
       <CompanySearch
         initialApplications={applications}

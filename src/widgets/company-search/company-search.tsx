@@ -8,6 +8,7 @@ import { ApplicationList } from '@/features/application/components/application-l
 import { useSearchApplications } from '@/features/application/hooks/use-search-applications';
 import { OfferList } from '@/features/job-offer/components/offer-list';
 import { Button } from '@/shared/ui/button';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 
 export function CompanySearch({
@@ -54,9 +55,7 @@ export function CompanySearch({
       )}
 
       {isEmpty ? (
-        <p className="text-sm text-muted-foreground">
-          No matching offers or applications.
-        </p>
+        <EmptyState message="No matching offers or applications." />
       ) : (
         <>
           {results.applications.length > 0 && (

@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function ApplicationList({
   applications,
@@ -23,7 +24,7 @@ export function ApplicationList({
   emptyMessage?: string;
 }) {
   if (applications.length === 0) {
-    return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
+    return <EmptyState message={emptyMessage} />;
   }
 
   return (
