@@ -283,36 +283,41 @@ status:
 }
 Error Handling
 
-All API errors must follow common format.
-
-Example:
+All API error responses share one body shape:
 
 interface ApiError {
 
 message:string;
 
-code:string;
-
-status:number;
-
 }
-Error Rules
+AI Routes Error Handling
 
-Never:
+Every AI-backed route (cv upload/optimize, offers add/match/tailor-cv/
+recruiter-message/cover-letter, posts generate/plan) funnels its
+non-domain-specific failures through one shared helper,
+toAiErrorResponse(error, fallbackMessage) in src/shared/ai/errors.ts, after
+its own domain-error instanceof checks:
 
 catch(error){
 
-console.log(error)
+if (error instanceof SomeDomainError) {
+  return NextResponse.json({ message: error.message }, { status: 422 });
+}
+
+return toAiErrorResponse(error, 'Failed to do the thing.');
 
 }
 
-Instead:
+toAiErrorResponse classifies the error into one of two responses:
 
-catch(error){
+- rate limit or quota exceeded (isRateLimitError): status 429, message "The
+  AI provider rate limit or quota was exceeded. Try again later."
+- anything else: status 500, the route's own fallbackMessage, logged via
+  console.error
 
-throw normalizeApiError(error)
-
-}
+Domain errors (e.g. NoMasterCvError, OfferNotFoundError, NoProfileError)
+stay in each route's own catch block and keep their route-specific status
+codes (400/404/422); only the rate-limit/generic tail is shared.
 Loading States
 
 Every API-driven UI must handle:

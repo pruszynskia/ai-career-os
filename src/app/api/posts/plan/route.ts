@@ -4,7 +4,7 @@ import {
   NoProfileError,
   planPosts,
 } from '@/features/linkedin-posts/services/plan-posts.service';
-import { isRateLimitError } from '@/shared/ai/service';
+import { toAiErrorResponse } from '@/shared/ai/errors';
 
 export async function POST() {
   try {
@@ -15,20 +15,6 @@ export async function POST() {
       return NextResponse.json({ message: error.message }, { status: 422 });
     }
 
-    if (isRateLimitError(error)) {
-      return NextResponse.json(
-        {
-          message:
-            'The AI provider rate limit or quota was exceeded. Try again later.',
-        },
-        { status: 429 },
-      );
-    }
-
-    console.error('Failed to plan the next posts', error);
-    return NextResponse.json(
-      { message: 'Failed to plan the next posts.' },
-      { status: 500 },
-    );
+    return toAiErrorResponse(error, 'Failed to plan the next posts.');
   }
 }
