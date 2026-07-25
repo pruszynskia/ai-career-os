@@ -1476,7 +1476,7 @@ tasks:
     github:
       issue: "37"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: S
     milestone: "Stage 0 - MVP Stabilization"

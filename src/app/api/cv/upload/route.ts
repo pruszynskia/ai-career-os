@@ -7,7 +7,7 @@ import {
   UnsupportedFileTypeError,
 } from '@/features/cv/services/extract-cv-text';
 import { uploadCv } from '@/features/cv/services/upload-cv.service';
-import { isRateLimitError } from '@/shared/ai/service';
+import { toAiErrorResponse } from '@/shared/ai/errors';
 
 const uploadSchema = z.object({
   file: z.instanceof(File),
@@ -44,20 +44,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }
 
-    if (isRateLimitError(error)) {
-      return NextResponse.json(
-        {
-          message:
-            'The AI provider rate limit or quota was exceeded. Try again later.',
-        },
-        { status: 429 },
-      );
-    }
-
-    console.error('Failed to process the CV', error);
-    return NextResponse.json(
-      { message: 'Failed to process the CV.' },
-      { status: 500 },
-    );
+    return toAiErrorResponse(error, 'Failed to process the CV.');
   }
 }

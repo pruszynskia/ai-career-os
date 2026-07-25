@@ -359,3 +359,57 @@ Consequences:
   than picking new colors.
 - `bg-success` / `text-success-foreground` become available Tailwind
   utilities alongside the existing `bg-destructive` pattern.
+
+## ADR-011
+
+Date:
+
+2026-07-25
+
+Decision:
+
+Document, as an amendment to ADR-001, that `src/shared/ai/` ships a third
+adapter (`src/shared/ai/adapters/gemini.ts`) alongside Anthropic and OpenAI,
+selected via the `AI_PROVIDER` environment variable (`anthropic` | `openai`
+| `gemini`, default `anthropic` — see `src/shared/ai/service.ts`'s
+`getAiService()`). Each provider requires its own API key env var
+(`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`); `getAiService()`
+throws at call time if the key for the selected provider is missing. This
+ADR also records that per-route AI error handling (rate-limit detection and
+the generic-error fallback) is now consolidated in
+`src/shared/ai/errors.ts`'s `toAiErrorResponse(error, fallbackMessage)`,
+replacing the copy-pasted `isRateLimitError` branch previously duplicated in
+every AI route handler.
+
+Reason:
+
+The Gemini adapter was added after ADR-001 was written but never
+documented, leaving `AI_PROVIDER`'s valid values and required env vars
+undiscoverable outside the source. Separately, 9 AI route handlers had each
+reimplemented the same rate-limit-then-generic-500 error branch with
+inconsistent results (`cv/optimize`'s `NoMasterCvError` mapped to 400 while
+every other route mapped the same error class to 422); consolidating into
+one helper fixes that drift and gives every AI route the same response
+shape for the same error class.
+
+Alternatives Considered:
+
+- Editing ADR-001's body in place to add Gemini — rejected: inconsistent
+  with this file's existing convention of additive, dated ADRs that amend
+  rather than rewrite prior decisions (e.g. ADR-009 superseding ADR-006).
+- A generic `[ErrorClass, status][]` table passed into the shared helper so
+  routes need zero domain-error branches — rejected: each route only has
+  1-2 domain-error checks; a lookup-table abstraction is unwarranted for
+  that size and adds indirection over just calling
+  `toAiErrorResponse(error, fallbackMessage)` after the route's own
+  `instanceof` checks.
+
+Consequences:
+
+- `isRateLimitError` moved from `src/shared/ai/service.ts` to
+  `src/shared/ai/errors.ts`; `service.ts` now only exports `getAiService()`.
+- Every AI-backed route handler imports `toAiErrorResponse` from
+  `@/shared/ai/errors` and calls it as the final catch-all after its own
+  domain-error `instanceof` checks.
+- No behavior change to provider selection itself — this ADR is
+  documentation plus an error-response bug fix, not a new capability.

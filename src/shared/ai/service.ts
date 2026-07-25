@@ -5,10 +5,6 @@ import { createGeminiAdapter } from './adapters/gemini';
 import { createOpenAiAdapter } from './adapters/openai';
 import type { AiService } from './types';
 
-export function isRateLimitError(error: unknown): boolean {
-  return error instanceof Error && 'status' in error && error.status === 429;
-}
-
 const REQUIRED_KEY_BY_PROVIDER = {
   anthropic: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
