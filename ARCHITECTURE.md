@@ -150,6 +150,12 @@ UI:
 
 shadcn/ui
 
+Primitives:
+
+Low-level layout/typography/surface/feedback/interaction primitives live in
+src/shared/ui/primitives — compose these instead of hand-writing Tailwind
+layout classes (see src/shared/ui/primitives/README.md).
+
 Styling:
 
 Tailwind CSS
