@@ -1208,30 +1208,40 @@ tasks:
       - TASK-017
     title: Playwright visual-QA and Claude Code UI-engineer workflow
     goal: >
-      Give Claude Code a repeatable way to see the running application and iterate on UI quality screen by screen against the TASK-017 design system and named enterprise benchmarks, via a Playwright MCP server plus a slash command, instead of judging visual correctness from code alone.
+      Give Claude Code a repeatable way to see the running application and iterate on UI quality screen by screen against the TASK-017 design system and named enterprise benchmarks, via a Playwright MCP server, a standalone slash command, and a conditional visual-QA step wired into /implement-task and /fix-task, instead of judging visual correctness from code alone or only on manual /design-review invocation.
 
     scope:
       - .mcp.json
       - .claude/commands/design-review.md
+      - .claude/commands/implement-task.md
+      - .claude/commands/fix-task.md
+      - .claude/commands/COMMANDS.md
       - docs/DESIGN_REVIEW_WORKFLOW.md
     deliverables:
       - Playwright MCP server configured for the project
       - docs/DESIGN_REVIEW_WORKFLOW.md describing the screen-by-screen review loop
       - /design-review slash command implementing the workflow
+      - /implement-task and /fix-task run the same review loop as a conditional validation step for any task labeled ui or whose scope touches UI files
     tasks:
       - Add .mcp.json configuring the official Playwright MCP server (npx @playwright/mcp@latest), additive to the existing @playwright/test runner from TASK-015
       - Note in docs/DESIGN_REVIEW_WORKFLOW.md that Playwright browser binaries must be installed once via npx playwright install chromium before the MCP server can drive a real browser
       - Write docs/DESIGN_REVIEW_WORKFLOW.md describing the loop -  start npm run dev, navigate to and screenshot the target screen via the Playwright MCP tools, compare against docs/design-system/*.md and named enterprise-SaaS benchmarks (Linear, Vercel Dashboard, Stripe Dashboard), propose and apply a scoped diff, re-screenshot to verify, move to the next screen
       - Add .claude/commands/design-review.md, a slash command taking a route argument, that loads docs/design-system/*.md and docs/DESIGN_REVIEW_WORKFLOW.md, starts the dev server if needed, and runs one screen through the review loop, mirroring the structure of .claude/commands/implement-task.md
+      - "Add a Step 4 (Validation) sub-step to .claude/commands/implement-task.md: for tasks labeled ui or whose scope touches src/app, src/widgets or a components directory, run the docs/DESIGN_REVIEW_WORKFLOW.md loop (via Playwright MCP) against the changed routes before marking the task done - point to the doc, don't inline its steps"
+      - Add the identical sub-step to .claude/commands/fix-task.md's validation step
+      - Update .claude/commands/COMMANDS.md's /implement-task and /fix-task entries with one line each describing the new sub-step
     acceptance:
       - .mcp.json is valid and the Playwright MCP server starts
       - /design-review is invocable and its instructions load docs/design-system/*.md and docs/DESIGN_REVIEW_WORKFLOW.md before touching any UI
       - Running /design-review against one real route produces at least one applied, screenshot-verified visual improvement
+      - implement-task.md and fix-task.md's validation steps both point to the docs/DESIGN_REVIEW_WORKFLOW.md loop, gated on the ui label/scope condition above
+      - Running /implement-task on a ui-labeled task exercises Playwright MCP and produces one screenshot-verified check, confirmed manually
       - npm run lint, npm run typecheck and npm run build are unaffected
     done:
       - Playwright MCP server configured and verified
       - Workflow documentation written
       - /design-review command implemented and exercised on at least one route
+      - /implement-task and /fix-task updated with the conditional visual-QA step and exercised on at least one ui-labeled task
     labels:
       - ui
       - testing
@@ -1255,11 +1265,16 @@ tasks:
       do not merge or replace either with the other. Do not touch CI
       configuration.
 
+      Gate the implement-task.md/fix-task.md sub-step exactly as scoped above
+      - do not run it, or duplicate its instructions, outside that condition.
+
       Stop immediately after acceptance criteria are met.
     do_not:
       - Replace or duplicate the existing @playwright/test e2e smoke suite
       - Add a visual-regression or screenshot-diff library
       - Modify CI configuration
+      - Run the Playwright visual-QA step for tasks that don't touch UI (backend, database, AI-service-only tasks)
+      - Duplicate docs/DESIGN_REVIEW_WORKFLOW.md's instructions inline inside implement-task.md or fix-task.md instead of referencing it
   ###############################################################################
   # TASK-019
   ###############################################################################
@@ -1273,6 +1288,7 @@ tasks:
     milestone: "Stage 0 - MVP Stabilization"
     depends_on:
       - TASK-017
+      - TASK-026
     title: Reusable components library
     goal: >
       Extract the composite UI patterns repeated across features - status badges, empty states, page headers, stat cards, skeleton loaders - into src/shared/ui, built on the TASK-017 tokens and existing shadcn primitives, and document them so new screens reuse instead of reinvent.
@@ -1339,6 +1355,7 @@ tasks:
     depends_on:
       - TASK-016
       - TASK-017
+      - TASK-026
     title: Shared layouts
     goal: >
       Extract the repeated page-shell structure - title and actions header plus content container, list/detail split, form page - out of the individual route files under src/app/(app) into src/shared/layouts, so every route composes from one shell instead of re-implementing spacing and structure.
@@ -1713,3 +1730,179 @@ tasks:
       - Add optimistic updates where none exist today
       - Change any API contract
       - Replace existing Server Component reads with client-side useQuery reads
+  ###############################################################################
+  # TASK-026
+  ###############################################################################
+  - id: TASK-026
+    github:
+      issue: "46"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-004
+      - TASK-016
+      - TASK-017
+    title: UI primitives layer (layout, typography, surface, interaction)
+    goal: >
+      Introduce a low-level primitives layer under src/shared/ui/primitives - Box, Flex, Stack/VStack/HStack, Grid, Container, Screen, Section, Spacer, Divider, Surface, Text, Heading, Label, Spinner, Skeleton, Badge, Avatar, plus thin composition wrappers around the existing shadcn Button/Input/Textarea and a new IconButton/Select - so feature code stops hand-writing layout and typography Tailwind classes and instead composes typed, token-driven primitives, giving TASK-019's composite components and TASK-020's page shells a consistent foundation to build on.
+
+    scope:
+      - src/shared/ui/primitives/**
+      - src/app/(app)/dashboard/page.tsx
+      - src/app/(app)/layout.tsx
+      - ARCHITECTURE.md
+    deliverables:
+      - src/shared/ui/primitives/** with one folder per primitive (Component.tsx + index.ts), each using cva variants over the TASK-017 tokens
+      - A centralized barrel export at src/shared/ui/primitives/index.ts
+      - src/shared/ui/primitives/README.md documenting purpose, usage examples and forbidden raw-Tailwind patterns
+      - src/app/(app)/dashboard/page.tsx migrated to the new layout/typography primitives as the reference implementation
+      - src/app/(app)/layout.tsx's <main> wrapper migrated to the new Screen primitive
+    tasks:
+      - "Layout primitives: Box, Flex, Stack, VStack, HStack, Grid, Container, Screen, Section, Spacer, Divider - each a typed component over existing Tailwind spacing/layout scales, no arbitrary values"
+      - "Screen owns page background, min-height, scroll behavior and global padding (the responsibilities currently hard-coded as `flex-1 overflow-y-auto p-6` on src/app/(app)/layout.tsx's <main>) - build it to take that over exactly, with no visual change"
+      - "Surface primitive: Surface (base elevated background/border/radius/shadow surface); compose it into the existing src/shared/ui/card.tsx rather than adding a second Card"
+      - "Typography primitives: Text (size/weight/color/align), Heading (h1-h6 variants, responsive sizing), Label (forms/metadata)"
+      - "Feedback primitives: Spinner, Skeleton, Badge, Avatar - new, since none exist in src/shared/ui today"
+      - "Interaction primitives: re-export the existing Button, Input, Textarea from src/shared/ui as-is (no reimplementation) plus new IconButton and Select wrappers built on radix-ui (already an installed dependency), preserving keyboard navigation, ARIA attributes and disabled states"
+      - Add the centralized barrel export and per-primitive index.ts files following the Box/Box.tsx + index.ts convention
+      - Write src/shared/ui/primitives/README.md with before/after Tailwind-vs-primitive examples and forbidden usage patterns
+      - Migrate src/app/(app)/dashboard/page.tsx's raw flex/grid/heading Tailwind classes to the new primitives as the one reference migration, with no data-fetching or behavior changes
+      - Migrate src/app/(app)/layout.tsx's <main> element to render Screen instead of its raw flex-1/overflow-y-auto/p-6 div, so every app route is wrapped by the Screen primitive by construction
+      - Add a short pointer to src/shared/ui/primitives under the ARCHITECTURE.md Design System section
+    acceptance:
+      - src/shared/ui/primitives exists with layout, typography, surface, feedback and interaction primitives, each with strict TypeScript props (extending the relevant React.HTMLAttributes) and React.forwardRef where the primitive renders a DOM element
+      - No primitive imports from src/features, src/entities, src/widgets or src/app
+      - src/shared/ui/button.tsx, input.tsx and textarea.tsx are reused via re-export, not duplicated
+      - src/app/(app)/dashboard/page.tsx renders identically to before, using the new primitives instead of raw flex/grid Tailwind classes on its wrapper divs
+      - src/app/(app)/layout.tsx renders Screen in place of its raw <main> div, with identical background, height, scroll and padding behavior, spot-checked in the browser
+      - src/shared/ui/primitives/README.md documents every primitive with a good/bad usage example
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Primitives layer implemented and exported from a single barrel
+      - Dashboard page migrated as the reference implementation
+      - App shell's <main> wrapper uses the Screen primitive
+      - README documents usage and forbidden patterns
+      - No existing functionality broken
+    labels:
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/COMPONENT_GUIDE.md
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is a foundation layer, not a redesign: primitives must contain no
+      business logic and must not import from features, entities, widgets or
+      app. Reuse the existing shadcn Button, Input, Textarea and Card from
+      src/shared/ui and the TASK-017 tokens instead of reimplementing them -
+      compose or re-export, never duplicate. Migrate exactly two places as
+      the reference implementation: the dashboard page's content markup, and
+      the app shell's <main> wrapper in src/app/(app)/layout.tsx onto the new
+      Screen primitive. Do not touch any other route or page content.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Redesign or restyle the whole application
+      - Rewrite or duplicate the existing Button, Input, Textarea or Card components
+      - Introduce a new UI/styling dependency (Panda CSS, Stitches, styled-components, etc.)
+      - Add business logic, data fetching or feature-specific components inside src/shared/ui/primitives
+      - Migrate any page content other than the dashboard page
+      - Change src/app/(app)/layout.tsx's Sidebar usage or app-shell structure beyond swapping <main> for Screen
+      - Create a new top-level src/ui directory outside the Feature-Sliced src/shared layer
+  ###############################################################################
+  # TASK-027
+  ###############################################################################
+  - id: TASK-027
+    github:
+      issue: "47"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-016
+    title: Evaluate and introduce Turborepo workspace structure
+    goal: >
+      Audit whether the repository already has monorepo tooling, and if not, decide - and record as an ADR - whether it is warranted now to add npm workspaces and Turborepo as a sibling of the existing root-level src/, so that future shared packages (design system, types, utils, API clients) and a possible future mobile app have a place to live, without moving the existing app into apps/web or disrupting Feature-Sliced Design.
+
+    scope:
+      - turbo.json
+      - package.json
+      - packages/**
+      - eslint.config.mjs
+      - .github/workflows/ci.yml
+      - docs/MONOREPO.md
+      - ARCHITECTURE.md
+      - docs/ROADMAP.md
+      - memory-bank/decisions.md
+    deliverables:
+      - Audit of existing workspace/monorepo tooling, recorded as an ADR in memory-bank/decisions.md
+      - If proceeding - npm workspaces (package.json "workspaces") + turbo.json with dev/build/lint/typecheck/test/format pipelines, and packages/typescript-config + packages/eslint-config
+      - If deferring - documented readiness criteria for revisiting, no speculative packages added
+      - docs/MONOREPO.md documenting the decision, FSD/monorepo boundary, package responsibilities, workspace conventions and the future mobile strategy
+    tasks:
+      - Re-verify at implementation time that no turbo.json, pnpm-workspace.yaml, yarn workspaces, or npm "workspaces" field, and no packages/ or apps/ directory exist yet; if any already exist, document and extend them instead of duplicating
+      - Decide whether to scaffold npm workspaces + Turborepo now, given the project is still a single Next.js app with no second app consuming shared code yet; record the decision and reasoning as an ADR in memory-bank/decisions.md
+      - "If proceeding: add \"workspaces\": [\"packages/*\"] to root package.json (npm workspaces, do not switch package manager), add turbo as a devDependency, add turbo.json with pipelines mirroring the existing root npm scripts (dev, build, lint, typecheck, test, format), and update those root scripts to invoke `turbo run <task>` with caching enabled"
+      - "If proceeding: create only packages/typescript-config and packages/eslint-config (the two every future package or app will need); do not scaffold packages/ui, design-system, types, utils or config as empty placeholders with no real consumer yet - document them in docs/MONOREPO.md as future packages instead"
+      - Keep src/ at the repo root; do not move it into apps/web - every existing backlog task's scope: paths must remain valid
+      - "If proceeding: extend eslint.config.mjs's TASK-016 FSA boundary rules to also cover the packages/* workspace, and update .github/workflows/ci.yml only if the root script invocation shape changes"
+      - Write docs/MONOREPO.md covering why Turborepo was or wasn't added now, how it complements Feature-Sliced Design (FSD stays the internal architecture of the app; packages/* is cross-app-reuse only), package responsibilities, workspace conventions, dependency rules, and the future mobile (React Native/Expo) strategy including the concrete trigger condition for the deferred apps/web move
+      - Add a pointer to docs/MONOREPO.md from ARCHITECTURE.md and a Forward-Compatibility Note in docs/ROADMAP.md
+    acceptance:
+      - memory-bank/decisions.md records an ADR documenting the audit findings and the go/no-go decision with reasoning
+      - If proceeding - turbo.json and package.json workspaces exist; npm run build, npm run lint, npm run typecheck and npm run dev all still work routed through turbo; a second npm run build shows a turbo cache hit
+      - If deferring - no turbo.json or packages/* is added, and docs/MONOREPO.md documents concrete readiness criteria for revisiting
+      - No existing backlog task's scope: file paths are invalidated - src/ remains at the repo root
+      - docs/MONOREPO.md exists and is referenced from ARCHITECTURE.md
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Audit completed and ADR recorded
+      - Decision implemented if proceeding, or readiness criteria documented if deferred
+      - docs/MONOREPO.md written and linked from ARCHITECTURE.md
+      - No existing functionality or backlog task file paths broken
+    labels:
+      - architecture
+      - setup
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/ROADMAP.md
+      - docs/TECH_STACK.md
+    prompt: |
+      Implement ONLY this task.
+
+      This task is audit-gated: it must always produce the audit and the ADR
+      recording a go/no-go decision. Only scaffold npm workspaces, turbo.json
+      and packages/* if the audit and decision conclude it is warranted now -
+      do not scaffold speculative packages with no real consumer just because
+      the source roadmap item named them. Do not move src/ into apps/web in
+      this task; that is a deferred future task triggered only when a second
+      app (mobile) actually starts. Do not switch package manager away from
+      npm.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Move src/ into apps/web
+      - Switch package manager away from npm
+      - Scaffold packages/ui, design-system, types, utils or config as empty placeholders with no real consumer
+      - Add a mobile or Expo app in this task
+      - Change any existing feature's import paths or the Feature-Sliced layer structure inside src/
