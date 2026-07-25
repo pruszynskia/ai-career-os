@@ -17,6 +17,16 @@ export const parsedProfileSchema = z.object({
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
 export type ParsedProfileExperience = ParsedProfile['experience'][number];
 
+export const profileSchema = z.object({
+  id: z.string(),
+  ownerId: z.string(),
+  summary: z.string(),
+  skills: z.array(z.string()),
+  experience: z.unknown(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export interface Profile {
   id: string;
   ownerId: string;

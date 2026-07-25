@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
+import { jobOfferSchema } from '@/entities/job-offer/types';
 import {
   OfferNotFoundError,
   toggleFavorite,
 } from '@/features/job-offer/services/toggle-favorite.service';
 
-const toggleFavoriteSchema = z.object({
-  isFavorite: z.boolean(),
-});
+const toggleFavoriteSchema = jobOfferSchema.pick({ isFavorite: true });
 
 export async function PATCH(
   request: Request,

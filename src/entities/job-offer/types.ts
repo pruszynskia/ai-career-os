@@ -8,7 +8,24 @@ export const parsedJobOfferSchema = z.object({
 
 export type ParsedJobOffer = z.infer<typeof parsedJobOfferSchema>;
 
+export const offerSourceSchema = z.enum(['URL', 'RAW_TEXT']);
+
 export type OfferSource = 'URL' | 'RAW_TEXT';
+
+export const jobOfferSchema = z.object({
+  id: z.string(),
+  ownerId: z.string(),
+  url: z.string().nullable(),
+  source: offerSourceSchema,
+  rawContent: z.string(),
+  company: z.string(),
+  title: z.string(),
+  description: z.string(),
+  matchScore: z.number().nullable(),
+  isFavorite: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
 export interface JobOffer {
   id: string;
