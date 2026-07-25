@@ -14,17 +14,14 @@ import {
   CardDescription,
   CardAction,
 } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function OfferList({ offers }: { offers: JobOffer[] }) {
   const router = useRouter();
   const mutation = useToggleFavorite();
 
   if (offers.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No offers yet — add one above.
-      </p>
-    );
+    return <EmptyState message="No offers yet — add one above." />;
   }
 
   return (

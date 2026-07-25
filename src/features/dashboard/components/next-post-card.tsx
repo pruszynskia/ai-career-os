@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function NextPostCard({ post }: { post: Post | null }) {
   return (
@@ -25,9 +26,7 @@ export function NextPostCard({ post }: { post: Post | null }) {
             {post.content}
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No post scheduled yet.
-          </p>
+          <EmptyState message="No post scheduled yet." />
         )}
       </CardContent>
     </Card>

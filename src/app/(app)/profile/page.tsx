@@ -4,6 +4,8 @@ import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
 import { getOwnerId } from '@/shared/auth/session';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { PageHeader } from '@/shared/ui/page-header';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +15,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Profile</h1>
+      <PageHeader title="Profile" />
 
       <CvUploadForm />
 
@@ -29,9 +31,7 @@ export default async function ProfilePage() {
           <OptimizeCvPanel />
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          No profile yet — upload your CV to get started.
-        </p>
+        <EmptyState message="No profile yet — upload your CV to get started." />
       )}
     </div>
   );
