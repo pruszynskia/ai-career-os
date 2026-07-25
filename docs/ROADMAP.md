@@ -28,14 +28,14 @@ pay for."
   upload/parse/optimize, offer ingestion, match/tailor-CV/recruiter-message,
   application tracking, LinkedIn post generation/scheduling, dashboard,
   CI/deploy.
-- **Stage 0** (`backlog/mvp.yaml` TASK-016–025): defined, not yet
+- **Stage 0** (`backlog/mvp.yaml` TASK-016–027): defined, not yet
   implemented.
 
 ---
 
 # Stage 0 — MVP Stabilization
 
-`backlog/mvp.yaml` TASK-016–025.
+`backlog/mvp.yaml` TASK-016–027.
 
 **Goal:** stop developing a "prototype", start developing a "product." In
 ~6 months the app will likely have 200+ components; unorganized foundations
@@ -45,7 +45,8 @@ get exponentially more expensive to fix the longer they're left.
 |---|---|
 | TASK-016 | Architecture normalization & Feature-Sliced Architecture enforcement |
 | TASK-017 | Shared Design System — enterprise color, typography, UI principles |
-| TASK-018 | Playwright visual-QA & Claude Code UI-engineer workflow |
+| TASK-018 | Playwright visual-QA & Claude Code UI-engineer workflow‡ |
+| TASK-026 | UI primitives layer (layout, typography, surface, interaction)† |
 | TASK-019 | Reusable components library |
 | TASK-020 | Shared layouts |
 | TASK-021 | Data layer / repository pattern |
@@ -53,6 +54,33 @@ get exponentially more expensive to fix the longer they're left.
 | TASK-023 | Document module refactor |
 | TASK-024 | Domain models |
 | TASK-025 | Application state refactor |
+| TASK-027 | Evaluate and introduce Turborepo workspace structure |
+
+† Added after TASK-025 existed, so it kept the next free ID (026) per
+`CLAUDE.md`'s append-only numbering rule, but its `depends_on` (TASK-004,
+TASK-016, TASK-017) and TASK-019/TASK-020's `depends_on` (both now include
+TASK-026) place it here in execution order: it builds `src/shared/ui/primitives`
+(Box, Stack, Grid, Text, Heading, Badge, Avatar, etc.) as the low-level
+foundation that TASK-019's composite components and TASK-020's page shells
+compose, instead of hand-written Tailwind. It lives inside the existing
+Feature-Sliced `src/shared/ui` layer, not a separate top-level `src/ui/` tree.
+
+TASK-027 is audit-gated: it decides — and records as an ADR — whether npm
+workspaces + Turborepo (`packages/*`) are worth adding now, for future
+shared packages and a possible mobile app. If adopted, it stays a sibling of
+the existing root-level `src/`; the app is **not** moved into `apps/web` by
+this task. See the Forward-Compatibility Notes below for the mobile trigger
+condition.
+
+‡ TASK-018's scope was extended beyond the standalone `/design-review`
+command: `/implement-task` and `/fix-task` (`.claude/commands/*.md`) now
+also gain a conditional Step 4 sub-step that runs the same
+`docs/DESIGN_REVIEW_WORKFLOW.md` Playwright-MCP loop against a task's
+changed routes before marking it done — but only when the task is labeled
+`ui` or its scope touches `src/app`, `src/widgets`, or a components
+directory. Non-UI tasks (backend, database, AI-service-only) never trigger
+it, so routine implementation work doesn't pay for a browser-driving visual
+check it doesn't need.
 
 ---
 
@@ -136,6 +164,12 @@ when it arrives:
 - **Auth/ownership** (ADR-005) already anticipates the subscriptions
   milestone — don't add anything that would need to be undone when
   multi-user/billing lands.
+- **Monorepo/mobile** (Stage 0 TASK-027) — the `apps/web` move stays
+  deferred until a second app (a future React Native/Expo mobile client)
+  actually starts being built. Until then, keep code that would eventually
+  move into `packages/*` (design tokens, domain types, API-client shapes)
+  easy to lift out of `src/shared` and `src/entities` rather than tightly
+  coupled to Next.js-only APIs.
 
 This complements `ARCHITECTURE.md`'s "Future Extensibility" section, which
 covers the same intent at the architecture-rule level rather than the
