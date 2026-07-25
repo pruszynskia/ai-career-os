@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { addOffer } from '@/features/job-offer/services/add-offer.service';
 import { OfferFetchError } from '@/features/job-offer/services/extract-offer-text';
+import { isRateLimitError } from '@/shared/ai/service';
 
 const addOfferSchema = z
   .object({
@@ -30,6 +31,16 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof OfferFetchError) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+
+    if (isRateLimitError(error)) {
+      return NextResponse.json(
+        {
+          message:
+            'The AI provider rate limit or quota was exceeded. Try again later.',
+        },
+        { status: 429 },
+      );
     }
 
     console.error('Failed to add the offer', error);
