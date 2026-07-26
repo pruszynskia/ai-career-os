@@ -6,6 +6,10 @@ import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer, OfferSource } from '@/entities/job-offer/types';
 
 export function toJobOffer(row: Record<string, unknown>): JobOffer {
+  const expiresAt = row.expires_at
+    ? new Date(row.expires_at as string)
+    : null;
+
   return {
     id: row.id as string,
     ownerId: row.owner_id as string,
@@ -16,6 +20,8 @@ export function toJobOffer(row: Record<string, unknown>): JobOffer {
     title: row.title as string,
     description: row.description as string,
     matchScore: (row.match_score as number | null) ?? null,
+    expiresAt,
+    isExpired: expiresAt !== null && expiresAt < new Date(),
     isFavorite: row.is_favorite as boolean,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
@@ -31,6 +37,7 @@ export const jobOfferService = {
     company: string;
     title: string;
     description: string;
+    expiresAt?: Date;
   }): Promise<JobOffer> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -43,6 +50,7 @@ export const jobOfferService = {
         company: values.company,
         title: values.title,
         description: values.description,
+        expires_at: values.expiresAt?.toISOString() ?? null,
       })
       .select()
       .single();
@@ -74,7 +82,11 @@ export const jobOfferService = {
 
   async update(
     id: string,
-    values: Partial<{ isFavorite: boolean; matchScore: number }>,
+    values: Partial<{
+      isFavorite: boolean;
+      matchScore: number;
+      expiresAt: Date | null;
+    }>,
   ): Promise<JobOffer> {
     const supabase = await createClient();
     const patch: Record<string, unknown> = {
@@ -82,6 +94,8 @@ export const jobOfferService = {
     };
     if (values.isFavorite !== undefined) patch.is_favorite = values.isFavorite;
     if (values.matchScore !== undefined) patch.match_score = values.matchScore;
+    if (values.expiresAt !== undefined)
+      patch.expires_at = values.expiresAt?.toISOString() ?? null;
 
     const { data, error } = await supabase
       .from('job_offers')

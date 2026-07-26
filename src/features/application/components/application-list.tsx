@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ApplicationBundle } from '@/entities/application/types';
 import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
+import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
@@ -40,7 +41,14 @@ export function ApplicationList({
                 {application.jobOffer.title}
               </Link>
             </CardTitle>
-            <CardDescription>{application.jobOffer.company}</CardDescription>
+            <CardDescription>
+              {application.jobOffer.company}
+              {application.isExpired && (
+                <Badge variant="destructive" className="ml-2">
+                  Expired
+                </Badge>
+              )}
+            </CardDescription>
             <CardAction>
               <ApplicationStatusSelect
                 applicationId={application.id}

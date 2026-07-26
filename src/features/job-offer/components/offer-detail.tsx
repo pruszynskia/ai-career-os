@@ -11,6 +11,7 @@ import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-me
 import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { AppPageLayout } from '@/shared/layouts';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
+import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -48,7 +49,15 @@ export function OfferDetail({
     Boolean(sentCv) && recruiterMessageMutation.isSuccess;
 
   return (
-    <AppPageLayout title={offer.title} subtitle={offer.company}>
+    <AppPageLayout
+      title={offer.title}
+      subtitle={offer.company}
+      action={
+        offer.isExpired ? (
+          <Badge variant="destructive">Expired</Badge>
+        ) : undefined
+      }
+    >
       <Card>
         <CardHeader>
           <CardTitle>Match</CardTitle>

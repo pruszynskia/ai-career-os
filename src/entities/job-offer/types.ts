@@ -22,6 +22,7 @@ export const jobOfferSchema = z.object({
   title: z.string(),
   description: z.string(),
   matchScore: z.number().nullable(),
+  expiresAt: z.date().nullable(),
   isFavorite: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -37,6 +38,8 @@ export interface JobOffer {
   title: string;
   description: string;
   matchScore: number | null;
+  expiresAt: Date | null;
+  isExpired: boolean;
   isFavorite: boolean;
   createdAt: Date;
   updatedAt: Date;
