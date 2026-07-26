@@ -1905,7 +1905,6 @@ tasks:
       - Switch package manager away from npm
       - Scaffold packages/ui, design-system, types, utils or config as empty placeholders with no real consumer
       - Add a mobile or Expo app in this task
-
   - id: TASK-028
     github:
       issue: "61"
@@ -1919,6 +1918,7 @@ tasks:
     title: Post management - status control, edit and delete
     goal: >
       Let the user edit a draft's content, delete any post, and directly change a post's status, closing the gap where src/entities/post/service.ts#update only accepts status/scheduledAt/sentAt (never content) and no delete method or route exists at all.
+
     scope:
       - src/entities/post/service.ts
       - src/features/linkedin-posts/services/get-post.ts
@@ -1977,81 +1977,6 @@ tasks:
       - Add soft-delete, versioning or an undo/trash feature
       - Change the generate/schedule/plan flows built in TASK-012/013
       - Change any existing feature's import paths or the Feature-Sliced layer structure inside src/
-  ###############################################################################
-  # TASK-028
-  ###############################################################################
-  - id: TASK-028
-    github:
-      issue: "61"
-      project_item: null
-    status: todo
-    priority: P2
-    estimate: M
-    milestone: "Stage 1 - Product Refinement"
-    depends_on:
-      - TASK-012
-      - TASK-013
-    title: Post management - status control, edit and delete
-    goal: >
-      Let the user edit a draft's content, delete any post, and directly change a post's status, closing the gap where src/entities/post/service.ts#update only accepts status/scheduledAt/sentAt (never content) and no delete method or route exists at all.
-
-    scope:
-      - src/entities/post/service.ts
-      - src/features/linkedin-posts/services/get-post.ts
-      - src/features/linkedin-posts/services/update-post.service.ts
-      - src/features/linkedin-posts/services/delete-post.service.ts
-      - src/features/linkedin-posts/api/linkedin-posts.api.ts
-      - src/features/linkedin-posts/hooks/use-update-post.ts
-      - src/features/linkedin-posts/hooks/use-delete-post.ts
-      - src/features/linkedin-posts/components/post-list.tsx
-      - src/features/linkedin-posts/components/edit-post-dialog.tsx
-      - src/app/api/posts/[id]/route.ts
-    deliverables:
-      - postService.update accepts content in addition to status/scheduledAt/sentAt
-      - postService.remove(id, ownerId) deleting a post scoped to its owner
-      - PATCH and DELETE handlers on a new src/app/api/posts/[id]/route.ts
-      - Edit dialog and delete action wired into post-list.tsx
-      - A status select allowing any manual status transition (not only the existing forward draft to scheduled to sent flow)
-    tasks:
-      - Extend src/entities/post/service.ts#update's accepted fields to include content, and add a remove(id, ownerId) method (delete scoped by owner, matching existing findFirst/update scoping)
-      - Extract the existing inline owner-scoped lookup-or-throw from schedule-post.service.ts into src/features/linkedin-posts/services/get-post.ts so update-post.service.ts and delete-post.service.ts reuse it instead of duplicating the check
-      - Add src/features/linkedin-posts/services/update-post.service.ts (edit content and/or status) and delete-post.service.ts, both using getPostOrThrow
-      - Add src/app/api/posts/[id]/route.ts with PATCH (body content and/or status) and DELETE handlers, returning 404 via PostNotFoundError like the existing schedule route
-      - Add linkedin-posts.api.ts client functions, use-update-post.ts and use-delete-post.ts hooks (react-query mutations calling router.refresh() on success, matching the existing hook pattern)
-      - Add an edit-post-dialog.tsx (content textarea plus a status select) and a delete button (with confirmation) to post-list.tsx's PostCard
-    acceptance:
-      - Editing a draft's content persists and is reflected after refresh
-      - Deleting a post removes it from the list and returns 404 on a second delete
-      - A post's status can be changed directly via the status select, not only through the existing schedule/mark-sent buttons
-      - npm run typecheck, npm run lint and npm run build succeed
-    done:
-      - Edit, delete and manual status control verified end to end
-      - No duplicated owner-lookup logic across the post feature's services
-      - Feature committed
-    labels:
-      - feature
-      - ui
-      - backend
-    context:
-      architecture:
-        - project-overview
-      standards:
-        - coding-standards
-    references:
-      - docs/PRODUCT.md
-      - ARCHITECTURE.md
-    prompt: |
-      Implement ONLY this task.
-
-      Reuse the existing Post entity, postService and linkedin-posts feature
-      slice; do not introduce a new entity. Follow the existing hook/mutation
-      pattern (router.refresh() on success, no client cache).
-
-      Stop immediately after acceptance criteria are met.
-    do_not:
-      - Introduce a new entity or table
-      - Add soft-delete, versioning or an undo/trash feature
-      - Change the generate/schedule/plan flows built in TASK-012/013
   ###############################################################################
   # TASK-029
   ###############################################################################
@@ -2400,6 +2325,230 @@ tasks:
       - Use these preferences for matching or filtering yet (that is a future job-discovery feature, not in scope here)
       - Add fields beyond those named in the goal
   ###############################################################################
+  # TASK-041
+  ###############################################################################
+  - id: TASK-041
+    github:
+      issue: "79"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-006
+    title: Profile - personal projects from CV
+    goal: >
+      Extract and display self-made/personal projects from the uploaded CV as a distinct section from work experience - parseCvSystemPrompt (src/shared/ai/prompts/parse-cv.ts) currently only asks for summary/skills/experience, parsedProfileSchema (src/entities/profile/types.ts) has no projects field, and profile-summary.tsx renders no projects section, so a CV with a dedicated projects section (side projects, open-source, personal work) loses that content today.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/profile/types.ts
+      - src/entities/profile/service.ts
+      - src/shared/ai/prompts/parse-cv.ts
+      - src/features/cv/components/profile-summary.tsx
+      - src/app/(app)/profile/page.tsx
+    deliverables:
+      - projects jsonb column on profiles, defaulting to an empty array
+      - parsedProfileSchema/profileSchema extended with a projects field (name, description, technologies, optional url)
+      - parseCvSystemPrompt instructing the AI to extract a projects section distinct from work experience, left empty when the CV has none
+      - profile-summary.tsx rendering a Projects card (name, description, technology tags, link when present), shown only when at least one project was extracted
+    tasks:
+      - "Add a migration: alter table profiles add column projects jsonb not null default '[]'::jsonb"
+      - "Add to parsedProfileSchema in src/entities/profile/types.ts: projects: z.array(z.object({ name: z.string(), description: z.string(), technologies: z.array(z.string()), url: z.string().nullable() })); add projects: z.unknown() to profileSchema and projects: unknown to the Profile interface, mirroring the existing experience field's storage pattern"
+      - Update parseCvSystemPrompt in src/shared/ai/prompts/parse-cv.ts to also extract a projects array (name, short description, technologies used, an optional URL) for self-made/personal/side projects distinct from the work experience list, leaving it an empty array when the CV has no such section
+      - Update profileService.upsert to accept and persist projects
+      - Add a Projects Card to src/features/cv/components/profile-summary.tsx (same list/Card pattern as the existing Experience card), rendered only when profile.projects.length > 0
+      - Pass profile.projects through from src/app/(app)/profile/page.tsx into ProfileSummary
+    acceptance:
+      - Uploading a CV with a projects section persists and displays those projects on the Profile page
+      - Uploading a CV with no projects section shows no empty Projects card
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Projects extraction, persistence and display verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Follow the existing experience field's storage pattern (jsonb column,
+      z.unknown() in the persisted Profile schema, typed ParsedProfile shape
+      for the AI/UI boundary). TASK-042 also edits parse-cv.ts's system
+      prompt and profile-summary.tsx around the same time - if it lands
+      first, extend its prompt/UI additively, do not replace its wording or
+      revert its card.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Merge projects into the existing experience list or type
+      - Add project-level AI scoring or ranking
+      - Add fields beyond name, description, technologies and url
+  ###############################################################################
+  # TASK-042
+  ###############################################################################
+  - id: TASK-042
+    github:
+      issue: "80"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-006
+    title: Profile - automatic CV/application score
+    goal: >
+      Automatically show a CV-quality score on the Profile page right after upload/parse, computed as part of the existing uploadCv AI call (src/features/cv/services/upload-cv.service.ts) rather than a separate on-demand action - there is currently no general profile-level score anywhere; the only existing score concept is JobOffer.matchScore, which is per-offer and requires a separate button click.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/profile/types.ts
+      - src/entities/profile/service.ts
+      - src/shared/ai/prompts/parse-cv.ts
+      - src/features/cv/components/profile-summary.tsx
+      - src/app/(app)/profile/page.tsx
+    deliverables:
+      - "score jsonb column on profiles (nullable, { overall: number, metrics: { label, score, note }[] })"
+      - parsedProfileSchema extended with a score object returned by the same AI call that already produces summary/skills/experience
+      - A ScoreCard on the Profile page rendering the overall score and per-metric breakdown, displayed automatically whenever a profile exists
+    tasks:
+      - "Add a migration: alter table profiles add column score jsonb"
+      - "Add to parsedProfileSchema in src/entities/profile/types.ts: score: z.object({ overall: z.number().min(0).max(100), metrics: z.array(z.object({ label: z.string(), score: z.number().min(0).max(100), note: z.string() })) })"
+      - Update parseCvSystemPrompt in src/shared/ai/prompts/parse-cv.ts to also produce this score, reasoning about general CV-quality metrics (e.g. completeness, quantified achievements, clarity, keyword coverage) independent of any specific job offer
+      - "Add score: z.unknown() to profileSchema and score: unknown to the Profile interface; update profileService.upsert to accept and persist it"
+      - Add src/features/cv/components/profile-score-card.tsx rendering profile.score.overall prominently plus each metric (label, score, note) using existing shared primitives, no charting library
+      - Render ProfileScoreCard from src/app/(app)/profile/page.tsx alongside ProfileSummary, only when profile.score is present
+    acceptance:
+      - Uploading a CV automatically produces and displays a score with per-metric breakdown, with no separate button click required
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Automatic scoring verified end to end on upload
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Compute the score as part of the existing parse-cv AI call so it is
+      automatic on upload - do not add a separate "calculate score" button
+      or a second AI round-trip. Do not build a charting/analytics library;
+      plain stat text/badges only. TASK-041 also edits parse-cv.ts's system
+      prompt around the same time - if it lands first, extend its prompt
+      additively, do not replace its projects-extraction wording.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a second AI call or a manual "recalculate score" action
+      - Add a charting/analytics dependency
+      - Persist score history or trend tracking
+  ###############################################################################
+  # TASK-043
+  ###############################################################################
+  - id: TASK-043
+    github:
+      issue: "81"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-002
+      - TASK-006
+      - TASK-007
+    title: Profile - master cover letter upload and optimize
+    goal: >
+      Let the user upload a general/master cover letter (independent of any job offer) on the Profile page and AI-optimize it, mirroring the existing master-CV upload/optimize pattern (TASK-006/TASK-007) - today the only cover-letter capability is generateCoverLetter (src/features/job-offer/services/cover-letter.service.ts), which is a one-shot, non-persisted AI call scoped to one specific offer's description, with no upload path and nothing on the Profile page.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/cv-document/types.ts
+      - src/entities/cv-document/service.ts
+      - src/features/cv/services/upload-cover-letter.service.ts
+      - src/features/cv/services/optimize-cover-letter.service.ts
+      - src/features/cv/hooks/use-upload-cover-letter.ts
+      - src/features/cv/hooks/use-optimize-cover-letter.ts
+      - src/features/cv/components/cover-letter-upload-form.tsx
+      - src/features/cv/components/optimize-cover-letter-panel.tsx
+      - src/shared/ai/prompts/optimize-cover-letter.ts
+      - src/app/api/cover-letter/upload/route.ts
+      - src/app/api/cover-letter/optimize/route.ts
+      - src/app/(app)/profile/page.tsx
+    deliverables:
+      - cv_documents gains a kind column ('cv' | 'cover_letter', default 'cv') distinguishing a master cover letter from a master CV without breaking existing isMaster semantics
+      - cvDocumentService's isMaster-scoped lookups (getMasterOrThrow, findFirst, createVersion/updateMany's flip) filter by kind so uploading a new master CV never un-masters the master cover letter and vice versa
+      - Cover letter upload (reusing the existing extractCvText PDF/DOCX extraction) and AI optimize flow, mirroring cv-upload-form.tsx/optimize-cv-panel.tsx
+      - A Cover Letter section on the Profile page with upload, optimize and download
+    tasks:
+      - "Add a migration: alter table cv_documents add column kind text not null default 'cv'; alter table cv_documents add constraint cv_documents_kind_check check (kind in ('cv', 'cover_letter'))"
+      - "Add kind: 'cv' | 'cover_letter' to cvDocumentSchema and the CvDocument interface in src/entities/cv-document/types.ts; update toCvDocument in service.ts to map it"
+      - "Extend cvDocumentService.create/createVersion to accept an optional kind (default 'cv'); extend findFirst and getMasterOrThrow to accept and filter by kind, keeping 'cv' as the default so every existing call site (tailor-cv, optimize-cv, cover-letter.service.ts's per-offer generation) is unaffected"
+      - "Extend updateMany's filter to include kind so flipping off the previous master only affects documents of the same kind"
+      - "Add src/features/cv/services/upload-cover-letter.service.ts (extract text via the existing extractCvText, create a CvDocument version with isMaster: true, kind: 'cover_letter', no AI structuring - store raw content like the master CV) and its route src/app/api/cover-letter/upload/route.ts, mirroring cv/upload/route.ts"
+      - "Add src/shared/ai/prompts/optimize-cover-letter.ts and src/features/cv/services/optimize-cover-letter.service.ts (fetch the master cover letter via getMasterOrThrow(ownerId, message, 'cover_letter'), return { optimizedContent, improvements }), plus its route src/app/api/cover-letter/optimize/route.ts, mirroring optimize-cv.service.ts"
+      - Add src/features/cv/hooks/use-upload-cover-letter.ts, use-optimize-cover-letter.ts, src/features/cv/components/cover-letter-upload-form.tsx and optimize-cover-letter-panel.tsx, mirroring the existing CV upload/optimize components
+      - Render the new Cover Letter section from src/app/(app)/profile/page.tsx alongside the existing CV upload/optimize panels
+    acceptance:
+      - Uploading a cover letter persists it as the master cover letter without affecting the master CV, and vice versa
+      - Optimizing the master cover letter returns optimized content and improvements, downloadable
+      - The per-offer generateCoverLetter flow (src/features/job-offer/services/cover-letter.service.ts) is unchanged and still generates from the master CV plus offer description, not the master cover letter
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Master cover letter upload and optimize verified end to end
+      - Existing master-CV and per-offer cover-letter flows verified unaffected
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - backend
+      - database
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse extractCvText, cvDocumentService's createVersion/getMasterOrThrow
+      pattern and the existing optimize-cv.tsx UI pattern; do not build a new
+      feature slice or a rich-text editor. Do not change
+      cover-letter.service.ts's per-offer generation flow - it keeps
+      generating from the master CV and the offer description, unrelated to
+      this master cover letter. Default kind to 'cv' everywhere so no
+      existing call site needs to change.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a rich-text/WYSIWYG editor
+      - Change generateCoverLetter's per-offer generation flow or its inputs
+      - Create a separate top-level feature slice for this - it belongs in the existing src/features/cv slice
+  ###############################################################################
   # TASK-034
   ###############################################################################
   - id: TASK-034
@@ -2537,6 +2686,147 @@ tasks:
       - Change the AI extraction/ingestion flow
       - Add a rich-text editor for the description field
       - Duplicate the existing useToggleFavorite hook
+  ###############################################################################
+  # TASK-044
+  ###############################################################################
+  - id: TASK-044
+    github:
+      issue: "82"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-030
+      - TASK-009
+      - TASK-011
+    title: Offer details - expiration date and unblocked Track Application
+    goal: >
+      Show the offer's raw expiration date on the detail page (today only a derived "Expired" badge renders, no "expires on <date>" text) and stop Track Application from being blocked by tailored-CV/recruiter-message generation - offer-detail.tsx's canTrackApplication currently requires both Boolean(sentCv) and recruiterMessageMutation.isSuccess before the button enables. Per docs/PRODUCT.md's "every application links to exactly one sent CV and one recruiter message" principle, remove the block without a schema change: fall back to the user's master CV and an empty message when no tailored CV/recruiter message has been generated yet.
+
+    scope:
+      - src/app/(app)/offers/[id]/page.tsx
+      - src/widgets/offer-detail-panel/offer-detail-panel.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+    deliverables:
+      - offer-detail.tsx rendering "Expires on <date>" (or "No expiration set") alongside the existing Expired badge
+      - Track Application enabled whenever the owner has any CV (tailored or master), falling back to the master CV and an empty recruiter message instead of requiring both to be generated first
+      - The two blocking helper-text paragraphs replaced with a single, non-blocking informational note when a fallback is used
+    tasks:
+      - "Fetch the owner's master CV in src/app/(app)/offers/[id]/page.tsx (cvDocumentService.findFirst({ ownerId, isMaster: true })) alongside jobOfferService.findWithLatestTailoredCv, and pass it through OfferDetailPanel as a new masterCv?: CvDocument prop"
+      - Thread masterCv through src/widgets/offer-detail-panel/offer-detail-panel.tsx into OfferDetail
+      - "In offer-detail.tsx, change sentCv to fall back to masterCv: tailorCvMutation.data?.cvDocument ?? latestTailoredCv ?? masterCv, and change canTrackApplication to Boolean(sentCv) only (drop the recruiterMessageMutation.isSuccess requirement)"
+      - "Change the Track Application click handler's recruiterMessage argument to recruiterMessageMutation.data?.message ?? ''"
+      - Replace the two conditional blocking paragraphs (lines guarding on !sentCv / !recruiterMessageMutation.isSuccess) with a single informational note shown only when falling back (e.g. "Using your master CV and no recruiter message since none were generated for this offer yet"), and keep the button disabled only when there is no CV at all (no master CV uploaded and no tailored CV generated)
+      - Render offer.expiresAt as a formatted date string next to the existing Expired badge in the AppPageLayout action slot
+    acceptance:
+      - The offer detail page shows the offer's expiration date (or "No expiration set")
+      - Track Application is clickable as soon as any CV exists for the owner, without requiring a tailored CV or recruiter message to be generated for this specific offer first
+      - Tracking an application with no tailored CV/message generated uses the master CV and an empty message; tracking with both generated still uses the generated ones
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Expiration date display and unblocked tracking verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      No schema/migration change - applications.sent_cv_id and
+      recruiter_message stay NOT NULL; satisfy them via the master-CV/empty-
+      message fallback described above. If the owner has no master CV and no
+      tailored CV at all, Track Application stays disabled with a message to
+      upload a CV in Profile first - that is the one real remaining
+      prerequisite, not an "earlier step for this offer".
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Make applications.sent_cv_id or recruiter_message nullable
+      - Remove the master-CV prerequisite entirely
+      - Change the match-score flow or its UI
+  ###############################################################################
+  # TASK-045
+  ###############################################################################
+  - id: TASK-045
+    github:
+      issue: "83"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-008
+      - TASK-011
+    title: Offer - delete capability
+    goal: >
+      Let the user delete a job offer. No delete path exists anywhere today (src/app/api/offers/route.ts exports only POST, jobOfferService has no delete method, no delete button in offer-list.tsx or offer-detail.tsx). Deleting an offer that already has a tracked application is blocked, preserving docs/PRODUCT.md's "every application always links to exactly one offer" principle - the user deletes the application first if they want the offer gone too.
+
+    scope:
+      - src/entities/job-offer/service.ts
+      - src/entities/application/service.ts
+      - src/entities/cv-document/service.ts
+      - src/features/job-offer/services/delete-offer.service.ts
+      - src/features/job-offer/hooks/use-delete-offer.ts
+      - src/features/job-offer/components/offer-list.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/app/api/offers/[id]/route.ts
+    deliverables:
+      - jobOfferService.delete(id) and cvDocumentService.deleteByJobOffer(jobOfferId)
+      - applicationService.existsForOffer(ownerId, jobOfferId)
+      - deleteOffer(id) feature service that blocks deletion (OfferHasApplicationError) when an application exists, otherwise deletes the offer's non-master cv_documents (tailored CVs generated for it) then the offer itself
+      - A DELETE handler on src/app/api/offers/[id]/route.ts (note: TASK-035 also adds a PATCH handler to this same new file - both are additive, no conflict)
+      - A delete button with a confirmation dialog (reusing the existing shared Dialog primitive) on offer-list.tsx and offer-detail.tsx
+    tasks:
+      - "Add jobOfferService.delete(id: string): Promise<void> to src/entities/job-offer/service.ts (supabase .from('job_offers').delete().eq('id', id))"
+      - "Add cvDocumentService.deleteByJobOffer(jobOfferId: string): Promise<void> to src/entities/cv-document/service.ts"
+      - "Add applicationService.existsForOffer(ownerId: string, jobOfferId: string): Promise<boolean> to src/entities/application/service.ts"
+      - "Add src/features/job-offer/services/delete-offer.service.ts: check applicationService.existsForOffer first and throw a new OfferHasApplicationError if true, otherwise call cvDocumentService.deleteByJobOffer(id) then jobOfferService.delete(id)"
+      - Add a DELETE handler to src/app/api/offers/[id]/route.ts (create the file with just DELETE if TASK-035's PATCH hasn't landed yet, or add DELETE alongside it if it has) calling deleteOffer, mapping OfferHasApplicationError to a 409 response
+      - Add src/features/job-offer/hooks/use-delete-offer.ts (useMutation wrapping a DELETE fetch)
+      - Add a Delete button plus a confirm-before-delete Dialog (reusing src/shared/ui/dialog.tsx) to offer-list.tsx's CardAction and offer-detail.tsx's header action slot, wired to the new hook
+    acceptance:
+      - Deleting an offer with no application removes it from the offers list
+      - Deleting an offer that has a tracked application is blocked with a clear error message
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Offer deletion (including the applied-offer block) verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Block deletion when an application exists rather than cascading -
+      cascading would silently destroy the "every application links to
+      exactly one offer" invariant. Reuse the existing Dialog primitive for
+      the confirm step; do not add a new confirm-dialog abstraction.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Cascade-delete an offer's applications
+      - Add bulk/multi-select delete
+      - Add an "undo delete" or soft-delete/trash mechanism
   ###############################################################################
   # TASK-036
   ###############################################################################
@@ -2695,6 +2985,55 @@ tasks:
       - Add a global loading overlay outside Next.js's per-route loading.tsx convention
       - Add toast success/error feedback (separate task)
   ###############################################################################
+  # TASK-046
+  ###############################################################################
+  - id: TASK-046
+    github:
+      issue: "84"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: XS
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-004
+    title: Sidebar - sign-out action
+    goal: >
+      Wire the existing signOut server action (src/shared/auth/actions.ts, defined since TASK-003 but never imported or called anywhere) into the sidebar, since there is currently no way to sign out from the UI at all.
+
+    scope:
+      - src/widgets/nav/sidebar.tsx
+    deliverables:
+      - A sign-out button in the sidebar, calling the existing signOut server action
+    tasks:
+      - "Add a sign-out button to src/widgets/nav/sidebar.tsx, placed below NAV_ITEMS, using a <form action={signOut}> (imported from @/shared/auth/actions) wrapping a Button (variant=\"ghost\", matching the existing collapse-toggle button's style) with a LogOut icon from lucide-react"
+    acceptance:
+      - Clicking the sign-out button signs the user out and redirects to /sign-in
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Sign-out verified end to end
+      - Feature committed
+    labels:
+      - ui
+      - auth
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use the existing signOut server action directly; do not add a new auth
+      helper or client-side supabase.auth.signOut() call.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a user menu/dropdown beyond the sign-out action itself
+      - Add a new auth helper or duplicate signOut's logic client-side
+  ###############################################################################
   # TASK-038
   ###############################################################################
   - id: TASK-038
@@ -2767,6 +3106,75 @@ tasks:
       - Add a rich-text or WYSIWYG editor
       - Change createVersion's new-row-per-generation behavior
       - Persist edit history or diffs between versions
+  ###############################################################################
+  # TASK-047
+  ###############################################################################
+  - id: TASK-047
+    github:
+      issue: "85"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-014
+      - TASK-011
+      - TASK-008
+    title: Dashboard and list rows - clickable navigation and hover affordances
+    goal: >
+      Make the dashboard's three cards navigable (today NextPostCard, UpcomingInterviewsCard and FavoriteOffersCard render plain text/spans with zero Link usage, unlike offer-list.tsx/application-list.tsx which already link their titles) and add a full-row hover affordance to those two list views, whose Card wrapper has no hover state today - only the inner title text underlines on hover.
+
+    scope:
+      - src/features/dashboard/components/next-post-card.tsx
+      - src/features/dashboard/components/upcoming-interviews-card.tsx
+      - src/features/dashboard/components/favorite-offers-card.tsx
+      - src/features/job-offer/components/offer-list.tsx
+      - src/features/application/components/application-list.tsx
+    deliverables:
+      - NextPostCard's content linking to /posts
+      - UpcomingInterviewsCard's and FavoriteOffersCard's list items linking to their offer detail page (/offers/[id]), each with a hover state
+      - offer-list.tsx's and application-list.tsx's Card rows showing a hover background across the whole row, not just underlining the title text
+    tasks:
+      - Wrap NextPostCard's content (or add an explicit link) in a next/link Link to /posts
+      - Wrap each UpcomingInterviewsCard <li> in a Link to /offers/${application.jobOffer.id} (same target application-list.tsx already links to), adding a hover background class
+      - Wrap each FavoriteOffersCard <li> in a Link to /offers/${offer.id}, adding a hover background class
+      - Add a hover background className (e.g. transition-colors hover:bg-muted/50) to the Card wrapper in offer-list.tsx and application-list.tsx, so the whole row responds to hover, not only the title text
+    acceptance:
+      - Clicking a dashboard card's item navigates to the corresponding offer or the posts page
+      - Dashboard card items and offer-list/application-list rows show a visible hover state across the row
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Clickable navigation and hover affordances verified across the dashboard and both list views
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Do not wrap an entire Card in an anchor when it already contains an
+      interactive control (offer-list.tsx's favorite Button,
+      application-list.tsx's status Select) - nested interactive elements
+      are invalid HTML. Add the hover background to the Card container
+      itself and keep the existing inner Link(s) as the actual navigation
+      target. Do not build a general-purpose "clickable card" wrapper
+      component for this - that belongs to TASK-034's broader audit if a
+      real cross-app pattern emerges.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Nest an anchor/Link around an element that already contains a Button or Select
+      - Add a new shared "ClickableCard" component
+      - Add a post detail route - link to the existing /posts list page instead
   ###############################################################################
   # TASK-039
   ###############################################################################
@@ -2889,3 +3297,76 @@ tasks:
       - Add semantic or embedding-based search
       - Add pagination
       - Make the applications-page company-search widget globally navigable
+  ###############################################################################
+  # TASK-048
+  ###############################################################################
+  - id: TASK-048
+    github:
+      issue: "86"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-008
+      - TASK-011
+      - TASK-040
+    title: Unify Offers and Applications into one view
+    goal: >
+      Replace the separate /offers and /applications routes with one unified view - today every offer already appears on /offers (via jobOfferService.findMany, unfiltered) and, separately, on /applications: applied offers render again via ApplicationList and not-yet-applied offers render a second time via the same OfferList component (src/widgets/company-search/company-search.tsx's two sections), so the current split duplicates rendering rather than cleanly separating concerns. Builds on TASK-040's search/sort UI instead of introducing a second search input.
+
+    scope:
+      - src/app/(app)/offers/page.tsx
+      - src/app/(app)/applications/**
+      - src/widgets/company-search/**
+      - src/widgets/nav/sidebar.tsx
+      - src/features/job-offer/components/offer-list.tsx
+      - src/features/application/components/application-list.tsx
+      - src/entities/job-offer/service.ts
+    deliverables:
+      - A single unified page (kept at /offers) listing every offer, each annotated with its application status (Not tracked, or the current ApplicationStatus) instead of two overlapping pages
+      - The /applications route and its sidebar nav item removed
+      - TASK-040's search/sort/favorites-only UI reused as the page's single search mechanism, replacing company-search's separate search input
+      - Existing per-row actions preserved: favorite toggle, match score, Track Application / status pipeline update, download sent CV, Expired badge
+    tasks:
+      - Add a query (or equivalent) to src/entities/job-offer/service.ts (or a feature-level service) that returns each offer joined with its application status, if any, reusing the existing job_offers/applications relationship rather than a new table
+      - Redesign src/app/(app)/offers/page.tsx to render one list combining offer-list.tsx's offer row and application-list.tsx's status/actions row per offer, built on top of TASK-040's search input, sort select and favorites-only toggle
+      - Remove src/app/(app)/applications/ and its route; remove src/widgets/company-search/ or fold its remaining unique logic (company/title search) into the unified page if TASK-040's search doesn't already cover it
+      - Remove the "Applications" entry from NAV_ITEMS in src/widgets/nav/sidebar.tsx
+      - Verify every action currently reachable from either page (favorite toggle, status pipeline update, download sent CV, Track Application) is still reachable from the unified page or its detail view
+    acceptance:
+      - There is one nav item and one route for offers; /applications no longer exists
+      - Every offer is listed exactly once, showing its application status if tracked
+      - Search, sort and favorites-only filtering (from TASK-040) work on the unified list
+      - No existing action (favorite, status update, download sent CV, track application) was removed, only relocated
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Unified Offers/Applications view verified end to end, old route removed
+      - Feature committed
+    labels:
+      - feature
+      - frontend
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse TASK-040's search/sort UI and the existing OfferList/
+      ApplicationList row components as building blocks rather than
+      rewriting their rendering from scratch. This is a routing/IA change,
+      which TASK-034's own do_not list explicitly excludes from its scope -
+      that exclusion is why this is its own task.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a Kanban/drag-and-drop view (that is Stage 2 scope)
+      - Remove any existing per-offer or per-application action
+      - Introduce a new search implementation instead of reusing TASK-040's

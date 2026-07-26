@@ -28,9 +28,9 @@ pay for."
   upload/parse/optimize, offer ingestion, match/tailor-CV/recruiter-message,
   application tracking, LinkedIn post generation/scheduling, dashboard,
   CI/deploy.
-- **Stage 0** (`backlog/mvp.yaml` TASK-016–027): defined, not yet
-  implemented.
-- **Stage 1** (`backlog/mvp.yaml` TASK-028, TASK-032–040): defined, not yet
+- **Stage 0** (`backlog/mvp.yaml` TASK-016–028): TASK-016–027 defined, not
+  yet implemented; TASK-028 shipped.
+- **Stage 1** (`backlog/mvp.yaml` TASK-032–040): defined, not yet
   implemented.
 - **Stage 2** (`backlog/mvp.yaml` TASK-029–031): partially defined.
 
@@ -58,6 +58,7 @@ get exponentially more expensive to fix the longer they're left.
 | TASK-024 | Domain models |
 | TASK-025 | Application state refactor |
 | TASK-027 | Evaluate and introduce Turborepo workspace structure |
+| TASK-028 | Post management — status control, edit and delete (shipped) |
 
 † Added after TASK-025 existed, so it kept the next free ID (026) per
 `CLAUDE.md`'s append-only numbering rule, but its `depends_on` (TASK-004,
@@ -89,7 +90,7 @@ check it doesn't need.
 
 # Stage 1 — Product Refinement
 
-`backlog/mvp.yaml` TASK-028, TASK-032–040.
+`backlog/mvp.yaml` TASK-032–040, TASK-041–048.
 
 **Goal:** remove everything that makes the product feel like an "unfinished
 MVP." After this stage the product should look and feel professional.
@@ -97,14 +98,21 @@ MVP." After this stage the product should look and feel professional.
 | Task | Title |
 |---|---|
 | TASK-035 | Offer Details UX |
+| TASK-044 | Offer Details — Expiration Date & Unblocked Track Application |
+| TASK-045 | Offer — Delete Capability |
 | TASK-036 | Toast Notifications |
 | TASK-037 | Loading UX |
+| TASK-046 | Sidebar — Sign-Out Action |
 | TASK-038 | Document Editor & Persistent Documents |
 | TASK-032 | CV Optimization Improvement Insights |
-| TASK-028 | Post Management — status, edit, delete |
+| TASK-047 | Dashboard & List Rows — Clickable Navigation and Hover |
 | TASK-039 | Dashboard Improvements |
 | TASK-033 | Profile Improvements — job preference settings |
+| TASK-041 | Profile — Personal Projects from CV |
+| TASK-042 | Profile — Automatic CV/Application Score |
+| TASK-043 | Profile — Master Cover Letter Upload & Optimize |
 | TASK-040 | Search Improvements |
+| TASK-048 | Unify Offers and Applications into One View |
 | TASK-034 | Enterprise UI/UX Audit & Redesign |
 
 ---
