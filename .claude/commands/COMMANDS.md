@@ -7,9 +7,28 @@ by the existing commands, then it becomes `/your-command-name` automatically.
 
 ## Planning
 
-Not yet defined for this kit. Use `templates/PROJECT_PLANNING.md` by hand,
-or add a `/plan-feature` command that reads `docs/PRODUCT.md` and drafts
-backlog tasks following `templates/TASK.md`.
+### `/add-tasks <ideas>`
+
+File: `claude/commands/add-tasks.md`
+
+Turns one or more rough ideas (a few words to a paragraph each, one
+invocation may hold several) into fully-expanded `backlog/mvp.yaml` tasks,
+following the shared methodology in `docs/BACKLOG_MANAGEMENT.md`: related
+ideas are grouped into one coherent task, each task is expanded to the full
+schema, and both `backlog/mvp.yaml` and `docs/ROADMAP.md` are updated with
+the new task inserted at its true logical position — never appended to the
+bottom, and never touching any existing task.
+
+### `/generate-next-milestone [stage]`
+
+File: `claude/commands/generate-next-milestone.md`
+
+Inspects `docs/ROADMAP.md` and `backlog/mvp.yaml`'s current status to find
+the next not-yet-backlogged stage, grounds that stage's roadmap shorthand in
+the real codebase, then reuses `/add-tasks`'s underlying
+`docs/BACKLOG_MANAGEMENT.md` process to turn it into inserted, expanded
+tasks — biased toward whichever valid ordering reaches a sellable,
+monetizable SaaS fastest.
 
 ## Implementation
 

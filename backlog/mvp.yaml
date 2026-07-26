@@ -1977,3 +1977,915 @@ tasks:
       - Add soft-delete, versioning or an undo/trash feature
       - Change the generate/schedule/plan flows built in TASK-012/013
       - Change any existing feature's import paths or the Feature-Sliced layer structure inside src/
+  ###############################################################################
+  # TASK-028
+  ###############################################################################
+  - id: TASK-028
+    github:
+      issue: "61"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-012
+      - TASK-013
+    title: Post management - status control, edit and delete
+    goal: >
+      Let the user edit a draft's content, delete any post, and directly change a post's status, closing the gap where src/entities/post/service.ts#update only accepts status/scheduledAt/sentAt (never content) and no delete method or route exists at all.
+
+    scope:
+      - src/entities/post/service.ts
+      - src/features/linkedin-posts/services/get-post.ts
+      - src/features/linkedin-posts/services/update-post.service.ts
+      - src/features/linkedin-posts/services/delete-post.service.ts
+      - src/features/linkedin-posts/api/linkedin-posts.api.ts
+      - src/features/linkedin-posts/hooks/use-update-post.ts
+      - src/features/linkedin-posts/hooks/use-delete-post.ts
+      - src/features/linkedin-posts/components/post-list.tsx
+      - src/features/linkedin-posts/components/edit-post-dialog.tsx
+      - src/app/api/posts/[id]/route.ts
+    deliverables:
+      - postService.update accepts content in addition to status/scheduledAt/sentAt
+      - postService.remove(id, ownerId) deleting a post scoped to its owner
+      - PATCH and DELETE handlers on a new src/app/api/posts/[id]/route.ts
+      - Edit dialog and delete action wired into post-list.tsx
+      - A status select allowing any manual status transition (not only the existing forward draft to scheduled to sent flow)
+    tasks:
+      - Extend src/entities/post/service.ts#update's accepted fields to include content, and add a remove(id, ownerId) method (delete scoped by owner, matching existing findFirst/update scoping)
+      - Extract the existing inline owner-scoped lookup-or-throw from schedule-post.service.ts into src/features/linkedin-posts/services/get-post.ts so update-post.service.ts and delete-post.service.ts reuse it instead of duplicating the check
+      - Add src/features/linkedin-posts/services/update-post.service.ts (edit content and/or status) and delete-post.service.ts, both using getPostOrThrow
+      - Add src/app/api/posts/[id]/route.ts with PATCH (body content and/or status) and DELETE handlers, returning 404 via PostNotFoundError like the existing schedule route
+      - Add linkedin-posts.api.ts client functions, use-update-post.ts and use-delete-post.ts hooks (react-query mutations calling router.refresh() on success, matching the existing hook pattern)
+      - Add an edit-post-dialog.tsx (content textarea plus a status select) and a delete button (with confirmation) to post-list.tsx's PostCard
+    acceptance:
+      - Editing a draft's content persists and is reflected after refresh
+      - Deleting a post removes it from the list and returns 404 on a second delete
+      - A post's status can be changed directly via the status select, not only through the existing schedule/mark-sent buttons
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Edit, delete and manual status control verified end to end
+      - No duplicated owner-lookup logic across the post feature's services
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing Post entity, postService and linkedin-posts feature
+      slice; do not introduce a new entity. Follow the existing hook/mutation
+      pattern (router.refresh() on success, no client cache).
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Introduce a new entity or table
+      - Add soft-delete, versioning or an undo/trash feature
+      - Change the generate/schedule/plan flows built in TASK-012/013
+  ###############################################################################
+  # TASK-029
+  ###############################################################################
+  - id: TASK-029
+    github:
+      issue: "62"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-013
+      - TASK-028
+    title: AI-generated LinkedIn content campaigns
+    goal: >
+      Extend the existing single-shot "plan next posts" flow (src/features/linkedin-posts/services/plan-posts.service.ts) into full multi-post campaigns - a themed group of AI-generated posts with suggested publication dates, generated in one AI call and persisted as scheduled Post rows grouped under a new PostCampaign record.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/post/types.ts
+      - src/entities/post-campaign/**
+      - src/features/linkedin-posts/services/generate-campaign.service.ts
+      - src/features/linkedin-posts/components/generate-campaign-form.tsx
+      - src/features/linkedin-posts/components/campaign-list.tsx
+      - src/features/linkedin-posts/hooks/use-generate-campaign.ts
+      - src/features/linkedin-posts/api/linkedin-posts.api.ts
+      - src/app/api/posts/campaigns/route.ts
+      - src/shared/ai/prompts/generate-campaign.ts
+    deliverables:
+      - post_campaigns table (id, owner_id, theme, created_at) and a nullable campaign_id column on posts, both RLS-scoped like every existing table
+      - src/entities/post-campaign/service.ts and types.ts following the existing entity-service convention
+      - AI generation of N posts with content and suggested scheduledAt dates in one call, persisted as SCHEDULED posts linked to a new campaign
+      - A campaign list view grouping posts by campaign
+    tasks:
+      - "Add a migration: create table post_campaigns (id uuid pk default gen_random_uuid(), owner_id uuid not null references auth.users(id), theme text not null, created_at timestamptz not null default now()), RLS owner_all policy matching posts/job_offers/applications; alter table posts add column campaign_id uuid references post_campaigns(id)"
+      - Add src/entities/post-campaign/types.ts (PostCampaign type + Zod schema) and service.ts (create, findMany, findFirst) matching the existing entity-service pattern (e.g. src/entities/post/service.ts)
+      - Add campaignId to src/entities/post/types.ts's Post type/schema and to postService's create/update accepted fields
+      - "Add src/shared/ai/prompts/generate-campaign.ts (theme plus desired post count and cadence as input) and generate-campaign.service.ts, reusing getAiService().generateStructured with a schema of { posts: [{ content, scheduledAt }] }, requiring a profile like generate-post.service.ts"
+      - Persist the campaign row plus each generated post as status SCHEDULED with the returned scheduledAt and campaignId
+      - Add src/app/api/posts/campaigns/route.ts (POST to generate, GET to list) following the existing posts route conventions
+      - Add generate-campaign-form.tsx, campaign-list.tsx (grouping post-list.tsx's existing PostCard rendering by campaign) and use-generate-campaign.ts
+    acceptance:
+      - Generating a campaign creates one post_campaigns row and multiple linked posts, each SCHEDULED with a distinct scheduledAt
+      - The campaign list groups posts by their campaign and reuses the existing edit/delete/status controls from TASK-028
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Campaign generation, persistence and grouped display verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ai
+      - backend
+      - database
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing Post entity and linkedin-posts feature slice; a
+      campaign is a thin grouping record, not a parallel post-content system.
+      Reuse TASK-028's edit/delete/status controls for campaign posts rather
+      than building separate ones.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add auto-publishing or a background scheduler/cron
+      - Duplicate post CRUD logic instead of reusing TASK-028's
+      - Add campaign analytics or engagement tracking
+  ###############################################################################
+  # TASK-030
+  ###############################################################################
+  - id: TASK-030
+    github:
+      issue: "63"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-008
+      - TASK-011
+    title: Offer and application expiration detection
+    goal: >
+      Add a user-set or defaulted expiration date to JobOffer and derive an isExpired flag on both the offer and any application linked to it, computed on read rather than via a background job or stored status enum - closing the two roadmap items "Offer Expiration Detection" and "Automatic Expired Status" that docs/ROADMAP.md Stage 2 already names but nothing implements (job_offers has no expiry column, application_status has no EXPIRED value).
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/job-offer/types.ts
+      - src/entities/job-offer/service.ts
+      - src/entities/application/types.ts
+      - src/entities/application/service.ts
+      - src/features/job-offer/components/**
+      - src/features/application/components/**
+    deliverables:
+      - expires_at nullable timestamptz column on job_offers
+      - jobOfferService returning a computed isExpired boolean (expiresAt is not null and expiresAt < now())
+      - applicationService's bundle exposing the same computed isExpired, derived from its linked jobOffer
+      - Expired state visible on the offer and application list/detail UI
+    tasks:
+      - "Add a migration: alter table job_offers add column expires_at timestamptz"
+      - Add expiresAt: Date | null to JobOffer's type/Zod schema; accept it in jobOfferService's create/update
+      - Add a computed isExpired field (not persisted) wherever JobOffer is read in jobOfferService, derived from expiresAt < now()
+      - Extend ApplicationBundle's computed shape so isExpired is available alongside the joined jobOffer, without adding a stored EXPIRED application_status value or any cron/background job
+      - Surface an "Expired" badge on the offer list/detail and application list components where JobOffer/ApplicationBundle is already rendered
+    acceptance:
+      - Setting an offer's expires_at in the past causes isExpired to be true wherever the offer or its applications are read
+      - No new application_status enum value or scheduled job was added
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Expiration is computed on read and visible in the UI
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - database
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Compute isExpired on read from expires_at; do not add a stored status
+      value, a cron job, or a queue. This keeps the pattern consistent with
+      how the rest of the app avoids background jobs (see TASK-013's do_not).
+
+      jobOfferService.update's accepted-fields type may already have been
+      extended by TASK-035 (company/title/description) - add expiresAt to
+      that same Partial type additively, don't replace it.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a background job, cron or queue system
+      - Add a new application_status enum value
+      - Auto-delete or auto-archive expired offers/applications
+  ###############################################################################
+  # TASK-031
+  ###############################################################################
+  - id: TASK-031
+    github:
+      issue: "64"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-011
+      - TASK-013
+      - TASK-029
+      - TASK-030
+    title: Unified Notification Center
+    goal: >
+      Add a bell-icon Notification Center, computed on read from existing entities (no new notifications table), categorizing items into General Notifications and Action Required - covering upcoming post/campaign publication reminders, application status visibility, and the TASK-030 expiration signal - mirroring the widget-composition pattern already used by src/widgets/offer-detail-panel.
+
+    scope:
+      - src/features/notification/**
+      - src/widgets/notification-center/**
+      - src/widgets/nav/sidebar.tsx
+      - src/shared/ui/primitives/interaction/popover/**
+    deliverables:
+      - src/features/notification/services/get-notifications.service.ts aggregating notifications from postService, applicationService and jobOfferService
+      - A new Popover primitive (src/shared/ui/primitives/interaction/popover) built on radix-ui, following the Select primitive's convention
+      - src/widgets/notification-center/notification-center.tsx composing a bell-icon trigger, unread-count Badge and grouped panel into the nav sidebar
+    tasks:
+      - Add src/shared/ui/primitives/interaction/popover/Popover.tsx wrapping radix-ui's Popover, matching Select's import/typing convention (see src/shared/ui/primitives/README.md)
+      - "Add src/features/notification/types.ts: Notification { id, category: 'general' | 'action-required', message, href, occurredAt }"
+      - "Add get-notifications.service.ts computing, for the signed-in owner: Action Required - posts SCHEDULED for today or earlier, campaigns (TASK-029) whose next post is due today, offers/applications where isExpired is true (TASK-030), posts recently marked SENT (self-reported publish, prompting a manual LinkedIn confirmation per ADR-002); General - recently generated draft posts, recently created applications"
+      - Add src/features/notification/components/notification-list.tsx rendering the two categories with a Badge per item type, reusing existing Badge variants
+      - Add src/widgets/notification-center/notification-center.tsx (bell icon from lucide-react, unread-count Badge, Popover panel) and wire it into src/widgets/nav/sidebar.tsx's header area
+    acceptance:
+      - A post scheduled for today, an expired offer/application, and a campaign's next due post all appear under Action Required
+      - Recently generated drafts and recently created applications appear under General Notifications
+      - No new database table was added; all notifications are computed on read
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Notification Center renders both categories with real, computed data
+      - Wired into the nav sidebar
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+      - src/shared/ui/primitives/README.md
+    prompt: |
+      Implement ONLY this task.
+
+      Compute every notification on read from existing entities; do not add a
+      notifications table, write path, read/unread persistence, or a
+      background job. Reuse the Select primitive's radix-ui convention for
+      the new Popover.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a notifications database table or write path
+      - Add read/unread persistence, push notifications or email
+      - Add a background job, cron or polling loop
+  ###############################################################################
+  # TASK-032
+  ###############################################################################
+  - id: TASK-032
+    github:
+      issue: "65"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-007
+    title: CV optimization - detailed improvement insights
+    goal: >
+      Turn the CV optimization flow's flat improvements string list (src/features/cv/types.ts's optimizedCvSchema, rendered as a plain bullet list in optimize-cv-panel.tsx) into categorized, explained improvements focused on what recruiters notice in manual review and what ATS filtering weighs, without changing the existing one-shot (non-persisted) result flow.
+
+    scope:
+      - src/features/cv/types.ts
+      - src/shared/ai/prompts/optimize-cv.ts
+      - src/features/cv/services/optimize-cv.service.ts
+      - src/features/cv/components/optimize-cv-panel.tsx
+    deliverables:
+      - optimizedCvSchema.improvements restructured to an array of { category, before, after, rationale }
+      - optimizeCvSystemPrompt instructing the AI to produce that structure, explicitly reasoning about ATS keyword/formatting concerns and recruiter manual-review concerns per improvement
+      - optimize-cv-panel.tsx rendering each improvement as a categorized item (badge plus rationale) instead of a plain <li>
+    tasks:
+      - "Change optimizedCvSchema in src/features/cv/types.ts: improvements: z.array(z.object({ category: z.enum(['ats-keywords', 'quantification', 'action-verbs', 'clarity', 'formatting', 'other']), before: z.string(), after: z.string(), rationale: z.string() }))"
+      - Update optimizeCvSystemPrompt in src/shared/ai/prompts/optimize-cv.ts to require each improvement to name its category, quote the before/after text, and explain why it helps ATS filtering and/or manual recruiter review
+      - Update OptimizeCvResponse's improvements type in src/features/cv/types.ts to match the new schema; optimize-cv.service.ts needs no logic change beyond the type flowing through
+      - Update optimize-cv-panel.tsx to render each improvement as a Card/row with a Badge for category and the rationale text, using existing src/shared/ui/primitives instead of raw Tailwind
+    acceptance:
+      - Optimizing a CV returns improvements as categorized objects with before/after and a rationale, not plain strings
+      - The optimize panel displays category, before/after and rationale per improvement
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Structured improvements schema, prompt and UI verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ai
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      This only restructures the existing, already-returned improvements
+      list and its rendering; do not persist improvements on CvDocument or
+      change the optimize flow's one-shot (non-versioned-history) behavior.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Persist improvements on CvDocument or add a new column/migration
+      - Add a document editor or CV comparison view
+      - Change the tailor-cv or cover-letter flows
+  ###############################################################################
+  # TASK-033
+  ###############################################################################
+  - id: TASK-033
+    github:
+      issue: "66"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-002
+      - TASK-006
+    title: Profile - job preference settings
+    goal: >
+      Add job preference fields (work mode, salary range, specialization, employment type, seniority, preferred technologies, company size, industry, location preferences) to the Profile, and build the manual edit form that does not exist today - src/entities/profile currently only has summary/skills/experience populated from CV parsing, and there is no src/features/profile directory at all.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/profile/types.ts
+      - src/entities/profile/service.ts
+      - src/features/profile/**
+      - src/app/(app)/profile/page.tsx
+    deliverables:
+      - New job-preference columns on profiles
+      - profileService.updatePreferences(ownerId, preferences)
+      - A new src/features/profile feature slice with a job-preferences edit form
+    tasks:
+      - "Add a migration: create type work_mode as enum ('REMOTE', 'HYBRID', 'ONSITE'); create type employment_type as enum ('FULL_TIME', 'PART_TIME', 'CONTRACT', 'FREELANCE'); create type seniority_level as enum ('JUNIOR', 'MID', 'SENIOR', 'LEAD', 'PRINCIPAL'); create type company_size as enum ('STARTUP', 'SCALEUP', 'MID_SIZE', 'ENTERPRISE'); alter table profiles add column work_mode work_mode, add column salary_min integer, add column salary_max integer, add column salary_currency text, add column specialization text, add column employment_type employment_type, add column seniority seniority_level, add column preferred_technologies text[], add column company_size company_size, add column industries text[], add column location_preferences text[]"
+      - Extend Profile's type/Zod schema in src/entities/profile/types.ts with the new optional fields
+      - Add profileService.updatePreferences(ownerId, preferences: Partial<JobPreferences>) to src/entities/profile/service.ts, alongside the existing upsert
+      - Create src/features/profile/ (types.ts, api/, services/update-preferences.service.ts, hooks/use-update-preferences.ts, components/job-preferences-form.tsx) using React Hook Form + Zod per docs/STATE_MANAGEMENT.md's Forms rule
+      - Add src/app/api/profile/preferences/route.ts (PATCH) calling the new service
+      - Render JobPreferencesForm from src/app/(app)/profile/page.tsx alongside the existing CvUploadForm/ProfileSummary/OptimizeCvPanel
+    acceptance:
+      - Setting job preferences persists and is reflected on reload
+      - The profile page renders an editable job-preferences form alongside the existing CV upload/optimize panels
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Job preference fields, service method, API route and form verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - database
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/STATE_MANAGEMENT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Add columns directly to profiles (owner_id is already unique - one row
+      per user, no join table needed). Reuse React Hook Form + Zod per
+      docs/STATE_MANAGEMENT.md; do not invent fields beyond those named in
+      the goal.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a separate job_preferences table
+      - Use these preferences for matching or filtering yet (that is a future job-discovery feature, not in scope here)
+      - Add fields beyond those named in the goal
+  ###############################################################################
+  # TASK-034
+  ###############################################################################
+  - id: TASK-034
+    github:
+      issue: "67"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-017
+      - TASK-018
+      - TASK-019
+      - TASK-020
+      - TASK-026
+    title: Enterprise UI/UX audit and redesign
+    goal: >
+      Run the existing /design-review Playwright MCP workflow (docs/DESIGN_REVIEW_WORKFLOW.md, built in TASK-018) screen by screen across every app route, benchmarking against Linear, Vercel Dashboard and Stripe Dashboard (already the named benchmarks in TASK-018), and apply scoped visual improvements so the app reads as a deliberately designed enterprise product rather than an unfinished prototype - building on the TASK-017 tokens, TASK-019 shared components and TASK-020 shared layouts rather than one-off per-screen styling.
+
+    scope:
+      - src/app/(app)/dashboard/page.tsx
+      - src/app/(app)/offers/**
+      - src/app/(app)/applications/**
+      - src/app/(app)/posts/**
+      - src/app/(app)/profile/page.tsx
+      - src/app/sign-in/page.tsx
+      - src/widgets/**
+      - docs/design-system/ui-principles.md
+    deliverables:
+      - Every existing app route run through the /design-review workflow with at least one applied, screenshot-verified improvement
+      - An audit-findings section appended to docs/design-system/ui-principles.md
+    tasks:
+      - Run /design-review against each existing route (dashboard, offers list/detail, applications, posts, profile, sign-in) per docs/DESIGN_REVIEW_WORKFLOW.md, comparing against the Linear/Vercel Dashboard/Stripe Dashboard benchmarks
+      - For each route, apply scoped improvements using existing TASK-019 shared components and TASK-020 shared layouts rather than new one-off markup, re-screenshotting to verify each change
+      - Note any gaps found where a screen needs a shared component or layout that TASK-019/020 didn't yet cover, and add it to the relevant existing shared component/layout file rather than duplicating inline
+      - Append a short "Audit Findings" section to docs/design-system/ui-principles.md summarizing what changed per route and why
+    acceptance:
+      - Every existing app route has at least one applied, screenshot-verified visual improvement from the /design-review loop
+      - No new component library or styling dependency was added
+      - docs/design-system/ui-principles.md documents the audit findings
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - All existing routes audited and improved
+      - Findings documented
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/DESIGN_REVIEW_WORKFLOW.md
+      - docs/design-system/colors.md
+      - docs/design-system/typography.md
+      - docs/design-system/ui-principles.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use the existing /design-review command and docs/DESIGN_REVIEW_WORKFLOW.md
+      loop; do not build a new visual-QA tool. Reuse TASK-019/020's shared
+      components and layouts; only extend them where a real gap is found,
+      never duplicate inline per-screen styling.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a new UI/component library or CSS framework
+      - Add page-transition animation beyond what Framer Motion already supports
+      - Rebuild routing, data-fetching or state-management logic
+  ###############################################################################
+  # TASK-035
+  ###############################################################################
+  - id: TASK-035
+    github:
+      issue: "68"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-008
+      - TASK-009
+    title: Offer details UX
+    goal: >
+      Fill the gaps in offer-detail.tsx, which today only renders title, company and matchScore even though JobOffer already has description, url, isFavorite and createdAt - and let the user correct company/title/description after AI extraction, since jobOfferService.update currently only accepts isFavorite and matchScore.
+
+    scope:
+      - src/entities/job-offer/service.ts
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/features/job-offer/services/update-offer.service.ts
+      - src/features/job-offer/hooks/use-update-offer.ts
+      - src/app/api/offers/[id]/route.ts
+    deliverables:
+      - jobOfferService.update accepting company, title and description in addition to isFavorite and matchScore
+      - offer-detail.tsx rendering description, a source link (when url is set), a favorite toggle and createdAt
+      - An edit form for company/title/description on the offer detail page
+    tasks:
+      - Extend jobOfferService.update's accepted fields to include company, title and description
+      - Render offer.description (full text), offer.url as a link when present, offer.isFavorite via the existing useToggleFavorite hook, and offer.createdAt on offer-detail.tsx - none of which appear there today (only offer-list.tsx currently shows description/source/favorite)
+      - Add src/features/job-offer/services/update-offer.service.ts and use-update-offer.ts, plus a PATCH handler on a new src/app/api/offers/[id]/route.ts
+      - Add an edit dialog/form on offer-detail.tsx for company/title/description, wired to the new hook
+    acceptance:
+      - offer-detail.tsx renders description, source link, favorite toggle and created date
+      - Editing company/title/description on the detail page persists and is reflected after refresh
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Missing fields rendered and editable on the offer detail page
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing useToggleFavorite hook rather than duplicating it.
+      Do not change the AI extraction/ingestion flow from TASK-008.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change the AI extraction/ingestion flow
+      - Add a rich-text editor for the description field
+      - Duplicate the existing useToggleFavorite hook
+  ###############################################################################
+  # TASK-036
+  ###############################################################################
+  - id: TASK-036
+    github:
+      issue: "69"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-004
+    title: Toast notification system
+    goal: >
+      Replace the app's 11 identical role="alert" error paragraphs (5 in offer-detail.tsx alone, plus one each in cv-upload-form.tsx, optimize-cv-panel.tsx, add-offer-form.tsx, generate-post-form.tsx, plan-posts-button.tsx and post-list.tsx) with a single global toast mechanism, and close the two silent-failure gaps where useToggleFavorite and useUpdateApplicationStatus give zero feedback of any kind today. The file list below reflects mutation hooks that exist as of this task's drafting - apply the same toast treatment to any hook added by a task that lands first (e.g. TASK-035's use-update-offer.ts, TASK-038's document-save mutation), since the acceptance criterion below is "every mutation hook," not a fixed enumeration.
+
+    scope:
+      - package.json
+      - src/app/providers.tsx
+      - src/features/cv/hooks/use-upload-cv.ts
+      - src/features/cv/hooks/use-optimize-cv.ts
+      - src/features/job-offer/hooks/use-add-offer.ts
+      - src/features/job-offer/hooks/use-match-offer.ts
+      - src/features/job-offer/hooks/use-tailor-cv.ts
+      - src/features/job-offer/hooks/use-recruiter-message.ts
+      - src/features/job-offer/hooks/use-cover-letter.ts
+      - src/features/job-offer/hooks/use-toggle-favorite.ts
+      - src/features/application/hooks/use-create-application.ts
+      - src/features/application/hooks/use-update-application-status.ts
+      - src/features/linkedin-posts/hooks/use-generate-post.ts
+      - src/features/linkedin-posts/hooks/use-plan-posts.ts
+      - src/features/linkedin-posts/hooks/use-schedule-post.ts
+      - src/features/linkedin-posts/hooks/use-mark-post-sent.ts
+      - src/features/cv/components/cv-upload-form.tsx
+      - src/features/cv/components/optimize-cv-panel.tsx
+      - src/features/job-offer/components/add-offer-form.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/features/linkedin-posts/components/generate-post-form.tsx
+      - src/features/linkedin-posts/components/plan-posts-button.tsx
+      - src/features/linkedin-posts/components/post-list.tsx
+    deliverables:
+      - sonner added as a dependency, mounted as a Toaster in src/app/providers.tsx
+      - Every mutation hook under src/features/*/hooks calling toast.success/toast.error in its onSuccess/onError
+      - The 9 duplicate inline role="alert" error paragraphs removed from the 7 files above
+    tasks:
+      - Add sonner as a dependency; mount <Toaster richColors position="top-right" /> in src/app/providers.tsx (currently only wraps QueryClientProvider)
+      - Add toast.success(...)/toast.error(...) to the onSuccess/onError of every mutation hook listed in scope, including use-toggle-favorite.ts and use-update-application-status.ts which currently have no feedback of any kind
+      - Remove the now-redundant inline role="alert" paragraphs from cv-upload-form.tsx, optimize-cv-panel.tsx, add-offer-form.tsx, offer-detail.tsx (5 instances), generate-post-form.tsx, plan-posts-button.tsx and post-list.tsx
+    acceptance:
+      - Every mutation hook under src/features/*/hooks shows a success or error toast
+      - Toggling favorite and changing application status now show toast feedback where there was none before
+      - The 11 duplicate role="alert" paragraphs are removed; add-offer-form.tsx's separate duplicate-offer role="status" notice is unchanged
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Toast feedback verified across all mutation hooks
+      - Redundant inline error paragraphs removed
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use sonner directly; do not build a custom toast component or
+      abstraction layer. Do not touch pending/in-flight loading indicators
+      (Spinner/Skeleton usage) - that is a separate task.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Build a custom toast component or wrapper abstraction
+      - Add toast feedback to non-mutation reads (e.g. search-as-you-type)
+      - Remove add-offer-form.tsx's duplicate-offer inline notice
+      - Add Spinner/Skeleton pending-state UI (separate Loading UX task)
+  ###############################################################################
+  # TASK-037
+  ###############################################################################
+  - id: TASK-037
+    github:
+      issue: "70"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-026
+      - TASK-004
+    title: Loading UX
+    goal: >
+      Adopt the Spinner and Skeleton primitives added by TASK-026 but never actually used anywhere in the app, adding a loading.tsx per route and a pending-state Spinner on every mutation button - including offer-list.tsx's favorite toggle and application-status-select.tsx, which today only set disabled with no visual cue at all. The file list below reflects buttons that exist as of this task's drafting - apply the same Spinner treatment to any mutation button added by a task that lands first (e.g. TASK-035's offer-edit form, TASK-038's document-editor Save button), since the acceptance criterion below is "every mutation button," not a fixed enumeration.
+
+    scope:
+      - src/app/(app)/dashboard/loading.tsx
+      - src/app/(app)/offers/loading.tsx
+      - src/app/(app)/offers/[id]/loading.tsx
+      - src/app/(app)/applications/loading.tsx
+      - src/app/(app)/posts/loading.tsx
+      - src/app/(app)/profile/loading.tsx
+      - src/features/cv/components/cv-upload-form.tsx
+      - src/features/cv/components/optimize-cv-panel.tsx
+      - src/features/job-offer/components/add-offer-form.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/features/job-offer/components/offer-list.tsx
+      - src/features/application/components/application-status-select.tsx
+      - src/features/linkedin-posts/components/generate-post-form.tsx
+      - src/features/linkedin-posts/components/plan-posts-button.tsx
+      - src/features/linkedin-posts/components/post-list.tsx
+    deliverables:
+      - A loading.tsx per app route rendering Skeleton placeholders matching that page's real layout
+      - A Spinner next to the pending-state text on every mutation-triggering button
+      - A visible pending indicator on offer-list.tsx's favorite toggle and application-status-select.tsx, both currently silent
+    tasks:
+      - Add loading.tsx under dashboard, offers, offers/[id], applications, posts and profile, using the existing (currently unused) Skeleton primitive from src/shared/ui/primitives to approximate each page's real layout
+      - Add the existing Spinner primitive next to the existing pending-state button text (e.g. "Optimizing…", "Tailoring…", "Scheduling…") across cv-upload-form.tsx, optimize-cv-panel.tsx, add-offer-form.tsx, offer-detail.tsx's four action buttons, generate-post-form.tsx, plan-posts-button.tsx and post-list.tsx's schedule/mark-sent buttons
+      - Add a Spinner-based pending indicator to offer-list.tsx's favorite toggle button and application-status-select.tsx's select, neither of which shows any visual loading cue today
+    acceptance:
+      - Every app route has a loading.tsx using the Skeleton primitive
+      - Every mutation button shows a Spinner during its pending state, including the previously-silent favorite toggle and status select
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Route-level loading states and button-level Spinners verified across the app
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+      - src/shared/ui/primitives/README.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing Spinner and Skeleton primitives from TASK-026; do
+      not introduce a new loading-indicator library. Do not add the toast
+      success/error feedback covered by the separate Toast Notifications
+      task - this task only covers pending/in-flight visual state.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Introduce a new spinner/skeleton library
+      - Add a global loading overlay outside Next.js's per-route loading.tsx convention
+      - Add toast success/error feedback (separate task)
+  ###############################################################################
+  # TASK-038
+  ###############################################################################
+  - id: TASK-038
+    github:
+      issue: "71"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-007
+      - TASK-009
+      - TASK-023
+    title: Document editor and persistent document history
+    goal: >
+      Let the user edit AI-generated CV/tailored-CV/cover-letter text in place before saving, and add a documents view listing every CvDocument the owner has (master, optimized, tailored, cover letters) - closing two gaps: cvDocumentService has no update(content) method (only create/createVersion, which always inserts a new row) and no screen anywhere lists more than the single latest CvDocument (findWithLatestTailoredCv hard-limits to 1, OptimizeCvPanel only shows the current transient mutation result).
+
+    scope:
+      - src/entities/cv-document/types.ts
+      - src/entities/cv-document/service.ts
+      - src/features/document/**
+      - src/app/(app)/documents/page.tsx
+      - src/features/cv/components/optimize-cv-panel.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/widgets/nav/sidebar.tsx
+    deliverables:
+      - cvDocumentService.update(id, ownerId, content) editing an existing document in place, alongside the existing createVersion (which still creates new rows on generate)
+      - cvDocumentService.findMany(ownerId) listing every CvDocument for the owner
+      - A new src/features/document feature slice and src/app/(app)/documents page listing all documents with a type badge (Master/Optimized/Tailored/Cover Letter, inferred from isMaster/jobOfferId), download and edit
+      - Editable textareas (with Save) in optimize-cv-panel.tsx and offer-detail.tsx's tailored-CV/cover-letter results, replacing the current read-only text/download-only rendering
+    tasks:
+      - Add cvDocumentService.update(id, ownerId, content) (owner-scoped, mutates content and updatedAt in place) and findMany(ownerId) to src/entities/cv-document/service.ts, alongside the existing create/createVersion/getMasterOrThrow
+      - Add src/features/document/services/list-documents.service.ts, hooks/use-documents.ts and components/document-list.tsx, and src/app/(app)/documents/page.tsx rendering it, added to the sidebar nav
+      - Add a "Documents" nav item to src/widgets/nav/sidebar.tsx's NAV_ITEMS
+      - Replace optimize-cv-panel.tsx's read-only improvements-list-plus-download result with an editable textarea (prefilled with cvDocument.content) plus Save (calling the new update method) and Download buttons
+      - Replace offer-detail.tsx's Tailored CV and Cover Letter cards' download-only result with the same editable-textarea-plus-Save-and-Download pattern
+    acceptance:
+      - /documents lists every CvDocument for the owner, newest first, each downloadable
+      - Editing a document's content via Save persists in place (no new row created) and is reflected on the documents list after refresh
+      - optimize-cv-panel.tsx and offer-detail.tsx's tailored-CV/cover-letter results show an editable textarea with Save, not read-only text
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Document history view and in-place editing verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      A plain textarea is sufficient - do not add a rich-text/WYSIWYG editor.
+      Do not change existing versioning behavior: createVersion still
+      creates a new row on generate; the new update method only mutates
+      in place when the user explicitly saves an edit. Do not persist edit
+      history/diffs, only current content.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a rich-text or WYSIWYG editor
+      - Change createVersion's new-row-per-generation behavior
+      - Persist edit history or diffs between versions
+  ###############################################################################
+  # TASK-039
+  ###############################################################################
+  - id: TASK-039
+    github:
+      issue: "72"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-014
+      - TASK-011
+      - TASK-019
+    title: Dashboard improvements
+    goal: >
+      Add an application-status breakdown and a recent-offers card to the dashboard, which today only shows the next scheduled post, non-APPLIED applications and favorite offers (src/app/(app)/dashboard/page.tsx), using TASK-019's stat-card shared component (TASK-019's goal names "stat cards" among its deliverables; use whatever component name/API it actually lands with) rather than a one-off component.
+
+    scope:
+      - src/app/(app)/dashboard/page.tsx
+      - src/features/dashboard/components/**
+    deliverables:
+      - An ApplicationStatusBreakdownCard showing a count per ApplicationStatus, built on TASK-019's stat-card shared component
+      - A RecentOffersCard showing the 5 most recently added offers, distinct from the existing favorites-only FavoriteOffersCard
+    tasks:
+      - Add src/features/dashboard/components/application-status-breakdown-card.tsx computing counts per ApplicationStatus from applicationService.findMany({ ownerId }), rendered with TASK-019's stat-card shared component
+      - Add src/features/dashboard/components/recent-offers-card.tsx using jobOfferService.findMany({ ownerId }, { take: 5 }) ordered by createdAt (already the service's default order)
+      - Compose both new cards into dashboard/page.tsx's existing Grid alongside NextPostCard, UpcomingInterviewsCard and FavoriteOffersCard
+    acceptance:
+      - Dashboard shows application counts by status and a recent-offers card, both using real data
+      - npm run build, npm run lint and npm run typecheck succeed
+    done:
+      - Two new dashboard cards verified with real data
+      - Feature committed
+    labels:
+      - feature
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse TASK-019's stat-card shared component rather than building a
+      one-off stat component. Do not add a charting library - plain stat
+      tiles only,
+      matching TASK-014's original constraint. Do not depend on TASK-030
+      (expiration) or TASK-031 (notifications) - those are separate,
+      not-yet-built Stage 2 tasks.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a charting/analytics library
+      - Introduce new entities or data-fetching layers
+      - Reference expiration or notification data (not yet implemented)
+  ###############################################################################
+  # TASK-040
+  ###############################################################################
+  - id: TASK-040
+    github:
+      issue: "73"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 1 - Product Refinement"
+    depends_on:
+      - TASK-008
+    title: Search improvements
+    goal: >
+      Add search and sort to the Offers page, which today renders jobOfferService.findMany's full unfiltered list with a fixed createdAt-desc order and zero UI control - not even the isFavorite filter param the service already accepts but no screen exercises.
+
+    scope:
+      - src/entities/job-offer/service.ts
+      - src/app/(app)/offers/page.tsx
+      - src/features/job-offer/components/offer-list.tsx
+    deliverables:
+      - jobOfferService.findMany accepting an optional query (title/company substring) and a sort option (createdAt desc, matchScore desc, or company asc)
+      - A search input and sort select on the offers page
+      - The existing isFavorite filter exposed as a "Favorites only" toggle
+    tasks:
+      - Extend jobOfferService.findMany's filter/options to accept an optional query string (same title/company substring matching already used by findUnapplied) and a sort option
+      - Add a search input, sort select and a "Favorites only" toggle to src/app/(app)/offers/page.tsx, wired to the extended findMany
+    acceptance:
+      - The Offers page can be searched by title/company and sorted by date, match score, or company
+      - The existing isFavorite filter is exposed via a toggle
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Search, sort and favorites-only filter verified on the offers page
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the same substring-matching approach already used by
+      findUnapplied/findManyWithOfferSearch; do not add semantic or
+      embedding-based search (already out of scope per docs/PRODUCT.md). Do
+      not make company-search (the applications-page widget) globally
+      navigable - that is a separate concern from this task.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add semantic or embedding-based search
+      - Add pagination
+      - Make the applications-page company-search widget globally navigable

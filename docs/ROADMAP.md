@@ -30,6 +30,9 @@ pay for."
   CI/deploy.
 - **Stage 0** (`backlog/mvp.yaml` TASK-016–027): defined, not yet
   implemented.
+- **Stage 1** (`backlog/mvp.yaml` TASK-028, TASK-032–040): defined, not yet
+  implemented.
+- **Stage 2** (`backlog/mvp.yaml` TASK-029–031): partially defined.
 
 ---
 
@@ -84,34 +87,45 @@ check it doesn't need.
 
 ---
 
-# Stage 1 — Product Refinement (not yet in backlog/mvp.yaml)
+# Stage 1 — Product Refinement
+
+`backlog/mvp.yaml` TASK-028, TASK-032–040.
 
 **Goal:** remove everything that makes the product feel like an "unfinished
 MVP." After this stage the product should look and feel professional.
 
-- Offer Details UX
-- Toast Notifications
-- Loading UX
-- Document Editor
-- Persistent Documents
-- Dashboard Improvements
-- Profile Improvements
-- Search Improvements
+| Task | Title |
+|---|---|
+| TASK-035 | Offer Details UX |
+| TASK-036 | Toast Notifications |
+| TASK-037 | Loading UX |
+| TASK-038 | Document Editor & Persistent Documents |
+| TASK-032 | CV Optimization Improvement Insights |
+| TASK-028 | Post Management — status, edit, delete |
+| TASK-039 | Dashboard Improvements |
+| TASK-033 | Profile Improvements — job preference settings |
+| TASK-040 | Search Improvements |
+| TASK-034 | Enterprise UI/UX Audit & Redesign |
 
 ---
 
-# Stage 2 — Core Value (not yet in backlog/mvp.yaml)
+# Stage 2 — Core Value
+
+`backlog/mvp.yaml` TASK-029–031.
 
 **Goal:** add the features users would actually pay for.
 
-- Kanban Applications
-- Drag & Drop
-- Application Timeline
-- Offer Expiration Detection
-- Automatic Expired Status
-- Advanced Duplicate Detection
-- Recruiter Notes
-- Recent Applications Dashboard
+| Task | Title |
+|---|---|
+| — | Kanban Applications |
+| — | Drag & Drop |
+| — | Application Timeline |
+| TASK-030 | Offer & Application Expiration Detection |
+| — | Advanced Duplicate Detection |
+| — | Recruiter Notes |
+| — | Recent Applications Dashboard |
+| TASK-029 | AI-Generated LinkedIn Content Campaigns |
+| TASK-031 | Unified Notification Center |
 
 ---
 
@@ -127,13 +141,22 @@ milestone doesn't require a schema or auth rewrite.
 
 # Turning a Stage Into Backlog Tasks
 
-When asked to add the next set of tasks from this roadmap:
+Use `/generate-next-milestone` (`.claude/commands/generate-next-milestone.md`)
+to do this automatically — it reads this file's target stage, grounds it in
+the real codebase, and inserts the resulting tasks into `backlog/mvp.yaml`
+and this file at their correct logical position via
+`docs/BACKLOG_MANAGEMENT.md`'s process. For a handful of ad hoc ideas rather
+than a whole stage, use `/add-tasks` instead.
+
+When adding tasks by hand instead:
 
 1. Read this file for the target stage's item titles and goal.
 2. Follow the process in `CLAUDE.md`'s "Adding Tasks From a Roadmap" section
-   — append after the last real `TASK-XXX` in `backlog/mvp.yaml`, ground each
-   task in the actual codebase state *at that time*, verify every acceptance
-   criterion against real files.
+   and `docs/BACKLOG_MANAGEMENT.md` — new tasks get the next unused
+   `TASK-XXX` ID but are inserted at their true logical position in both
+   `backlog/mvp.yaml` and this file's stage table (not appended to the
+   bottom), grounded in the actual codebase state *at that time*, with every
+   acceptance criterion verified against real files.
 3. Titles below are the roadmap's shorthand, not a literal task spec — Stage
    0's items were merged, renamed, and re-scoped based on the real codebase
    when they were turned into TASK-016–025 (see those tasks and their ADRs
@@ -164,6 +187,12 @@ when it arrives:
 - **Auth/ownership** (ADR-005) already anticipates the subscriptions
   milestone — don't add anything that would need to be undone when
   multi-user/billing lands.
+- **Profile job preferences** (Stage 1 TASK-033) are collected but
+  intentionally unused for matching or filtering in that task — they exist so
+  a future job-discovery/matching feature can consume them additively later,
+  without a schema change. (A LinkedIn-specific scraping/discovery feature
+  was proposed and deliberately deferred — see `memory-bank/decisions.md` if
+  an ADR is recorded, or ask before assuming scope for it.)
 - **Monorepo/mobile** (Stage 0 TASK-027) — npm workspaces + Turborepo were
   evaluated and deferred (ADR-012 in `memory-bank/decisions.md`); see
   [docs/MONOREPO.md](MONOREPO.md) for the readiness criteria. The

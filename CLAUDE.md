@@ -157,13 +157,28 @@ Files outside "Files to modify" should remain unchanged unless absolutely necess
 
 # Adding Tasks From a Roadmap
 
-When the user gives a roadmap/list of new tasks (e.g. "add these to the
-backlog starting at TASK-0XX") and asks to append them to `backlog/mvp.yaml`,
-follow this process instead of transcribing the list as-is:
+Prefer `/add-tasks` (rough ideas) or `/generate-next-milestone` (auto-draft
+the next stage) over doing this by hand — see
+`.claude/commands/add-tasks.md`, `.claude/commands/generate-next-milestone.md`
+and `docs/BACKLOG_MANAGEMENT.md` for the full grouping/placement/milestone
+methodology those commands follow. The schema rules below (step 5) are the
+canonical reference both commands and any manual edit must use.
 
-1. Read the full current `backlog/mvp.yaml` first. Never edit or renumber
-   existing tasks — only append new ones after the last existing `TASK-XXX`,
-   continuing the numbering sequentially.
+When the user gives a roadmap/list of new tasks (e.g. "add these to the
+backlog starting at TASK-0XX") and asks to add them to `backlog/mvp.yaml`
+directly rather than via those commands, follow this process instead of
+transcribing the list as-is:
+
+1. Read the full current `backlog/mvp.yaml` first. Never edit, renumber, or
+   move existing tasks. New tasks always take the next unused sequential
+   `TASK-XXX` ID (continuing the numbering monotonically — IDs are never
+   reused or reassigned), but their position in the task list is not forced
+   to the end: insert each new task's YAML block wherever it logically
+   belongs among the existing (untouched) tasks, per
+   `docs/BACKLOG_MANAGEMENT.md` §5-7 — mirroring the same position in
+   `docs/ROADMAP.md`'s matching stage table. ID order and file position can
+   therefore differ for new tasks; dependency resolution is by ID
+   (`depends_on`), not by position, so this is safe.
 2. If the user's list re-uses low numbers (TASK-001, TASK-002, ...) for new
    work, renumber it to continue from the real last task in the file, and
    rewrite every internal cross-reference in titles/goals/do_not accordingly.
