@@ -1911,7 +1911,7 @@ tasks:
   ###############################################################################
   - id: TASK-028
     github:
-      issue: null
+      issue: "61"
       project_item: null
     status: todo
     priority: P2
@@ -1923,6 +1923,7 @@ tasks:
     title: Post management - status control, edit and delete
     goal: >
       Let the user edit a draft's content, delete any post, and directly change a post's status, closing the gap where src/entities/post/service.ts#update only accepts status/scheduledAt/sentAt (never content) and no delete method or route exists at all.
+
     scope:
       - src/entities/post/service.ts
       - src/features/linkedin-posts/services/get-post.ts
@@ -1985,7 +1986,7 @@ tasks:
   ###############################################################################
   - id: TASK-029
     github:
-      issue: null
+      issue: "62"
       project_item: null
     status: todo
     priority: P2
@@ -1997,6 +1998,7 @@ tasks:
     title: AI-generated LinkedIn content campaigns
     goal: >
       Extend the existing single-shot "plan next posts" flow (src/features/linkedin-posts/services/plan-posts.service.ts) into full multi-post campaigns - a themed group of AI-generated posts with suggested publication dates, generated in one AI call and persisted as scheduled Post rows grouped under a new PostCampaign record.
+
     scope:
       - supabase/migrations/*.sql
       - src/entities/post/types.ts
@@ -2059,7 +2061,7 @@ tasks:
   ###############################################################################
   - id: TASK-030
     github:
-      issue: null
+      issue: "63"
       project_item: null
     status: todo
     priority: P2
@@ -2071,6 +2073,7 @@ tasks:
     title: Offer and application expiration detection
     goal: >
       Add a user-set or defaulted expiration date to JobOffer and derive an isExpired flag on both the offer and any application linked to it, computed on read rather than via a background job or stored status enum - closing the two roadmap items "Offer Expiration Detection" and "Automatic Expired Status" that docs/ROADMAP.md Stage 2 already names but nothing implements (job_offers has no expiry column, application_status has no EXPIRED value).
+
     scope:
       - supabase/migrations/*.sql
       - src/entities/job-offer/types.ts
@@ -2130,7 +2133,7 @@ tasks:
   ###############################################################################
   - id: TASK-031
     github:
-      issue: null
+      issue: "64"
       project_item: null
     status: todo
     priority: P2
@@ -2144,6 +2147,7 @@ tasks:
     title: Unified Notification Center
     goal: >
       Add a bell-icon Notification Center, computed on read from existing entities (no new notifications table), categorizing items into General Notifications and Action Required - covering upcoming post/campaign publication reminders, application status visibility, and the TASK-030 expiration signal - mirroring the widget-composition pattern already used by src/widgets/offer-detail-panel.
+
     scope:
       - src/features/notification/**
       - src/widgets/notification-center/**
@@ -2199,7 +2203,7 @@ tasks:
   ###############################################################################
   - id: TASK-032
     github:
-      issue: null
+      issue: "65"
       project_item: null
     status: todo
     priority: P2
@@ -2210,6 +2214,7 @@ tasks:
     title: CV optimization - detailed improvement insights
     goal: >
       Turn the CV optimization flow's flat improvements string list (src/features/cv/types.ts's optimizedCvSchema, rendered as a plain bullet list in optimize-cv-panel.tsx) into categorized, explained improvements focused on what recruiters notice in manual review and what ATS filtering weighs, without changing the existing one-shot (non-persisted) result flow.
+
     scope:
       - src/features/cv/types.ts
       - src/shared/ai/prompts/optimize-cv.ts
@@ -2259,7 +2264,7 @@ tasks:
   ###############################################################################
   - id: TASK-033
     github:
-      issue: null
+      issue: "66"
       project_item: null
     status: todo
     priority: P2
@@ -2271,6 +2276,7 @@ tasks:
     title: Profile - job preference settings
     goal: >
       Add job preference fields (work mode, salary range, specialization, employment type, seniority, preferred technologies, company size, industry, location preferences) to the Profile, and build the manual edit form that does not exist today - src/entities/profile currently only has summary/skills/experience populated from CV parsing, and there is no src/features/profile directory at all.
+
     scope:
       - supabase/migrations/*.sql
       - src/entities/profile/types.ts
@@ -2327,7 +2333,7 @@ tasks:
   ###############################################################################
   - id: TASK-034
     github:
-      issue: null
+      issue: "67"
       project_item: null
     status: todo
     priority: P2
@@ -2342,6 +2348,7 @@ tasks:
     title: Enterprise UI/UX audit and redesign
     goal: >
       Run the existing /design-review Playwright MCP workflow (docs/DESIGN_REVIEW_WORKFLOW.md, built in TASK-018) screen by screen across every app route, benchmarking against Linear, Vercel Dashboard and Stripe Dashboard (already the named benchmarks in TASK-018), and apply scoped visual improvements so the app reads as a deliberately designed enterprise product rather than an unfinished prototype - building on the TASK-017 tokens, TASK-019 shared components and TASK-020 shared layouts rather than one-off per-screen styling.
+
     scope:
       - src/app/(app)/dashboard/page.tsx
       - src/app/(app)/offers/**
@@ -2401,7 +2408,7 @@ tasks:
   ###############################################################################
   - id: TASK-035
     github:
-      issue: null
+      issue: "68"
       project_item: null
     status: todo
     priority: P2
@@ -2413,6 +2420,7 @@ tasks:
     title: Offer details UX
     goal: >
       Fill the gaps in offer-detail.tsx, which today only renders title, company and matchScore even though JobOffer already has description, url, isFavorite and createdAt - and let the user correct company/title/description after AI extraction, since jobOfferService.update currently only accepts isFavorite and matchScore.
+
     scope:
       - src/entities/job-offer/service.ts
       - src/features/job-offer/components/offer-detail.tsx
@@ -2463,7 +2471,7 @@ tasks:
   ###############################################################################
   - id: TASK-036
     github:
-      issue: null
+      issue: "69"
       project_item: null
     status: todo
     priority: P2
@@ -2474,6 +2482,7 @@ tasks:
     title: Toast notification system
     goal: >
       Replace the app's 11 identical role="alert" error paragraphs (5 in offer-detail.tsx alone, plus one each in cv-upload-form.tsx, optimize-cv-panel.tsx, add-offer-form.tsx, generate-post-form.tsx, plan-posts-button.tsx and post-list.tsx) with a single global toast mechanism, and close the two silent-failure gaps where useToggleFavorite and useUpdateApplicationStatus give zero feedback of any kind today. The file list below reflects mutation hooks that exist as of this task's drafting - apply the same toast treatment to any hook added by a task that lands first (e.g. TASK-035's use-update-offer.ts, TASK-038's document-save mutation), since the acceptance criterion below is "every mutation hook," not a fixed enumeration.
+
     scope:
       - package.json
       - src/app/providers.tsx
@@ -2544,7 +2553,7 @@ tasks:
   ###############################################################################
   - id: TASK-037
     github:
-      issue: null
+      issue: "70"
       project_item: null
     status: todo
     priority: P2
@@ -2556,6 +2565,7 @@ tasks:
     title: Loading UX
     goal: >
       Adopt the Spinner and Skeleton primitives added by TASK-026 but never actually used anywhere in the app, adding a loading.tsx per route and a pending-state Spinner on every mutation button - including offer-list.tsx's favorite toggle and application-status-select.tsx, which today only set disabled with no visual cue at all. The file list below reflects buttons that exist as of this task's drafting - apply the same Spinner treatment to any mutation button added by a task that lands first (e.g. TASK-035's offer-edit form, TASK-038's document-editor Save button), since the acceptance criterion below is "every mutation button," not a fixed enumeration.
+
     scope:
       - src/app/(app)/dashboard/loading.tsx
       - src/app/(app)/offers/loading.tsx
@@ -2618,7 +2628,7 @@ tasks:
   ###############################################################################
   - id: TASK-038
     github:
-      issue: null
+      issue: "71"
       project_item: null
     status: todo
     priority: P2
@@ -2631,6 +2641,7 @@ tasks:
     title: Document editor and persistent document history
     goal: >
       Let the user edit AI-generated CV/tailored-CV/cover-letter text in place before saving, and add a documents view listing every CvDocument the owner has (master, optimized, tailored, cover letters) - closing two gaps: cvDocumentService has no update(content) method (only create/createVersion, which always inserts a new row) and no screen anywhere lists more than the single latest CvDocument (findWithLatestTailoredCv hard-limits to 1, OptimizeCvPanel only shows the current transient mutation result).
+
     scope:
       - src/entities/cv-document/types.ts
       - src/entities/cv-document/service.ts
@@ -2690,7 +2701,7 @@ tasks:
   ###############################################################################
   - id: TASK-039
     github:
-      issue: null
+      issue: "72"
       project_item: null
     status: todo
     priority: P2
@@ -2703,6 +2714,7 @@ tasks:
     title: Dashboard improvements
     goal: >
       Add an application-status breakdown and a recent-offers card to the dashboard, which today only shows the next scheduled post, non-APPLIED applications and favorite offers (src/app/(app)/dashboard/page.tsx), using TASK-019's stat-card shared component (TASK-019's goal names "stat cards" among its deliverables; use whatever component name/API it actually lands with) rather than a one-off component.
+
     scope:
       - src/app/(app)/dashboard/page.tsx
       - src/features/dashboard/components/**
@@ -2750,7 +2762,7 @@ tasks:
   ###############################################################################
   - id: TASK-040
     github:
-      issue: null
+      issue: "73"
       project_item: null
     status: todo
     priority: P2
@@ -2761,6 +2773,7 @@ tasks:
     title: Search improvements
     goal: >
       Add search and sort to the Offers page, which today renders jobOfferService.findMany's full unfiltered list with a fixed createdAt-desc order and zero UI control - not even the isFavorite filter param the service already accepts but no screen exercises.
+
     scope:
       - src/entities/job-offer/service.ts
       - src/app/(app)/offers/page.tsx
