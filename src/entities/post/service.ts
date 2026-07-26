@@ -11,6 +11,7 @@ function toPost(row: Record<string, unknown>): Post {
     status: row.status as PostStatus,
     scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string) : null,
     sentAt: row.sent_at ? new Date(row.sent_at as string) : null,
+    campaignId: (row.campaign_id as string | null) ?? null,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
   };
@@ -21,6 +22,8 @@ export const postService = {
     ownerId: string;
     content: string;
     status: PostStatus;
+    scheduledAt?: Date | null;
+    campaignId?: string | null;
   }): Promise<Post> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -29,6 +32,8 @@ export const postService = {
         owner_id: values.ownerId,
         content: values.content,
         status: values.status,
+        scheduled_at: values.scheduledAt?.toISOString() ?? null,
+        campaign_id: values.campaignId ?? null,
       })
       .select()
       .single();
@@ -90,6 +95,7 @@ export const postService = {
       status: PostStatus;
       scheduledAt: Date | null;
       sentAt: Date | null;
+      campaignId: string | null;
     }>,
   ): Promise<Post> {
     const supabase = await createClient();
@@ -102,6 +108,8 @@ export const postService = {
       patch.scheduled_at = values.scheduledAt?.toISOString() ?? null;
     if (values.sentAt !== undefined)
       patch.sent_at = values.sentAt?.toISOString() ?? null;
+    if (values.campaignId !== undefined)
+      patch.campaign_id = values.campaignId;
 
     const { data, error } = await supabase
       .from('posts')

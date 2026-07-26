@@ -1,7 +1,13 @@
 import type { Post } from '@/entities/post/types';
+import type { PostCampaign } from '@/entities/post-campaign/types';
 
 export interface GeneratePostResponse {
   post: Post;
+}
+
+export interface GenerateCampaignResponse {
+  campaign: PostCampaign;
+  posts: Post[];
 }
 
 export interface SchedulePostResponse {
