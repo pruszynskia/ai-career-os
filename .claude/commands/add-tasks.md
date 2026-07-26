@@ -4,6 +4,11 @@ Turn one or more rough ideas into properly planned, fully-expanded tasks in
 `backlog/mvp.yaml`, inserted at their true logical position — not appended
 to the bottom.
 
+For moving a whole roadmap stage forward at once instead of a handful of ad
+hoc ideas, use `/generate-next-milestone` instead — see
+`docs/BACKLOG_MANAGEMENT.md`'s "Relationship between the two commands" for
+how they stay safe to alternate between.
+
 Input:
 
 One or more free-text ideas (a few words to a paragraph each; a single
@@ -43,7 +48,11 @@ ones into coherent tasks, expand each into the full `backlog/mvp.yaml` schema,
 determine milestone placement, determine logical insertion position (driven
 by dependencies and milestone order, never by submission order or current
 implementation progress), and insert into both `backlog/mvp.yaml` and
-`docs/ROADMAP.md` at matching positions.
+`docs/ROADMAP.md` at matching positions. This includes §1's roadmap-bullet
+match check (don't add a duplicate row for an idea that already matches a
+named-but-unbacklogged bullet) and the ID assignment safety note (re-read
+`backlog/mvp.yaml` immediately before assigning the next `TASK-XXX`) —
+do not skip either.
 
 If a proposed idea conflicts with Feature-Sliced Design, an existing shared
 component/service, or a recorded ADR in `memory-bank/decisions.md`, stop and

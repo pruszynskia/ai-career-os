@@ -30,7 +30,8 @@ pay for."
   CI/deploy.
 - **Stage 0** (`backlog/mvp.yaml` TASK-016–027): defined, not yet
   implemented.
-- **Stage 1** (`backlog/mvp.yaml` TASK-028, TASK-032–034): partially defined.
+- **Stage 1** (`backlog/mvp.yaml` TASK-028, TASK-032–040): defined, not yet
+  implemented.
 - **Stage 2** (`backlog/mvp.yaml` TASK-029–031): partially defined.
 
 ---
@@ -88,23 +89,22 @@ check it doesn't need.
 
 # Stage 1 — Product Refinement
 
-`backlog/mvp.yaml` TASK-028, TASK-032–034.
+`backlog/mvp.yaml` TASK-028, TASK-032–040.
 
 **Goal:** remove everything that makes the product feel like an "unfinished
 MVP." After this stage the product should look and feel professional.
 
 | Task | Title |
 |---|---|
-| — | Offer Details UX |
-| — | Toast Notifications |
-| — | Loading UX |
-| — | Document Editor |
+| TASK-035 | Offer Details UX |
+| TASK-036 | Toast Notifications |
+| TASK-037 | Loading UX |
+| TASK-038 | Document Editor & Persistent Documents |
 | TASK-032 | CV Optimization Improvement Insights |
-| — | Persistent Documents |
 | TASK-028 | Post Management — status, edit, delete |
-| — | Dashboard Improvements |
+| TASK-039 | Dashboard Improvements |
 | TASK-033 | Profile Improvements — job preference settings |
-| — | Search Improvements |
+| TASK-040 | Search Improvements |
 | TASK-034 | Enterprise UI/UX Audit & Redesign |
 
 ---

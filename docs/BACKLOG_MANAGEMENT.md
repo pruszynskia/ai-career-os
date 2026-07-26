@@ -26,6 +26,22 @@ whichever existing, untouched tasks it logically belongs between. ID order and
 file position can now differ for new tasks; that's expected and fine, since
 dependency resolution (`depends_on`) is by ID, not by position.
 
+## Relationship between the two commands
+
+`/add-tasks` is bottom-up: it starts from ideas you supply and may invent
+bullets/rows that don't exist in `docs/ROADMAP.md` yet. `/generate-next-milestone`
+is top-down: it starts from `docs/ROADMAP.md`'s own stage bullets and
+re-grounds each one in the current codebase. They delegate to this same
+process and are safe to alternate freely — but only because of one shared
+invariant: **every bullet in `docs/ROADMAP.md`'s stage tables is either `—`
+(not yet backlogged) or a real `TASK-ID`, and that mapping is always kept
+accurate.** Break that invariant (leave a bullet as `—` when a task already
+covers it, or add a task without updating its bullet) and the two commands
+will eventually draft duplicate tasks for the same concept, since neither
+one has any other way of knowing what the other already covered. §1 and §2
+below both enforce this from their respective direction; see also §8's
+"roadmap sync" check.
+
 ## 1. Analyze every idea
 
 For each idea, determine:
@@ -38,9 +54,24 @@ For each idea, determine:
   see `ARCHITECTURE.md`).
 - **Relation to existing tasks** — does it overlap with, extend, or duplicate
   a task already in `backlog/mvp.yaml` (done or todo)?
+- **Roadmap-bullet match** (`/add-tasks` direction of the shared invariant
+  above) — check the idea's target-stage table in `docs/ROADMAP.md` for an
+  already-named `—` bullet that's semantically the same idea, not just a
+  literal title match (e.g. an ad hoc "toast feedback" idea is the same
+  concept as an existing "Toast Notifications" bullet). If one matches, that
+  bullet is what gets updated in place (§7) — never add a second row/task
+  for the same concept just because the wording differs.
 - **Milestone fit** — see §3.
 
 ## 2. Group related ideas
+
+`/generate-next-milestone`'s direction of the shared invariant from above:
+before drafting a task for any stage bullet still showing `—`, grep
+`backlog/mvp.yaml`'s existing task titles and goals for something that
+already conceptually satisfies it — a prior `/add-tasks` run may have
+backlogged the same concept under different wording without updating that
+bullet's row. If a match is found, only fix the roadmap row to point at the
+existing task; do not draft a duplicate.
 
 Group ideas that share one implementation scope — same feature area, same
 architectural layer, one coherently deployable unit — into a single task.
@@ -86,6 +117,11 @@ per-stage sections).
   "(not yet in backlog/mvp.yaml)" annotation for that stage.
 - Never split or merge an existing milestone as a side effect of adding one
   task; that's a separate, explicit decision if it's ever actually needed.
+- **Milestone-enum safety**: never add a new value to `project.milestones`
+  unless it's already named as a stage in `docs/ROADMAP.md`, or the user has
+  explicitly confirmed a brand-new one via a clarifying question. Without
+  this, `/add-tasks` and `/generate-next-milestone` could each invent a
+  different name for the same future stage.
 
 ## 5. Determine logical placement (not submission order, not progress)
 
@@ -114,6 +150,15 @@ readiness, auth, payments/subscriptions/billing, onboarding, and the other
 milestones already named in `docs/ROADMAP.md`'s "Monetization Milestone"
 section. This is a tiebreaker among technically-valid orderings, not a
 license to skip real dependencies.
+
+## ID assignment safety
+
+Determine the next unused `TASK-XXX` by re-reading `backlog/mvp.yaml`
+immediately before writing the new task block(s) — never from a count
+cached earlier in a long session or conversation. This matters most when
+`/add-tasks` and `/generate-next-milestone` are both invoked in the same
+session, or when a session runs either command more than once: a stale
+read would assign an ID that's since been taken.
 
 ## 7. Insert into both files at the same position
 
@@ -146,6 +191,10 @@ section header into the real, populated one.
 - `labels` and `milestone` values are all from the `project.labels` /
   `project.milestones` enums.
 - Acceptance criteria reference real files/APIs — grep-verify, don't assume.
+- **Roadmap sync**: every new task whose title/goal matches a stage bullet
+  has that bullet's row in `docs/ROADMAP.md` pointing at it; no bullet is
+  left as `—` when a task already covers it; no duplicate row or task exists
+  for the same concept (the check from §1/§2 above).
 
 ## Report shape
 
