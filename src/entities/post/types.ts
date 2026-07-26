@@ -11,6 +11,7 @@ export const postSchema = z.object({
   status: postStatusSchema,
   scheduledAt: z.date().nullable(),
   sentAt: z.date().nullable(),
+  campaignId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -22,6 +23,7 @@ export interface Post {
   status: PostStatus;
   scheduledAt: Date | null;
   sentAt: Date | null;
+  campaignId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

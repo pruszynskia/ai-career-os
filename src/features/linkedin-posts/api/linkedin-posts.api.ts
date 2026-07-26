@@ -1,5 +1,6 @@
 import type { PostStatus } from '@/entities/post/types';
 import type {
+  GenerateCampaignResponse,
   GeneratePostResponse,
   PlanPostsResponse,
   SchedulePostResponse,
@@ -101,6 +102,27 @@ export async function planPosts(): Promise<PlanPostsResponse> {
       message?: string;
     } | null;
     throw new Error(body?.message ?? 'Failed to plan the next posts.');
+  }
+
+  return response.json();
+}
+
+export async function generateCampaign(
+  theme: string,
+  postCount: number,
+  cadenceDays: number,
+): Promise<GenerateCampaignResponse> {
+  const response = await fetch('/api/posts/campaigns', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme, postCount, cadenceDays }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to generate the campaign.');
   }
 
   return response.json();

@@ -52,7 +52,7 @@ export function PostList({ posts }: { posts: Post[] }) {
   );
 }
 
-function PostCard({ post }: { post: Post }) {
+export function PostCard({ post }: { post: Post }) {
   const [copied, setCopied] = useState(false);
   const [scheduledAtInput, setScheduledAtInput] = useState('');
   const scheduleMutation = useSchedulePost();
