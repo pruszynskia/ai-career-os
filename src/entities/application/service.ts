@@ -23,10 +23,13 @@ function toApplication(row: Record<string, unknown>): Application {
 }
 
 function toApplicationBundle(row: Record<string, unknown>): ApplicationBundle {
+  const jobOffer = toJobOffer(row.job_offer as Record<string, unknown>);
+
   return {
     ...toApplication(row),
-    jobOffer: toJobOffer(row.job_offer as Record<string, unknown>),
+    jobOffer,
     sentCv: toCvDocument(row.sent_cv as Record<string, unknown>),
+    isExpired: jobOffer.isExpired,
   };
 }
 

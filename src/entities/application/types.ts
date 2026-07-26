@@ -39,4 +39,5 @@ export interface Application {
 export type ApplicationBundle = Application & {
   jobOffer: JobOffer;
   sentCv: CvDocument;
+  isExpired: boolean;
 };

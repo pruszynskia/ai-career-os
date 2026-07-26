@@ -4,6 +4,7 @@ import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
 
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
+import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
@@ -35,6 +36,11 @@ export function OfferList({ offers }: { offers: JobOffer[] }) {
             <CardDescription>
               {offer.company} · {offer.source}
               {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
+              {offer.isExpired && (
+                <Badge variant="destructive" className="ml-2">
+                  Expired
+                </Badge>
+              )}
             </CardDescription>
             <CardAction>
               <Button
