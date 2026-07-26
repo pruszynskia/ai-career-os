@@ -24,3 +24,4 @@ export * from './interaction/input';
 export * from './interaction/textarea';
 export * from './interaction/icon-button';
 export * from './interaction/select';
+export * from './interaction/popover';

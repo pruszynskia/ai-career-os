@@ -14,6 +14,8 @@ import {
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/ui/utils';
 import { useUiStore } from '@/shared/store/ui-store';
+import type { Notification } from '@/features/notification/types';
+import { NotificationCenter } from '@/widgets/notification-center/notification-center';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,7 +25,11 @@ const NAV_ITEMS = [
   { href: '/profile', label: 'Profile', icon: UserCircle },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  notifications,
+}: {
+  notifications: Notification[];
+}) {
   const pathname = usePathname();
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
@@ -36,14 +42,17 @@ export function Sidebar() {
         isSidebarOpen ? 'w-56' : 'w-14',
       )}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSidebar}
-        aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-      >
-        {isSidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {isSidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+        </Button>
+        <NotificationCenter notifications={notifications} />
+      </div>
       <ul className="flex flex-col gap-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
