@@ -1,7 +1,9 @@
+import type { PostStatus } from '@/entities/post/types';
 import type {
   GeneratePostResponse,
   PlanPostsResponse,
   SchedulePostResponse,
+  UpdatePostResponse,
 } from '@/features/linkedin-posts/types';
 
 export async function generatePost(
@@ -58,6 +60,37 @@ export function markPostSent(id: string): Promise<SchedulePostResponse> {
     { action: 'mark-sent', id },
     'Failed to mark the post as sent.',
   );
+}
+
+export async function updatePost(
+  id: string,
+  values: { content?: string; status?: PostStatus },
+): Promise<UpdatePostResponse> {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to update the post.');
+  }
+
+  return response.json();
+}
+
+export async function deletePost(id: string): Promise<void> {
+  const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to delete the post.');
+  }
 }
 
 export async function planPosts(): Promise<PlanPostsResponse> {

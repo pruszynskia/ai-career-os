@@ -8,6 +8,10 @@ export interface SchedulePostResponse {
   post: Post;
 }
 
+export interface UpdatePostResponse {
+  post: Post;
+}
+
 export interface PlanPostsResponse {
   posts: Post[];
 }

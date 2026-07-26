@@ -1905,4 +1905,75 @@ tasks:
       - Switch package manager away from npm
       - Scaffold packages/ui, design-system, types, utils or config as empty placeholders with no real consumer
       - Add a mobile or Expo app in this task
+
+  - id: TASK-028
+    github:
+      issue: "61"
+      project_item: null
+    status: done
+    priority: P2
+    estimate: S
+    milestone: "Stage 0 - MVP Stabilization"
+    depends_on:
+      - TASK-012
+    title: Post management - status control, edit and delete
+    goal: >
+      Let the user edit a draft's content, delete any post, and directly change a post's status, closing the gap where src/entities/post/service.ts#update only accepts status/scheduledAt/sentAt (never content) and no delete method or route exists at all.
+    scope:
+      - src/entities/post/service.ts
+      - src/features/linkedin-posts/services/get-post.ts
+      - src/features/linkedin-posts/services/update-post.service.ts
+      - src/features/linkedin-posts/services/delete-post.service.ts
+      - src/features/linkedin-posts/api/linkedin-posts.api.ts
+      - src/features/linkedin-posts/hooks/use-update-post.ts
+      - src/features/linkedin-posts/hooks/use-delete-post.ts
+      - src/features/linkedin-posts/components/post-list.tsx
+      - src/features/linkedin-posts/components/edit-post-dialog.tsx
+      - src/app/api/posts/[id]/route.ts
+    deliverables:
+      - postService.update accepts content in addition to status/scheduledAt/sentAt
+      - postService.remove(id, ownerId) deleting a post scoped to its owner
+      - PATCH and DELETE handlers on a new src/app/api/posts/[id]/route.ts
+      - Edit dialog and delete action wired into post-list.tsx
+      - A status select allowing any manual status transition (not only the existing forward draft to scheduled to sent flow)
+    tasks:
+      - Extend src/entities/post/service.ts#update's accepted fields to include content, and add a remove(id, ownerId) method (delete scoped by owner, matching existing findFirst/update scoping)
+      - Extract the existing inline owner-scoped lookup-or-throw from schedule-post.service.ts into src/features/linkedin-posts/services/get-post.ts so update-post.service.ts and delete-post.service.ts reuse it instead of duplicating the check
+      - Add src/features/linkedin-posts/services/update-post.service.ts (edit content and/or status) and delete-post.service.ts, both using getPostOrThrow
+      - Add src/app/api/posts/[id]/route.ts with PATCH (body content and/or status) and DELETE handlers, returning 404 via PostNotFoundError like the existing schedule route
+      - Add linkedin-posts.api.ts client functions, use-update-post.ts and use-delete-post.ts hooks (react-query mutations calling router.refresh() on success, matching the existing hook pattern)
+      - Add an edit-post-dialog.tsx (content textarea plus a status select) and a delete button (with confirmation) to post-list.tsx's PostCard
+    acceptance:
+      - Editing a draft's content persists and is reflected after refresh
+      - Deleting a post removes it from the list and returns 404 on a second delete
+      - A post's status can be changed directly via the status select, not only through the existing schedule/mark-sent buttons
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Edit, delete and manual status control verified end to end
+      - No duplicated owner-lookup logic across the post feature's services
+      - Feature committed
+    labels:
+      - frontend
+      - backend
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Reuse the existing Post entity, postService and linkedin-posts feature
+      slice; do not introduce a new entity. Follow the existing hook/mutation
+      pattern (router.refresh() on success, no client cache).
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Introduce a new entity or table
+      - Add soft-delete, versioning or an undo/trash feature
+      - Change the generate/schedule/plan flows built in TASK-012/013
       - Change any existing feature's import paths or the Feature-Sliced layer structure inside src/
