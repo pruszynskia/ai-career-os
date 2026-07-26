@@ -84,7 +84,9 @@ export const postService = {
 
   async update(
     id: string,
+    ownerId: string,
     values: Partial<{
+      content: string;
       status: PostStatus;
       scheduledAt: Date | null;
       sentAt: Date | null;
@@ -94,6 +96,7 @@ export const postService = {
     const patch: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
+    if (values.content !== undefined) patch.content = values.content;
     if (values.status !== undefined) patch.status = values.status;
     if (values.scheduledAt !== undefined)
       patch.scheduled_at = values.scheduledAt?.toISOString() ?? null;
@@ -104,10 +107,22 @@ export const postService = {
       .from('posts')
       .update(patch)
       .eq('id', id)
+      .eq('owner_id', ownerId)
       .select()
       .single();
 
     if (error) throw error;
     return toPost(data);
+  },
+
+  async remove(id: string, ownerId: string): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id)
+      .eq('owner_id', ownerId);
+
+    if (error) throw error;
   },
 };
