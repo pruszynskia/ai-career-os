@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { useGeneratePost } from '@/features/linkedin-posts/hooks/use-generate-post';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
@@ -35,6 +36,7 @@ export function GeneratePostForm() {
         disabled={mutation.isPending || !topic.trim()}
         className="self-start"
       >
+        {mutation.isPending && <Spinner size="sm" />}
         {mutation.isPending ? 'Generating…' : 'Generate post'}
       </Button>
     </form>

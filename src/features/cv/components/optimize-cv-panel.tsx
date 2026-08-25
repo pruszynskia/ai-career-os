@@ -3,7 +3,7 @@
 import type { CvImprovement } from '@/features/cv/types';
 import { useOptimizeCv } from '@/features/cv/hooks/use-optimize-cv';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
-import { Badge, Text, VStack } from '@/shared/ui/primitives';
+import { Badge, Spinner, Text, VStack } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
@@ -31,6 +31,7 @@ export function OptimizeCvPanel() {
           disabled={mutation.isPending}
           onClick={() => mutation.mutate()}
         >
+          {mutation.isPending && <Spinner size="sm" />}
           {mutation.isPending ? 'Optimizing…' : 'Optimize CV'}
         </Button>
 

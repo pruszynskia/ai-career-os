@@ -31,6 +31,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Spinner,
 } from '@/shared/ui/primitives';
 
 const WORK_MODE_LABEL: Record<z.infer<typeof workModeSchema>, string> = {
@@ -49,22 +50,20 @@ const EMPLOYMENT_TYPE_LABEL: Record<
   FREELANCE: 'Freelance',
 };
 
-const SENIORITY_LABEL: Record<z.infer<typeof seniorityLevelSchema>, string> =
-  {
-    JUNIOR: 'Junior',
-    MID: 'Mid',
-    SENIOR: 'Senior',
-    LEAD: 'Lead',
-    PRINCIPAL: 'Principal',
-  };
+const SENIORITY_LABEL: Record<z.infer<typeof seniorityLevelSchema>, string> = {
+  JUNIOR: 'Junior',
+  MID: 'Mid',
+  SENIOR: 'Senior',
+  LEAD: 'Lead',
+  PRINCIPAL: 'Principal',
+};
 
-const COMPANY_SIZE_LABEL: Record<z.infer<typeof companySizeSchema>, string> =
-  {
-    STARTUP: 'Startup',
-    SCALEUP: 'Scaleup',
-    MID_SIZE: 'Mid-size',
-    ENTERPRISE: 'Enterprise',
-  };
+const COMPANY_SIZE_LABEL: Record<z.infer<typeof companySizeSchema>, string> = {
+  STARTUP: 'Startup',
+  SCALEUP: 'Scaleup',
+  MID_SIZE: 'Mid-size',
+  ENTERPRISE: 'Enterprise',
+};
 
 export function JobPreferencesForm({
   preferences,
@@ -116,10 +115,7 @@ export function JobPreferencesForm({
         <CardTitle>Job preferences</CardTitle>
       </CardHeader>
       <CardContent>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-4"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <Grid cols={1} colsMd={2} gap={4}>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="workMode">Work mode</Label>
@@ -306,6 +302,7 @@ export function JobPreferencesForm({
             disabled={mutation.isPending}
             className="self-start"
           >
+            {mutation.isPending && <Spinner size="sm" />}
             {mutation.isPending ? 'Saving…' : 'Save preferences'}
           </Button>
         </form>
