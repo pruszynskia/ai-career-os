@@ -43,11 +43,6 @@ export function CvUploadForm() {
       >
         {mutation.isPending ? 'Uploading…' : 'Upload CV'}
       </Button>
-      {mutation.isError && (
-        <p role="alert" className="text-sm text-destructive">
-          {mutation.error.message}
-        </p>
-      )}
     </form>
   );
 }

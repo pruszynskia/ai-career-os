@@ -37,12 +37,6 @@ export function GeneratePostForm() {
       >
         {mutation.isPending ? 'Generating…' : 'Generate post'}
       </Button>
-
-      {mutation.isError && (
-        <p role="alert" className="text-sm text-destructive">
-          {mutation.error.message}
-        </p>
-      )}
     </form>
   );
 }

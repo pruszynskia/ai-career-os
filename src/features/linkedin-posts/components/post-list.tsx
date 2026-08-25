@@ -184,22 +184,6 @@ export function PostCard({ post }: { post: Post }) {
             {markSentMutation.isPending ? 'Marking…' : 'Mark as sent'}
           </Button>
         )}
-
-        {(scheduleMutation.isError ||
-          markSentMutation.isError ||
-          updateMutation.isError ||
-          deleteMutation.isError) && (
-          <p role="alert" className="text-sm text-destructive">
-            {
-              (
-                scheduleMutation.error ??
-                markSentMutation.error ??
-                updateMutation.error ??
-                deleteMutation.error
-              )?.message
-            }
-          </p>
-        )}
       </CardContent>
     </Card>
   );

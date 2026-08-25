@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { deletePost } from '@/features/linkedin-posts/api/linkedin-posts.api';
 
@@ -8,6 +9,10 @@ export function useDeletePost() {
 
   return useMutation({
     mutationFn: deletePost,
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      toast.success('Post deleted');
+      router.refresh();
+    },
+    onError: (error) => toast.error(error.message),
   });
 }

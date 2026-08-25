@@ -71,12 +71,6 @@ export function GenerateCampaignForm() {
       >
         {mutation.isPending ? 'Generating…' : 'Generate campaign'}
       </Button>
-
-      {mutation.isError && (
-        <p role="alert" className="text-sm text-destructive">
-          {mutation.error.message}
-        </p>
-      )}
     </form>
   );
 }

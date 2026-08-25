@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import type { PostStatus } from '@/entities/post/types';
 import { updatePost } from '@/features/linkedin-posts/api/linkedin-posts.api';
@@ -16,6 +17,10 @@ export function useUpdatePost() {
       content?: string;
       status?: PostStatus;
     }) => updatePost(id, values),
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      toast.success('Post updated');
+      router.refresh();
+    },
+    onError: (error) => toast.error(error.message),
   });
 }

@@ -34,12 +34,6 @@ export function OptimizeCvPanel() {
           {mutation.isPending ? 'Optimizing…' : 'Optimize CV'}
         </Button>
 
-        {mutation.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            {mutation.error.message}
-          </p>
-        )}
-
         {mutation.isSuccess && (
           <VStack gap={3}>
             <VStack gap={2}>

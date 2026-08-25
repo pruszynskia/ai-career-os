@@ -82,12 +82,6 @@ export function AddOfferForm() {
             {mutation.isPending ? 'Adding…' : 'Add offer'}
           </Button>
 
-          {mutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {mutation.error.message}
-            </p>
-          )}
-
           {duplicateOfferId && (
             <p role="status" className="text-sm text-amber-600">
               This looks like an offer you already added.{' '}

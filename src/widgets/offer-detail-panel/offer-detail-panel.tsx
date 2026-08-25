@@ -23,7 +23,6 @@ export function OfferDetailPanel({
         createApplicationMutation.mutate(input, options)
       }
       isTrackingApplication={createApplicationMutation.isPending}
-      trackApplicationError={createApplicationMutation.error?.message}
     />
   );
 }

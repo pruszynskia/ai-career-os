@@ -23,7 +23,6 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import {
-  Badge,
   Grid,
   Input,
   Label,
@@ -309,18 +308,6 @@ export function JobPreferencesForm({
           >
             {mutation.isPending ? 'Saving…' : 'Save preferences'}
           </Button>
-
-          {mutation.isSuccess && (
-            <Badge variant="success" className="self-start">
-              Saved
-            </Badge>
-          )}
-
-          {mutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {mutation.error.message}
-            </p>
-          )}
         </form>
       </CardContent>
     </Card>
