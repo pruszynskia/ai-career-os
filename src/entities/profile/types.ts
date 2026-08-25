@@ -17,17 +17,63 @@ export const parsedProfileSchema = z.object({
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
 export type ParsedProfileExperience = ParsedProfile['experience'][number];
 
-export const profileSchema = z.object({
-  id: z.string(),
-  ownerId: z.string(),
-  summary: z.string(),
-  skills: z.array(z.string()),
-  experience: z.unknown(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+export const workModeSchema = z.enum(['REMOTE', 'HYBRID', 'ONSITE']);
+export type WorkMode = z.infer<typeof workModeSchema>;
+
+export const employmentTypeSchema = z.enum([
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'FREELANCE',
+]);
+export type EmploymentType = z.infer<typeof employmentTypeSchema>;
+
+export const seniorityLevelSchema = z.enum([
+  'JUNIOR',
+  'MID',
+  'SENIOR',
+  'LEAD',
+  'PRINCIPAL',
+]);
+export type SeniorityLevel = z.infer<typeof seniorityLevelSchema>;
+
+export const companySizeSchema = z.enum([
+  'STARTUP',
+  'SCALEUP',
+  'MID_SIZE',
+  'ENTERPRISE',
+]);
+export type CompanySize = z.infer<typeof companySizeSchema>;
+
+export const jobPreferencesSchema = z.object({
+  workMode: workModeSchema.nullable(),
+  salaryMin: z.number().int().min(0).nullable(),
+  salaryMax: z.number().int().min(0).nullable(),
+  salaryCurrency: z.string().nullable(),
+  specialization: z.string().nullable(),
+  employmentType: employmentTypeSchema.nullable(),
+  seniority: seniorityLevelSchema.nullable(),
+  preferredTechnologies: z.array(z.string()),
+  companySize: companySizeSchema.nullable(),
+  industries: z.array(z.string()),
+  locationPreferences: z.array(z.string()),
 });
 
-export interface Profile {
+export type JobPreferences = z.infer<typeof jobPreferencesSchema>;
+
+export const profileSchema = z
+  .object({
+    id: z.string(),
+    ownerId: z.string(),
+    summary: z.string(),
+    skills: z.array(z.string()),
+    experience: z.unknown(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+  })
+  .extend(jobPreferencesSchema.shape);
+
+export interface Profile extends JobPreferences {
   id: string;
   ownerId: string;
   summary: string;

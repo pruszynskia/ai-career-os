@@ -3,6 +3,7 @@ import { profileService } from '@/entities/profile/service';
 import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
+import { JobPreferencesForm } from '@/features/profile/components/job-preferences-form';
 import { getOwnerId } from '@/shared/auth/session';
 import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -27,6 +28,7 @@ export default async function ProfilePage() {
             }}
           />
           <OptimizeCvPanel />
+          <JobPreferencesForm preferences={profile} />
         </>
       ) : (
         <EmptyState message="No profile yet — upload your CV to get started." />
