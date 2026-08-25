@@ -86,6 +86,9 @@ export const jobOfferService = {
       isFavorite: boolean;
       matchScore: number;
       expiresAt: Date | null;
+      company: string;
+      title: string;
+      description: string;
     }>,
   ): Promise<JobOffer> {
     const supabase = await createClient();
@@ -96,6 +99,10 @@ export const jobOfferService = {
     if (values.matchScore !== undefined) patch.match_score = values.matchScore;
     if (values.expiresAt !== undefined)
       patch.expires_at = values.expiresAt?.toISOString() ?? null;
+    if (values.company !== undefined) patch.company = values.company;
+    if (values.title !== undefined) patch.title = values.title;
+    if (values.description !== undefined)
+      patch.description = values.description;
 
     const { data, error } = await supabase
       .from('job_offers')
