@@ -1282,7 +1282,7 @@ tasks:
     github:
       issue: "34"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 0 - MVP Stabilization"
@@ -1348,7 +1348,7 @@ tasks:
     github:
       issue: "35"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: S
     milestone: "Stage 0 - MVP Stabilization"

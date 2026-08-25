@@ -57,3 +57,37 @@ of re-implementing the page shell:
    OKLCH/hex value.
 3. If a screen seems to need a color or spacing value not covered here,
    update this document first, then use it — don't improvise locally.
+
+## Audit findings (TASK-034)
+
+Every route (dashboard, offers list/detail, applications, posts, profile,
+sign-in) was run through the `/design-review` Playwright loop against the
+Linear/Vercel Dashboard/Stripe Dashboard benchmarks. Two root-cause CSS bugs
+accounted for nearly every visual defect found across all of them:
+
+- **`--font-sans` was self-referential** in `globals.css`'s `@theme inline`
+  block (`--font-sans: var(--font-sans)`), so Tailwind's `font-sans`
+  utility never resolved to Geist and the whole app silently fell back to
+  the browser's default serif font. Fixed to point at
+  `--font-geist-sans`.
+- **Two unlayered resets** in `globals.css` (outside any `@layer`) outranked
+  every matching Tailwind utility per CSS cascade-layer rules:
+  - `* { padding: 0; margin: 0; }` zeroed every `Card`'s inner padding
+    (dashboard cards, offer/application list items, the sign-in card),
+    content touching its own border. Removed — Tailwind's preflight already
+    resets margin/padding inside `@layer base`, so this was a duplicate
+    that happened to be load-bearing in the wrong direction.
+  - `a { color: inherit; text-decoration: none; }` killed every
+    `.underline`/`hover:underline` utility app-wide (the duplicate-offer
+    recovery link in `AddOfferForm`, `OfferList`/`ApplicationList` row
+    links, the `Button` `link` variant). Moved inside `@layer base` so an
+    explicit `.underline` opt-in still wins, matching how Tailwind's own
+    preflight registers this exact rule.
+
+Per-route: `AddOfferForm` (offers route) was floating unboxed above the
+bordered offer list; wrapped it in the existing `Card`/`CardContent`
+components so it groups visually like every other surface on the screen.
+
+No new component library, dependency, or one-off per-screen styling was
+added — every fix reused `src/shared/ui`/`src/shared/layouts` or corrected
+an existing shared token.
