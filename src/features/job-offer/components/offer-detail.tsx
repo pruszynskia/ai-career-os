@@ -26,7 +26,7 @@ import {
 } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
-import { Label } from '@/shared/ui/primitives';
+import { Label, Spinner } from '@/shared/ui/primitives';
 
 export interface CreateApplicationInput {
   jobOfferId: string;
@@ -128,6 +128,7 @@ export function OfferDetail({
                 })
               }
             >
+              {toggleFavoriteMutation.isPending && <Spinner size="sm" />}
               {offer.isFavorite ? 'Favorited' : 'Favorite'}
             </Button>
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
@@ -196,6 +197,7 @@ export function OfferDetail({
                         !editValues.title.trim()
                       }
                     >
+                      {updateOfferMutation.isPending && <Spinner size="sm" />}
                       {updateOfferMutation.isPending ? 'Saving…' : 'Save'}
                     </Button>
                   </DialogFooter>
@@ -224,6 +226,7 @@ export function OfferDetail({
               })
             }
           >
+            {matchMutation.isPending && <Spinner size="sm" />}
             {matchMutation.isPending
               ? 'Calculating…'
               : matchScore !== null
@@ -244,6 +247,7 @@ export function OfferDetail({
             disabled={tailorCvMutation.isPending}
             onClick={() => tailorCvMutation.mutate(offer.id)}
           >
+            {tailorCvMutation.isPending && <Spinner size="sm" />}
             {tailorCvMutation.isPending ? 'Tailoring…' : 'Generate tailored CV'}
           </Button>
           {tailorCvMutation.isSuccess && (
@@ -274,6 +278,7 @@ export function OfferDetail({
             disabled={recruiterMessageMutation.isPending}
             onClick={() => recruiterMessageMutation.mutate(offer.id)}
           >
+            {recruiterMessageMutation.isPending && <Spinner size="sm" />}
             {recruiterMessageMutation.isPending
               ? 'Generating…'
               : 'Generate recruiter message'}
@@ -297,6 +302,7 @@ export function OfferDetail({
             disabled={coverLetterMutation.isPending}
             onClick={() => coverLetterMutation.mutate(offer.id)}
           >
+            {coverLetterMutation.isPending && <Spinner size="sm" />}
             {coverLetterMutation.isPending
               ? 'Generating…'
               : 'Generate cover letter'}
@@ -350,6 +356,7 @@ export function OfferDetail({
               )
             }
           >
+            {isTrackingApplication && <Spinner size="sm" />}
             {isTrackingApplication ? 'Creating…' : 'Track application'}
           </Button>
         </CardContent>

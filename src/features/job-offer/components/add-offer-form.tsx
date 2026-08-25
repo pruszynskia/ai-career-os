@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { useAddOffer } from '@/features/job-offer/hooks/use-add-offer';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -79,6 +80,7 @@ export function AddOfferForm() {
             }
             className="self-start"
           >
+            {mutation.isPending && <Spinner size="sm" />}
             {mutation.isPending ? 'Adding…' : 'Add offer'}
           </Button>
 

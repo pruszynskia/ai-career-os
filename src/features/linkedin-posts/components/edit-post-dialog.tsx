@@ -4,6 +4,7 @@ import type { Post } from '@/entities/post/types';
 import { useState } from 'react';
 
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -60,6 +61,7 @@ export function EditPostDialog({ post }: { post: Post }) {
             disabled={updateMutation.isPending || !content.trim()}
             onClick={handleSubmit}
           >
+            {updateMutation.isPending && <Spinner size="sm" />}
             {updateMutation.isPending ? 'Saving…' : 'Save'}
           </Button>
         </DialogFooter>

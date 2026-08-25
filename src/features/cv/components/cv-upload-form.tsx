@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 
 import { useUploadCv } from '@/features/cv/hooks/use-upload-cv';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
@@ -41,6 +42,7 @@ export function CvUploadForm() {
         disabled={!file || mutation.isPending}
         className="self-start"
       >
+        {mutation.isPending && <Spinner size="sm" />}
         {mutation.isPending ? 'Uploading…' : 'Upload CV'}
       </Button>
     </form>

@@ -7,6 +7,7 @@ import type { ApplicationBundle } from '@/entities/application/types';
 import { ApplicationList } from '@/features/application/components/application-list';
 import { useSearchApplications } from '@/features/application/hooks/use-search-applications';
 import { OfferList } from '@/features/job-offer/components/offer-list';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
@@ -44,6 +45,7 @@ export function CompanySearch({
           aria-label="Search by position or company"
         />
         <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending && <Spinner size="sm" />}
           {mutation.isPending ? 'Searching…' : 'Search'}
         </Button>
       </form>

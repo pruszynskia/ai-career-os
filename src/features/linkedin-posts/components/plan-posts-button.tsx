@@ -1,6 +1,7 @@
 'use client';
 
 import { usePlanPosts } from '@/features/linkedin-posts/hooks/use-plan-posts';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 
 export function PlanPostsButton() {
@@ -14,6 +15,7 @@ export function PlanPostsButton() {
         disabled={mutation.isPending}
         onClick={() => mutation.mutate()}
       >
+        {mutation.isPending && <Spinner size="sm" />}
         {mutation.isPending ? 'Planning…' : 'Plan next posts'}
       </Button>
     </div>

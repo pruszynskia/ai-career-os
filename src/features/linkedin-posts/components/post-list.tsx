@@ -8,6 +8,7 @@ import { useDeletePost } from '@/features/linkedin-posts/hooks/use-delete-post';
 import { useMarkPostSent } from '@/features/linkedin-posts/hooks/use-mark-post-sent';
 import { useSchedulePost } from '@/features/linkedin-posts/hooks/use-schedule-post';
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
+import { Spinner } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
@@ -142,6 +143,7 @@ export function PostCard({ post }: { post: Post }) {
                   disabled={deleteMutation.isPending}
                   onClick={handleDelete}
                 >
+                  {deleteMutation.isPending && <Spinner size="sm" />}
                   {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>
@@ -167,6 +169,7 @@ export function PostCard({ post }: { post: Post }) {
               disabled={scheduleMutation.isPending || !scheduledAtInput}
               onClick={handleSchedule}
             >
+              {scheduleMutation.isPending && <Spinner size="sm" />}
               {scheduleMutation.isPending ? 'Scheduling…' : 'Schedule'}
             </Button>
           </div>
@@ -181,6 +184,7 @@ export function PostCard({ post }: { post: Post }) {
             disabled={markSentMutation.isPending}
             onClick={handleMarkSent}
           >
+            {markSentMutation.isPending && <Spinner size="sm" />}
             {markSentMutation.isPending ? 'Marking…' : 'Mark as sent'}
           </Button>
         )}
