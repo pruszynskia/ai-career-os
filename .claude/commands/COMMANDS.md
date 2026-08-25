@@ -42,6 +42,19 @@ lint/test/build, and prepares a commit message. For tasks labeled `ui` or
 touching `src/app`/`src/widgets`/a components directory, Step 4 also runs
 the `docs/DESIGN_REVIEW_WORKFLOW.md` Playwright-MCP visual-QA loop.
 
+## Orchestration
+
+### `/task-cycle TASK-ID`
+
+File: `claude/commands/task-cycle.md`
+
+Chains `/implement-task` → `/review-task` → `/fix-task` (capped at 2
+review→fix rounds, then stops and hands off) → `/commit-and-push` for one
+task, driven by the `staged-execution` skill: opens with a phase table
+(model/effort per step), hard-stops at every model/effort boundary, and
+stops after commit with an explicit instruction to start a new conversation
+for the next `TASK-ID` — it never auto-continues to another task.
+
 ## Review
 
 ### `/review-task TASK-ID`
