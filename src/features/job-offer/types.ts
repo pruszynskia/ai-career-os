@@ -10,6 +10,10 @@ export interface ToggleFavoriteResponse {
   jobOffer: JobOffer;
 }
 
+export interface UpdateOfferResponse {
+  jobOffer: JobOffer;
+}
+
 export interface MatchOfferResponse {
   jobOffer: JobOffer;
 }

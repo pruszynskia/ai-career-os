@@ -5,6 +5,7 @@ import type {
   RecruiterMessageResponse,
   TailorCvResponse,
   ToggleFavoriteResponse,
+  UpdateOfferResponse,
 } from '@/features/job-offer/types';
 
 export async function addOffer(input: {
@@ -35,6 +36,26 @@ export async function toggleFavorite(
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ isFavorite }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to update the offer.');
+  }
+
+  return response.json();
+}
+
+export async function updateOffer(
+  id: string,
+  input: Partial<{ company: string; title: string; description: string }>,
+): Promise<UpdateOfferResponse> {
+  const response = await fetch(`/api/offers/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
   });
 
   if (!response.ok) {
