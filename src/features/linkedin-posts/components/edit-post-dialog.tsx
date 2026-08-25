@@ -51,11 +51,6 @@ export function EditPostDialog({ post }: { post: Post }) {
           rows={8}
           disabled={updateMutation.isPending}
         />
-        {updateMutation.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            {updateMutation.error.message}
-          </p>
-        )}
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>

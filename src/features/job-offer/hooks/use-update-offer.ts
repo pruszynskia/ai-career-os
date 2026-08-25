@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { updateOffer } from '@/features/job-offer/api/job-offer.api';
 
@@ -16,6 +17,10 @@ export function useUpdateOffer() {
       title: string;
       description: string;
     }) => updateOffer(id, input),
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      toast.success('Offer updated');
+      router.refresh();
+    },
+    onError: (error) => toast.error(error.message),
   });
 }

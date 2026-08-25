@@ -16,12 +16,6 @@ export function PlanPostsButton() {
       >
         {mutation.isPending ? 'Planning…' : 'Plan next posts'}
       </Button>
-
-      {mutation.isError && (
-        <p role="alert" className="text-sm text-destructive">
-          {mutation.error.message}
-        </p>
-      )}
     </div>
   );
 }

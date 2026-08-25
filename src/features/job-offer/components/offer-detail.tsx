@@ -39,7 +39,6 @@ export function OfferDetail({
   latestTailoredCv,
   onTrackApplication,
   isTrackingApplication,
-  trackApplicationError,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -48,7 +47,6 @@ export function OfferDetail({
     options: { onSuccess: () => void },
   ) => void;
   isTrackingApplication: boolean;
-  trackApplicationError?: string;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -189,11 +187,6 @@ export function OfferDetail({
                       disabled={updateOfferMutation.isPending}
                     />
                   </div>
-                  {updateOfferMutation.isError && (
-                    <p role="alert" className="text-sm text-destructive">
-                      {updateOfferMutation.error.message}
-                    </p>
-                  )}
                   <DialogFooter>
                     <Button
                       type="submit"
@@ -237,11 +230,6 @@ export function OfferDetail({
                 ? 'Recalculate match'
                 : 'Calculate match'}
           </Button>
-          {matchMutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {matchMutation.error.message}
-            </p>
-          )}
         </CardContent>
       </Card>
 
@@ -258,11 +246,6 @@ export function OfferDetail({
           >
             {tailorCvMutation.isPending ? 'Tailoring…' : 'Generate tailored CV'}
           </Button>
-          {tailorCvMutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {tailorCvMutation.error.message}
-            </p>
-          )}
           {tailorCvMutation.isSuccess && (
             <Button
               variant="outline"
@@ -295,11 +278,6 @@ export function OfferDetail({
               ? 'Generating…'
               : 'Generate recruiter message'}
           </Button>
-          {recruiterMessageMutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {recruiterMessageMutation.error.message}
-            </p>
-          )}
           {recruiterMessageMutation.isSuccess && (
             <p className="whitespace-pre-wrap text-sm">
               {recruiterMessageMutation.data.message}
@@ -323,11 +301,6 @@ export function OfferDetail({
               ? 'Generating…'
               : 'Generate cover letter'}
           </Button>
-          {coverLetterMutation.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {coverLetterMutation.error.message}
-            </p>
-          )}
           {coverLetterMutation.isSuccess && (
             <Button
               variant="outline"
@@ -379,11 +352,6 @@ export function OfferDetail({
           >
             {isTrackingApplication ? 'Creating…' : 'Track application'}
           </Button>
-          {trackApplicationError && (
-            <p role="alert" className="text-sm text-destructive">
-              {trackApplicationError}
-            </p>
-          )}
         </CardContent>
       </Card>
     </AppPageLayout>

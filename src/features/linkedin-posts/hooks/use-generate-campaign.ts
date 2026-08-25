@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { generateCampaign } from '@/features/linkedin-posts/api/linkedin-posts.api';
 
@@ -16,6 +17,10 @@ export function useGenerateCampaign() {
       postCount: number;
       cadenceDays: number;
     }) => generateCampaign(theme, postCount, cadenceDays),
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      toast.success('Campaign generated');
+      router.refresh();
+    },
+    onError: (error) => toast.error(error.message),
   });
 }
