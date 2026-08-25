@@ -1,9 +1,20 @@
 'use client';
 
+import type { CvImprovement } from '@/features/cv/types';
 import { useOptimizeCv } from '@/features/cv/hooks/use-optimize-cv';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
+import { Badge, Text, VStack } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+
+const CATEGORY_LABEL: Record<CvImprovement['category'], string> = {
+  'ats-keywords': 'ATS keywords',
+  quantification: 'Quantification',
+  'action-verbs': 'Action verbs',
+  clarity: 'Clarity',
+  formatting: 'Formatting',
+  other: 'Other',
+};
 
 export function OptimizeCvPanel() {
   const mutation = useOptimizeCv();
@@ -30,12 +41,37 @@ export function OptimizeCvPanel() {
         )}
 
         {mutation.isSuccess && (
-          <div className="flex flex-col gap-3">
-            <ul className="list-inside list-disc text-sm">
+          <VStack gap={3}>
+            <VStack gap={2}>
               {mutation.data.improvements.map((improvement, index) => (
-                <li key={index}>{improvement}</li>
+                <Card key={index}>
+                  <CardContent className="py-4">
+                    <VStack gap={1}>
+                      <Badge variant="secondary" className="self-start">
+                        {CATEGORY_LABEL[improvement.category]}
+                      </Badge>
+                      <Text size="sm">
+                        <Text as="span" color="muted">
+                          Before:
+                        </Text>{' '}
+                        <Text as="span" className="line-through">
+                          {improvement.before}
+                        </Text>
+                      </Text>
+                      <Text size="sm">
+                        <Text as="span" color="muted">
+                          After:
+                        </Text>{' '}
+                        {improvement.after}
+                      </Text>
+                      <Text size="sm" color="muted">
+                        {improvement.rationale}
+                      </Text>
+                    </VStack>
+                  </CardContent>
+                </Card>
               ))}
-            </ul>
+            </VStack>
             <Button
               variant="outline"
               className="self-start"
@@ -48,7 +84,7 @@ export function OptimizeCvPanel() {
             >
               Download optimized CV
             </Button>
-          </div>
+          </VStack>
         )}
       </CardContent>
     </Card>
