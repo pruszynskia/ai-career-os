@@ -1,5 +1,36 @@
 # AI Career OS - Claude Instructions
 
+# Claude-OS
+
+This project inherits Claude-OS. Do not copy global rules into this file —
+reference them.
+
+- Local (Cowork / Claude Code): `~/claude/CLAUDE-OS/CLAUDE.md`
+- Desktop Project without file access: fetch the mirrored copy at
+  `/Claude-OS/CLAUDE.md` via the file connector. If the fetch fails or that
+  file's `Last verified` date is more than 30 days old, say so instead of
+  proceeding on stale rules.
+
+Claude-OS carries the hard rules (never invent facts about Andrzej;
+deterministic work is a script, not prose-in-context; grep before read),
+the routing table, and model tiering. Everything below is specific to this
+project.
+
+This project's own long-term memory is `memory-bank/` — **not** a `MEMORY.md`.
+`memory-bank/decisions.md` is the ADR log, `memory-bank/ai-notes.md` holds
+operational learnings. Do not create a `MEMORY.md` here; it would compete with
+files that already hold real content.
+
+| Need | Load |
+|---|---|
+| This project's decisions | `memory-bank/decisions.md` |
+| This project's operational learnings | `memory-bank/ai-notes.md` |
+| This project's docs | `docs/README.md` → the one file it names |
+| Facts about Andrzej, global rules, templates | Claude-OS root (path above) |
+| This project's state in the OS-wide index | `projects-index.md` in Claude-OS |
+
+---
+
 # Task Management
 
 All implementation tasks are stored in:
@@ -100,6 +131,12 @@ Before implementing any task ALWAYS load:
 3. ARCHITECTURE.md
 4. memory-bank/project-context.md
 5. docs/ROADMAP.md
+
+Load `memory-bank/decisions.md` before any task that touches architecture,
+picks a library, or changes a data contract — it is the ADR log and a task
+that contradicts a recorded ADR is a bug, not a preference. Load
+`memory-bank/ai-notes.md` when debugging something that feels
+already-solved.
 
 For feature work additionally load:
 
