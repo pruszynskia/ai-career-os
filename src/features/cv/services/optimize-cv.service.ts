@@ -24,7 +24,7 @@ export async function optimizeCv() {
       ],
       schema: optimizedCvSchema,
       schemaName: 'optimized_cv',
-      maxTokens: 4096,
+      maxTokens: 8192,
     });
 
   const cvDocument = await cvDocumentService.createVersion({
