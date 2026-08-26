@@ -1,9 +1,14 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
+import { buildSearchOrFilter } from '@/shared/utils/offer-search';
 import { toCvDocument } from '@/entities/cv-document/service';
 import type { CvDocument } from '@/entities/cv-document/types';
-import type { JobOffer, OfferSource } from '@/entities/job-offer/types';
+import type {
+  JobOffer,
+  OfferSortOption,
+  OfferSource,
+} from '@/entities/job-offer/types';
 
 export function toJobOffer(row: Record<string, unknown>): JobOffer {
   const expiresAt = row.expires_at ? new Date(row.expires_at as string) : null;
@@ -58,8 +63,8 @@ export const jobOfferService = {
   },
 
   async findMany(
-    filter: { ownerId: string; isFavorite?: boolean },
-    opts?: { take?: number },
+    filter: { ownerId: string; isFavorite?: boolean; query?: string },
+    opts?: { take?: number; sort?: OfferSortOption },
   ): Promise<JobOffer[]> {
     const supabase = await createClient();
     let query = supabase
@@ -70,7 +75,23 @@ export const jobOfferService = {
     if (filter.isFavorite !== undefined)
       query = query.eq('is_favorite', filter.isFavorite);
 
-    query = query.order('created_at', { ascending: false });
+    // Same title/company substring matching as findUnapplied, applied
+    // server-side via ilike instead of a JS filter pass.
+    if (filter.query) {
+      const orFilter = buildSearchOrFilter(filter.query);
+      query = query.or(orFilter);
+    }
+
+    const sort = opts?.sort ?? 'createdAt';
+    const sortColumn = {
+      createdAt: 'created_at',
+      matchScore: 'match_score',
+      company: 'company',
+    }[sort];
+    query = query.order(sortColumn, {
+      ascending: sort === 'company',
+      nullsFirst: false,
+    });
     if (opts?.take) query = query.limit(opts.take);
 
     const { data, error } = await query;

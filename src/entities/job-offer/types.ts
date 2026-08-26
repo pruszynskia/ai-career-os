@@ -12,6 +12,16 @@ export const offerSourceSchema = z.enum(['URL', 'RAW_TEXT']);
 
 export type OfferSource = 'URL' | 'RAW_TEXT';
 
+export const offerSortOptions = ['createdAt', 'matchScore', 'company'] as const;
+
+export type OfferSortOption = (typeof offerSortOptions)[number];
+
+export const OFFER_SORT_LABELS: Record<OfferSortOption, string> = {
+  createdAt: 'Newest first',
+  matchScore: 'Best match',
+  company: 'Company (A–Z)',
+};
+
 export const jobOfferSchema = z.object({
   id: z.string(),
   ownerId: z.string(),
