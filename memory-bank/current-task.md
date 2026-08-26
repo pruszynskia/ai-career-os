@@ -2,6 +2,51 @@
 
 ## Current Sprint
 
+### Feature: TASK-042 — Profile automatic CV/application score
+
+Status:
+
+Implemented, review fix pass round 2 applied. Pending re-review via `/task-cycle`.
+
+Notes:
+
+`profiles` gained a `score` jsonb column (migration
+`20260826110000_profile_score.sql`, applied to the remote Supabase project
+`wqaibeijmnubvplydbzg`). `parsedProfileSchema`/`profileSchema`/`Profile`
+extended with `score: { overall, metrics: { label, score, note }[] }`,
+following the existing `experience`/`projects` storage pattern (jsonb +
+`z.unknown()` on the persisted schema). `parseCvSystemPrompt` now also asks
+for an overall 0-100 CV-quality score plus 3-5 metrics in the same AI call
+that already parses summary/skills/experience/projects — no separate
+"calculate score" action or second AI round-trip. New
+`ProfileScoreCard` (`src/features/cv/components/profile-score-card.tsx`)
+renders the overall score plus per-metric `StatCard`s and notes; shown on
+`/profile` only when `profile.score` is present. `ProfileSummary`'s prop
+type narrowed to `Pick<ParsedProfile, 'summary'|'skills'|'experience'|
+'projects'>` since it no longer needs `score`.
+
+Review fix pass: `ProfileScoreCard` rebuilt on `VStack`/`Grid`/`Heading`/
+`Text` primitives instead of hand-rolled Tailwind flex/grid classes (was a
+`primitives/README.md` "Bad" example) and `text-3xl` (outside the type
+scale, bigger than the page's own H1) replaced with `Heading level={1}`.
+Each metric's note now renders once, folded under its `StatCard` instead of
+looping the array twice. Scores rounded at render (schema stays a plain
+`z.number()`, not `.int()`, so a fractional AI score doesn't hard-fail the
+upload). `uploadCv`'s `generateStructured` call given `maxTokens: 16384`
+(was the adapter default) since the structured output has grown twice now
+(projects, then score+notes) against Gemini's thinking-token budget.
+`ProfileScoreCard`'s key switched to `${label}-${index}` to survive
+duplicate AI-generated labels, matching `ProfileSummary`'s convention.
+`page.tsx` now imports `ParsedProfileScore` directly instead of indexing
+`ParsedProfile['score']`.
+
+Round 2: `Heading level={1}` rendered a second `<h1>` on `/profile`
+(alongside the page's own `PageHeader` `<h1>`) - switched to
+`<Heading level={1} as="h2">` to keep the visual size but fix the document
+outline.
+
+---
+
 ### Feature: TASK-041 — Profile personal projects from CV
 
 Status:

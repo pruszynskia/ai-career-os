@@ -11,6 +11,7 @@ function toProfile(row: Record<string, unknown>): Profile {
     skills: row.skills as string[],
     experience: row.experience,
     projects: row.projects,
+    score: row.score,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
     workMode: row.work_mode as Profile['workMode'],
@@ -41,8 +42,7 @@ function toPreferencesRow(preferences: Partial<JobPreferences>) {
   if ('seniority' in preferences) row.seniority = preferences.seniority;
   if ('preferredTechnologies' in preferences)
     row.preferred_technologies = preferences.preferredTechnologies;
-  if ('companySize' in preferences)
-    row.company_size = preferences.companySize;
+  if ('companySize' in preferences) row.company_size = preferences.companySize;
   if ('industries' in preferences) row.industries = preferences.industries;
   if ('locationPreferences' in preferences)
     row.location_preferences = preferences.locationPreferences;
@@ -69,6 +69,7 @@ export const profileService = {
       skills: string[];
       experience: unknown;
       projects: unknown;
+      score: unknown;
     },
   ): Promise<Profile> {
     const supabase = await createClient();
@@ -81,6 +82,7 @@ export const profileService = {
           skills: values.skills,
           experience: values.experience,
           projects: values.projects,
+          score: values.score,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'owner_id' },
