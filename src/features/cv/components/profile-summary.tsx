@@ -51,6 +51,55 @@ export function ProfileSummary({ profile }: { profile: ParsedProfile }) {
           </ul>
         </CardContent>
       </Card>
+
+      {profile.projects.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-4">
+              {profile.projects.map((project, index) => {
+                const href =
+                  project.url && /^https?:\/\//i.test(project.url)
+                    ? project.url
+                    : null;
+                return (
+                  <li key={`${project.name}-${index}`}>
+                    <p className="text-sm font-medium">
+                      {href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-2"
+                        >
+                          {project.name}
+                        </a>
+                      ) : (
+                        project.name
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm">{project.description}</p>
+                    {project.technologies.length > 0 && (
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {project.technologies.map((tech) => (
+                          <li
+                            key={tech}
+                            className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
+                          >
+                            {tech}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

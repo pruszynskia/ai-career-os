@@ -2,6 +2,40 @@
 
 ## Current Sprint
 
+### Feature: TASK-041 — Profile personal projects from CV
+
+Status:
+
+Implemented, review fix pass round 2 applied. Pending re-review via `/task-cycle`.
+
+Notes:
+
+`profiles` gained a `projects` jsonb column (migration
+`20260826100000_profile_projects.sql`, applied to the remote Supabase
+project `wqaibeijmnubvplydbzg`). `parsedProfileSchema`/`profileSchema`/`Profile` extended
+with `projects: { name, description, technologies, url }[]`, following the
+existing `experience` field's storage pattern (jsonb + `z.unknown()` on the
+persisted schema). `parseCvSystemPrompt` now also extracts personal/side/
+open-source projects, distinct from work experience, left empty when the CV
+has none. `ProfileSummary` renders a Projects card only when
+`profile.projects.length > 0`.
+
+Review fix pass: project URLs from the AI aren't guaranteed to have a
+scheme (e.g. `github.com/user/repo`) — rendering them straight into `href`
+resolved relatively (dead link) and admitted arbitrary schemes; now gated
+by an `^https?://` check before rendering as a link, plain text otherwise.
+Also guarded `profile.projects` against `undefined` on the profile page
+(pre-migration-apply window) and aligned `rel="noopener noreferrer"` with
+the existing external-link convention in `offer-detail.tsx`.
+
+Round 2: applied the migration to the remote Supabase project — until it
+landed, `profileService.upsert` sent a `projects` field PostgREST didn't
+recognize and every CV upload failed with PGRST204. Also fixed an
+under-indented block in `profile-summary.tsx` left by the round-1 edit
+(`npm run format` on that file only).
+
+---
+
 ### Feature: TASK-040 — Search improvements
 
 Status:

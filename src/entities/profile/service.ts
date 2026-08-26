@@ -10,6 +10,7 @@ function toProfile(row: Record<string, unknown>): Profile {
     summary: row.summary as string,
     skills: row.skills as string[],
     experience: row.experience,
+    projects: row.projects,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
     workMode: row.work_mode as Profile['workMode'],
@@ -63,7 +64,12 @@ export const profileService = {
 
   async upsert(
     ownerId: string,
-    values: { summary: string; skills: string[]; experience: unknown },
+    values: {
+      summary: string;
+      skills: string[];
+      experience: unknown;
+      projects: unknown;
+    },
   ): Promise<Profile> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -74,6 +80,7 @@ export const profileService = {
           summary: values.summary,
           skills: values.skills,
           experience: values.experience,
+          projects: values.projects,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'owner_id' },

@@ -25,6 +25,7 @@ export default async function ProfilePage() {
               summary: profile.summary,
               skills: profile.skills,
               experience: profile.experience as ParsedProfile['experience'],
+              projects: (profile.projects ?? []) as ParsedProfile['projects'],
             }}
           />
           <OptimizeCvPanel />
