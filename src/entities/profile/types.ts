@@ -12,10 +12,19 @@ export const parsedProfileSchema = z.object({
       description: z.string(),
     }),
   ),
+  projects: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      technologies: z.array(z.string()),
+      url: z.string().nullable(),
+    }),
+  ),
 });
 
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
 export type ParsedProfileExperience = ParsedProfile['experience'][number];
+export type ParsedProfileProject = ParsedProfile['projects'][number];
 
 export const workModeSchema = z.enum(['REMOTE', 'HYBRID', 'ONSITE']);
 export type WorkMode = z.infer<typeof workModeSchema>;
@@ -68,6 +77,7 @@ export const profileSchema = z
     summary: z.string(),
     skills: z.array(z.string()),
     experience: z.unknown(),
+    projects: z.unknown(),
     createdAt: z.date(),
     updatedAt: z.date(),
   })
@@ -79,6 +89,7 @@ export interface Profile extends JobPreferences {
   summary: string;
   skills: string[];
   experience: unknown;
+  projects: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
