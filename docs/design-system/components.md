@@ -85,6 +85,29 @@ Nests inside the `Screen` primitive already applied once in
 `src/app/(app)/layout.tsx` — it never adds its own outer padding or scroll
 container.
 
+## StatCard
+
+Purpose: a single metric tile (label + value) — extracted for the dashboard's
+application-status breakdown, which needed 5 identical tiles in a grid.
+
+Props:
+
+| Prop | Type | Required | Notes |
+|---|---|---|---|
+| `label` | `string` | yes | Rendered via the `Text` primitive (`size="xs" color="muted"`) |
+| `value` | `number \| string` | yes | Rendered via the `Text` primitive (`size="lg" weight="semibold"`) |
+
+```tsx
+import { StatCard } from '@/shared/ui';
+
+<StatCard label="Applied" value={3} />
+```
+
+Built on the `Surface` primitive (`padding="sm"`), not `Card` — nesting
+`Card` tiles inside a `Card`-based parent collapses the background contrast
+that gives elevation its meaning (see Spacing & elevation in
+`ui-principles.md`).
+
 ## SplitLayout
 
 Purpose: a two-pane list/detail shell for a screen with a persistent list
@@ -111,9 +134,9 @@ import { SplitLayout } from '@/shared/layouts';
 
 ## Not built here
 
-Three other patterns were named as candidates for this task but had no
-actual duplicated code to extract, so building them now would have been
-speculative rather than an extraction:
+Two other patterns were named as candidates for this task but had no actual
+duplicated code to extract, so building them now would have been speculative
+rather than an extraction:
 
 - **Status badges** — no duplicated badge markup exists; the two places a
   status is shown today (`post-list.tsx`'s card title, `upcoming-interviews-card.tsx`'s
@@ -121,9 +144,6 @@ speculative rather than an extraction:
   a visual-language change outside this task's scope. Use the `Badge`
   primitive directly (see `src/shared/ui/primitives/README.md`) if a future
   screen needs one.
-- **Stat cards** — no duplicated metric-tile markup exists anywhere yet.
-  Compose one from the `Surface`/`Text` primitives when a real consumer
-  needs it.
 - **Skeleton loaders** — no hand-rolled loading placeholder exists anywhere
   to extract. The `Skeleton` primitive already exists and is ready to use
   once a route adds a loading state.

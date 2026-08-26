@@ -41,3 +41,11 @@ export type ApplicationBundle = Application & {
   sentCv: CvDocument;
   isExpired: boolean;
 };
+
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
+  APPLIED: 'Applied',
+  HR: 'HR',
+  TECHNICAL: 'Technical',
+  TEAM: 'Team',
+  CEO_OR_MANAGER: 'CEO / Manager',
+};

@@ -6,3 +6,4 @@ export * from './textarea';
 export * from './utils';
 export * from './empty-state';
 export * from './page-header';
+export * from './stat-card';
