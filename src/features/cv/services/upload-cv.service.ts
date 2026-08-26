@@ -19,6 +19,9 @@ export async function uploadCv(text: string) {
     ],
     schema: parsedProfileSchema,
     schemaName: 'parsed_profile',
+    // Output now covers summary/skills/experience/projects/score - give
+    // thinking models (Gemini) enough budget beyond their reasoning tokens.
+    maxTokens: 16384,
   });
 
   const profile = await profileService.upsert(ownerId, parsed);

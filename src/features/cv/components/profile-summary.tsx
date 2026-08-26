@@ -1,7 +1,12 @@
 import type { ParsedProfile } from '@/entities/profile/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
-export function ProfileSummary({ profile }: { profile: ParsedProfile }) {
+type ProfileSummaryData = Pick<
+  ParsedProfile,
+  'summary' | 'skills' | 'experience' | 'projects'
+>;
+
+export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
   return (
     <div className="flex flex-col gap-4">
       <Card>
