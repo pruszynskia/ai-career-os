@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Briefcase,
   ClipboardList,
+  FileText,
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
@@ -21,15 +22,12 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/offers', label: 'Offers', icon: Briefcase },
   { href: '/applications', label: 'Applications', icon: ClipboardList },
+  { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/posts', label: 'Posts', icon: Rss },
   { href: '/profile', label: 'Profile', icon: UserCircle },
 ];
 
-export function Sidebar({
-  notifications,
-}: {
-  notifications: Notification[];
-}) {
+export function Sidebar({ notifications }: { notifications: Notification[] }) {
   const pathname = usePathname();
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);

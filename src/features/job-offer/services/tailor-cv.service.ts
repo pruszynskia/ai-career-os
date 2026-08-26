@@ -41,5 +41,6 @@ export async function tailorCv(id: string) {
     isMaster: false,
     content,
     jobOfferId: offer.id,
+    kind: 'TAILORED',
   });
 }

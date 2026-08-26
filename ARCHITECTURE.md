@@ -136,7 +136,7 @@ slice is isolated automatically).
 
 Real, shipped slice names (singular, canonical for all future slices):
 
-`job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`
+`job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`, `document`
 
 Cross-feature composition (e.g. the job-offer detail view triggering
 application creation) happens at the widget layer, not via direct

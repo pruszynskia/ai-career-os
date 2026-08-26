@@ -1,12 +1,19 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
-import type { CvDocument } from '@/entities/cv-document/types';
+import type { CvDocument, CvDocumentKind } from '@/entities/cv-document/types';
 
 export class NoMasterCvError extends Error {
   constructor(message = 'Upload a CV before using it.') {
     super(message);
     this.name = 'NoMasterCvError';
+  }
+}
+
+export class CvDocumentNotFoundError extends Error {
+  constructor(message = 'Document not found.') {
+    super(message);
+    this.name = 'CvDocumentNotFoundError';
   }
 }
 
@@ -17,6 +24,7 @@ export function toCvDocument(row: Record<string, unknown>): CvDocument {
     isMaster: row.is_master as boolean,
     content: row.content as string,
     jobOfferId: (row.job_offer_id as string | null) ?? null,
+    kind: row.kind as CvDocumentKind,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
   };
@@ -28,6 +36,7 @@ export const cvDocumentService = {
     isMaster: boolean;
     content: string;
     jobOfferId?: string;
+    kind: CvDocumentKind;
   }): Promise<CvDocument> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -37,11 +46,43 @@ export const cvDocumentService = {
         is_master: values.isMaster,
         content: values.content,
         job_offer_id: values.jobOfferId ?? null,
+        kind: values.kind,
       })
       .select()
       .single();
 
     if (error) throw error;
+    return toCvDocument(data);
+  },
+
+  async findMany(ownerId: string): Promise<CvDocument[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('cv_documents')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data.map(toCvDocument);
+  },
+
+  async update(
+    id: string,
+    ownerId: string,
+    content: string,
+  ): Promise<CvDocument> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('cv_documents')
+      .update({ content, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('owner_id', ownerId)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new CvDocumentNotFoundError();
     return toCvDocument(data);
   },
 
@@ -108,6 +149,7 @@ export const cvDocumentService = {
     content: string;
     isMaster: boolean;
     jobOfferId?: string;
+    kind: CvDocumentKind;
   }): Promise<CvDocument> {
     if (values.isMaster) {
       await this.updateMany(

@@ -12,8 +12,8 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const { content } = await generateCoverLetter(id);
-    return NextResponse.json({ content });
+    const cvDocument = await generateCoverLetter(id);
+    return NextResponse.json({ cvDocument });
   } catch (error) {
     if (error instanceof OfferNotFoundError) {
       return NextResponse.json({ message: error.message }, { status: 404 });

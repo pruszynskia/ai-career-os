@@ -27,5 +27,5 @@ export interface RecruiterMessageResponse {
 }
 
 export interface CoverLetterResponse {
-  content: string;
+  cvDocument: CvDocument;
 }

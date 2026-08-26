@@ -467,3 +467,66 @@ Consequences:
   that point.
 - Every existing backlog task's `scope:` paths under `src/` remain valid —
   nothing moved.
+
+## ADR-013
+
+Date:
+
+2026-08-26
+
+Decision:
+
+Add a `cv_documents.kind` enum column (`MASTER | OPTIMIZED | TAILORED |
+COVER_LETTER`, migration `20260826090000_cv_document_kind.sql`) and make
+cover-letter generation persist a `CvDocument` row via `createVersion`
+(previously it returned ephemeral AI output with no row at all). Place the
+new editable-document UI (`DocumentEditor`, textarea + Save + Download) and
+its `updateDocument` fetch call in `src/shared` rather than in the `cv` or
+`job-offer` feature that first needed it.
+
+Reason:
+
+TASK-038 needed a documents list badging each row Master/Optimized/Tailored/
+Cover Letter. `isMaster`/`jobOfferId` can't express that: tailored CVs and
+cover letters are both `isMaster:false` with `jobOfferId` set, so nothing
+distinguished them — `kind` makes the distinction explicit and queryable
+(e.g. `findWithLatestTailoredCv` now filters `kind = 'TAILORED'` so a
+later-generated cover letter can't be picked up as the CV sent with an
+application). Persisting the cover letter was required for it to be
+editable/saveable at all — editing needs a row `id` to update in place.
+`DocumentEditor` is needed identically by `optimize-cv-panel.tsx` (`cv`
+feature) and `offer-detail.tsx` (`job-offer` feature); `ARCHITECTURE.md`
+forbids feature→feature imports, so `shared` — importable by both — is the
+only layer that keeps a single implementation instead of one per feature.
+
+Alternatives Considered:
+
+- Infer the badge from `isMaster`/`jobOfferId` only, without a schema
+  change — rejected: cannot express "tailored CV" vs. "cover letter" with
+  those two columns; would either mislabel one of them or make the
+  documents list wrong for every job offer with both generated.
+- Duplicate the editable-textarea+Save component into `cv/components` and
+  `job-offer/components` instead of a shared component — rejected: same
+  fetch/mutation/toast logic maintained in two places for one behavior with
+  no per-feature variation.
+- Add a `kind` "feature" slice for cross-feature composition (per
+  `ARCHITECTURE.md`'s widget-layer pattern for offer-detail→application)
+  — rejected: `DocumentEditor` isn't composing two features' business logic
+  the way `offer-detail-panel` does, it's one reusable piece of UI+fetch
+  around a single entity; a widget would be the wrong layer for something
+  with no feature-specific behavior to compose.
+
+Consequences:
+
+- `cvDocumentService.create`/`createVersion` now require `kind` — every
+  existing caller (`upload-cv`, `optimize-cv`, `tailor-cv`,
+  `cover-letter`) was updated to pass it explicitly; a new caller that
+  forgets it fails to typecheck rather than silently mislabeling a document.
+- `kind:'MASTER'` marks what a document originally was, not whether it's
+  still the current master — after a second CV upload, the previous
+  master's `is_master` flips to `false` but `kind` stays `MASTER`;
+  `document-list.tsx` labels that case "Master (previous)" to avoid two
+  identical "Master" badges with no way to tell which is active.
+- `CoverLetterResponse` changed from `{ content }` to `{ cvDocument }` —
+  every consumer (`offer-detail.tsx`, the cover-letter route handler)
+  updated in the same change.

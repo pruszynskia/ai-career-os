@@ -31,6 +31,7 @@ export async function optimizeCv() {
     ownerId,
     isMaster: false,
     content: optimizedContent,
+    kind: 'OPTIMIZED',
   });
 
   return { cvDocument, improvements };

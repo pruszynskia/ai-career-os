@@ -26,6 +26,7 @@ export async function uploadCv(text: string) {
     ownerId,
     isMaster: true,
     content: text,
+    kind: 'MASTER',
   });
 
   return { profile, cvDocument };
