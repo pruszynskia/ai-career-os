@@ -23,7 +23,7 @@ export async function generateCoverLetter(id: string) {
     'Upload a CV before using it for this offer.',
   );
 
-  return getAiService().generateStructured({
+  const { content } = await getAiService().generateStructured({
     messages: [
       { role: 'system', content: coverLetterSystemPrompt },
       {
@@ -37,5 +37,13 @@ export async function generateCoverLetter(id: string) {
     schema: coverLetterSchema,
     schemaName: 'cover_letter',
     maxTokens: 2048,
+  });
+
+  return cvDocumentService.createVersion({
+    ownerId,
+    isMaster: false,
+    content,
+    jobOfferId: offer.id,
+    kind: 'COVER_LETTER',
   });
 }

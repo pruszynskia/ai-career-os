@@ -2,10 +2,10 @@
 
 import type { CvImprovement } from '@/features/cv/types';
 import { useOptimizeCv } from '@/features/cv/hooks/use-optimize-cv';
-import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Badge, Spinner, Text, VStack } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { DocumentEditor } from '@/shared/ui/document-editor';
 
 const CATEGORY_LABEL: Record<CvImprovement['category'], string> = {
   'ats-keywords': 'ATS keywords',
@@ -67,18 +67,12 @@ export function OptimizeCvPanel() {
                 </Card>
               ))}
             </VStack>
-            <Button
-              variant="outline"
-              className="self-start"
-              onClick={() =>
-                downloadTextFile(
-                  'optimized-cv.txt',
-                  mutation.data.cvDocument.content,
-                )
-              }
-            >
-              Download optimized CV
-            </Button>
+            <DocumentEditor
+              key={mutation.data.cvDocument.id}
+              documentId={mutation.data.cvDocument.id}
+              content={mutation.data.cvDocument.content}
+              downloadFilename="optimized-cv.txt"
+            />
           </VStack>
         )}
       </CardContent>

@@ -2,15 +2,31 @@
 
 ## Current Sprint
 
-### Feature: TASK-009 — Match scoring
+### Feature: TASK-038 — Document editor and persistent document history
 
 Status:
 
-TODO — next task to implement (`/implement-task TASK-009`)
+Implemented, reviewed, fixed. Pending commit via `/task-cycle`.
 
 Notes:
 
-Depends on TASK-005, TASK-006, TASK-007, TASK-008 (all done). See `backlog/mvp.yaml` for full acceptance criteria.
+`cvDocumentService.update`/`findMany` added; new `cv_documents.kind` column
+(migration `20260826090000_cv_document_kind.sql`, applied to the remote
+Supabase project) distinguishes Master/Optimized/Tailored/Cover Letter since
+`isMaster`/`jobOfferId` alone can't tell tailored CV and cover letter apart.
+Cover-letter generation now persists a `CvDocument` (previously ephemeral).
+Shared `DocumentEditor` (`src/shared/ui/document-editor.tsx`) + fetch wrapper
+(`src/shared/api/document.ts`) reused across `cv` and `job-offer` features to
+avoid a feature→feature import. New `/documents` route lists every document.
+See ADR-013.
+
+Review fix pass: `findWithLatestTailoredCv` now filters `kind = 'TAILORED'`
+(a newer cover letter was being picked up as the offer's "sent CV" — verified
+live via disposable synthetic rows, cleaned up after); "Master (previous)"
+label added for demoted-but-not-relabeled master rows; owner lookup moved
+inside the route handler's try/catch; the one-consumer `use-documents.ts`
+hook was inlined and deleted; `DocumentEditor` call sites keyed by document
+id.
 
 ---
 
@@ -34,3 +50,4 @@ Depends on TASK-005, TASK-006, TASK-007, TASK-008 (all done). See `backlog/mvp.y
 - TASK-027 — Monorepo evaluation, deferred (audited: no existing `turbo.json`/workspaces/`packages/` tooling; readiness criteria and future mobile (React Native/Expo) strategy documented in `docs/MONOREPO.md`; see ADR-012)
 - TASK-033 — Profile job preference settings (11 new columns on `profiles` via migration `20260825120000_profile_job_preferences.sql`, applied to the remote Supabase project (`wqaibeijmnubvplydbzg`); `profileService.updatePreferences`; new `src/features/profile` slice with a React Hook Form + Zod `JobPreferencesForm`, added as a new dependency by explicit user choice over the codebase's existing plain-`useState` form convention; `vitest.config.ts` gained a `@` path alias so tests can import `@/`-aliased modules)
 - TASK-034 — Enterprise UI/UX audit and redesign (`/design-review` run across every route; fixed two unlayered rules in `globals.css` that cascade-defeated Tailwind utilities app-wide — a self-referential `--font-sans` that fell back to serif everywhere, and unlayered `* {padding/margin:0}` and `a {text-decoration:none}` resets that zeroed every `Card`'s padding and killed every `.underline`/`hover:underline` utility; `AddOfferForm` wrapped in the existing `Card`; findings in `docs/design-system/ui-principles.md`'s "Audit findings" section)
+- TASK-038 — Document editor and persistent document history (`cvDocumentService.update`/`findMany`; new `cv_documents.kind` enum column distinguishing Master/Optimized/Tailored/Cover Letter, migration applied to the remote Supabase project; cover-letter generation now persists a `CvDocument`; shared `DocumentEditor`/`document.ts` in `src/shared` reused by `cv` and `job-offer` features; new `src/features/document` slice and `/documents` route, added to the sidebar nav)

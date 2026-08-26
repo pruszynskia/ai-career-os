@@ -12,10 +12,10 @@ import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { useUpdateOffer } from '@/features/job-offer/hooks/use-update-offer';
 import { AppPageLayout } from '@/shared/layouts';
-import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { DocumentEditor } from '@/shared/ui/document-editor';
 import {
   Dialog,
   DialogContent,
@@ -251,18 +251,12 @@ export function OfferDetail({
             {tailorCvMutation.isPending ? 'Tailoring…' : 'Generate tailored CV'}
           </Button>
           {tailorCvMutation.isSuccess && (
-            <Button
-              variant="outline"
-              className="self-start"
-              onClick={() =>
-                downloadTextFile(
-                  'tailored-cv.txt',
-                  tailorCvMutation.data.cvDocument.content,
-                )
-              }
-            >
-              Download tailored CV
-            </Button>
+            <DocumentEditor
+              key={tailorCvMutation.data.cvDocument.id}
+              documentId={tailorCvMutation.data.cvDocument.id}
+              content={tailorCvMutation.data.cvDocument.content}
+              downloadFilename="tailored-cv.txt"
+            />
           )}
         </CardContent>
       </Card>
@@ -308,18 +302,12 @@ export function OfferDetail({
               : 'Generate cover letter'}
           </Button>
           {coverLetterMutation.isSuccess && (
-            <Button
-              variant="outline"
-              className="self-start"
-              onClick={() =>
-                downloadTextFile(
-                  'cover-letter.txt',
-                  coverLetterMutation.data.content,
-                )
-              }
-            >
-              Download cover letter
-            </Button>
+            <DocumentEditor
+              key={coverLetterMutation.data.cvDocument.id}
+              documentId={coverLetterMutation.data.cvDocument.id}
+              content={coverLetterMutation.data.cvDocument.content}
+              downloadFilename="cover-letter.txt"
+            />
           )}
         </CardContent>
       </Card>

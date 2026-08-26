@@ -6,9 +6,7 @@ import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer, OfferSource } from '@/entities/job-offer/types';
 
 export function toJobOffer(row: Record<string, unknown>): JobOffer {
-  const expiresAt = row.expires_at
-    ? new Date(row.expires_at as string)
-    : null;
+  const expiresAt = row.expires_at ? new Date(row.expires_at as string) : null;
 
   return {
     id: row.id as string,
@@ -187,6 +185,7 @@ export const jobOfferService = {
       .from('cv_documents')
       .select('*')
       .eq('job_offer_id', id)
+      .eq('kind', 'TAILORED')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
