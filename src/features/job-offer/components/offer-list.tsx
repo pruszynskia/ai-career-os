@@ -17,11 +17,25 @@ import {
 } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 
-export function OfferList({ offers }: { offers: JobOffer[] }) {
+export function OfferList({
+  offers,
+  isFiltered = false,
+}: {
+  offers: JobOffer[];
+  isFiltered?: boolean;
+}) {
   const mutation = useToggleFavorite();
 
   if (offers.length === 0) {
-    return <EmptyState message="No offers yet — add one above." />;
+    return (
+      <EmptyState
+        message={
+          isFiltered
+            ? 'No offers match your filters.'
+            : 'No offers yet — add one above.'
+        }
+      />
+    );
   }
 
   return (

@@ -2,31 +2,33 @@
 
 ## Current Sprint
 
-### Feature: TASK-038 — Document editor and persistent document history
+### Feature: TASK-040 — Search improvements
 
 Status:
 
-Implemented, reviewed, fixed. Pending commit via `/task-cycle`.
+Implemented, reviewed, approved. Pending commit via `/task-cycle`.
 
 Notes:
 
-`cvDocumentService.update`/`findMany` added; new `cv_documents.kind` column
-(migration `20260826090000_cv_document_kind.sql`, applied to the remote
-Supabase project) distinguishes Master/Optimized/Tailored/Cover Letter since
-`isMaster`/`jobOfferId` alone can't tell tailored CV and cover letter apart.
-Cover-letter generation now persists a `CvDocument` (previously ephemeral).
-Shared `DocumentEditor` (`src/shared/ui/document-editor.tsx`) + fetch wrapper
-(`src/shared/api/document.ts`) reused across `cv` and `job-offer` features to
-avoid a feature→feature import. New `/documents` route lists every document.
-See ADR-013.
+`jobOfferService.findMany` gained an optional `query` (title/company
+substring, server-side via `.or(ilike)`) and `opts.sort`
+(`createdAt`/`matchScore`/`company`). New `OfferFilters` client component
+(`src/features/job-offer/components/offer-filters.tsx`) adds a search input,
+sort select and "Favorites only" toggle to `/offers`, all URL-param driven
+(`?q=&sort=&favorite=1`) so filters survive a refresh/back-nav.
+`OfferList` gained an `isFiltered` empty-state variant.
 
-Review fix pass: `findWithLatestTailoredCv` now filters `kind = 'TAILORED'`
-(a newer cover letter was being picked up as the offer's "sent CV" — verified
-live via disposable synthetic rows, cleaned up after); "Master (previous)"
-label added for demoted-but-not-relabeled master rows; owner lookup moved
-inside the route handler's try/catch; the one-consumer `use-documents.ts`
-hook was inlined and deleted; `DocumentEditor` call sites keyed by document
-id.
+Review fix pass: a raw user query containing `,` broke the PostgREST
+`.or()` filter (comma is the condition separator) — fixed by
+`buildSearchOrFilter` (`src/shared/utils/offer-search.ts`, extracted out of
+`entities/job-offer/service.ts` because that file imports `server-only` and
+can't be unit-tested directly), which double-quotes the ilike value and
+escapes embedded `"`/`\`; covered by
+`tests/smoke/unit/offer-search.test.ts`. Also fixed: typing in the search
+box without pressing Enter then changing sort/favorites silently dropped the
+typed text — sort/favorite `onChange` now call `form.requestSubmit()` and
+`onSubmit` reads all three fields from one `FormData` pass. Verified live via
+Playwright against `/offers`.
 
 ---
 
