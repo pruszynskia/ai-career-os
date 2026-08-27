@@ -1,4 +1,5 @@
 import type { JobOffer } from '@/entities/job-offer/types';
+import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -15,10 +16,15 @@ export function FavoriteOffersCard({ offers }: { offers: JobOffer[] }) {
         ) : (
           <ul className="flex flex-col gap-2">
             {offers.map((offer) => (
-              <li key={offer.id} className="text-sm">
-                <span className="font-medium">{offer.title}</span> ·{' '}
-                {offer.company}
-                {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
+              <li key={offer.id}>
+                <Link
+                  href={`/offers/${offer.id}`}
+                  className="-mx-2 block rounded-md px-2 py-1 text-sm transition-colors hover:bg-muted"
+                >
+                  <span className="font-medium">{offer.title}</span> ·{' '}
+                  {offer.company}
+                  {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
+                </Link>
               </li>
             ))}
           </ul>

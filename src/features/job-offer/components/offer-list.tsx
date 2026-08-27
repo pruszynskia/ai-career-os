@@ -46,7 +46,7 @@ export function OfferList({
           mutation.isPending && mutation.variables?.id === offer.id;
 
         return (
-          <Card key={offer.id}>
+          <Card key={offer.id} className="transition-colors hover:bg-muted">
             <CardHeader>
               <CardTitle>
                 <Link href={`/offers/${offer.id}`} className="hover:underline">

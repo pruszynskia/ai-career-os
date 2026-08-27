@@ -1,4 +1,5 @@
 import type { Post } from '@/entities/post/types';
+import Link from 'next/link';
 
 import {
   Card,
@@ -22,9 +23,14 @@ export function NextPostCard({ post }: { post: Post | null }) {
       </CardHeader>
       <CardContent>
         {post ? (
-          <p className="line-clamp-3 whitespace-pre-wrap text-sm">
-            {post.content}
-          </p>
+          <Link
+            href="/posts"
+            className="-mx-2 block rounded-md px-2 py-1 transition-colors hover:bg-muted"
+          >
+            <p className="line-clamp-3 whitespace-pre-wrap text-sm">
+              {post.content}
+            </p>
+          </Link>
         ) : (
           <EmptyState message="No post scheduled yet." />
         )}

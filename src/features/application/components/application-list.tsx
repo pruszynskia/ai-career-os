@@ -31,7 +31,7 @@ export function ApplicationList({
   return (
     <div className="flex flex-col gap-3">
       {applications.map((application) => (
-        <Card key={application.id}>
+        <Card key={application.id} className="transition-colors hover:bg-muted">
           <CardHeader>
             <CardTitle>
               <Link
