@@ -5,6 +5,7 @@ export const cvDocumentKindSchema = z.enum([
   'OPTIMIZED',
   'TAILORED',
   'COVER_LETTER',
+  'OPTIMIZED_COVER_LETTER',
 ]);
 
 export type CvDocumentKind = z.infer<typeof cvDocumentKindSchema>;
@@ -14,6 +15,7 @@ export const CV_DOCUMENT_KIND_LABEL: Record<CvDocumentKind, string> = {
   OPTIMIZED: 'Optimized',
   TAILORED: 'Tailored',
   COVER_LETTER: 'Cover Letter',
+  OPTIMIZED_COVER_LETTER: 'Optimized Cover Letter',
 };
 
 export const cvDocumentSchema = z.object({

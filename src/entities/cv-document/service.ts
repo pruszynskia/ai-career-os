@@ -90,6 +90,7 @@ export const cvDocumentService = {
     id?: string;
     ownerId: string;
     isMaster?: boolean;
+    kind?: CvDocumentKind;
   }): Promise<CvDocument | null> {
     const supabase = await createClient();
     let query = supabase
@@ -100,6 +101,7 @@ export const cvDocumentService = {
     if (filter.id !== undefined) query = query.eq('id', filter.id);
     if (filter.isMaster !== undefined)
       query = query.eq('is_master', filter.isMaster);
+    if (filter.kind !== undefined) query = query.eq('kind', filter.kind);
 
     // .limit(1) mirrors Prisma's findFirst tolerance for multiple matches —
     // without it, .maybeSingle() throws if more than one row qualifies.
@@ -115,7 +117,7 @@ export const cvDocumentService = {
   // ponytail: sequential awaits, not a single DB transaction — fine for a
   // single-writer app; move to a Postgres RPC if concurrent uploads matter.
   async updateMany(
-    filter: { ownerId: string; isMaster: boolean },
+    filter: { ownerId: string; isMaster: boolean; kind: CvDocumentKind },
     values: { isMaster: boolean },
   ): Promise<void> {
     const supabase = await createClient();
@@ -126,16 +128,21 @@ export const cvDocumentService = {
         updated_at: new Date().toISOString(),
       })
       .eq('owner_id', filter.ownerId)
-      .eq('is_master', filter.isMaster);
+      .eq('is_master', filter.isMaster)
+      .eq('kind', filter.kind);
 
     if (error) throw error;
   },
 
+  // kind defaults to 'MASTER' so every existing caller (tailor-cv,
+  // optimize-cv, per-offer cover-letter generation) keeps resolving the
+  // master CV unchanged; the master cover letter is a separate kind.
   async getMasterOrThrow(
     ownerId: string,
     message?: string,
+    kind: CvDocumentKind = 'MASTER',
   ): Promise<CvDocument> {
-    const masterCv = await this.findFirst({ ownerId, isMaster: true });
+    const masterCv = await this.findFirst({ ownerId, isMaster: true, kind });
     if (!masterCv) throw new NoMasterCvError(message);
     return masterCv;
   },
@@ -153,7 +160,7 @@ export const cvDocumentService = {
   }): Promise<CvDocument> {
     if (values.isMaster) {
       await this.updateMany(
-        { ownerId: values.ownerId, isMaster: true },
+        { ownerId: values.ownerId, isMaster: true, kind: values.kind },
         { isMaster: false },
       );
     }
