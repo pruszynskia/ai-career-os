@@ -115,8 +115,8 @@ beside a detail view. Lives in
 [`src/shared/layouts`](../../src/shared/layouts/split-layout). No screen
 uses it yet — no list/detail split UI exists in this codebase today, so
 this is built ready for the next screen that genuinely needs one, not
-retrofitted onto today's single-pane `offers`/`applications` pages (which
-would be a page redesign, not a shell extraction).
+retrofitted onto today's single-pane `offers` page (which would be a page
+redesign, not a shell extraction).
 
 Props:
 

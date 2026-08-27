@@ -357,7 +357,7 @@ export function OfferDetail({
                   recruiterMessage:
                     recruiterMessageMutation.data?.message ?? '',
                 },
-                { onSuccess: () => router.push('/applications') },
+                { onSuccess: () => router.push('/offers') },
               )
             }
           >
