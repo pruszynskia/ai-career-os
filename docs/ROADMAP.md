@@ -28,11 +28,14 @@ pay for."
   upload/parse/optimize, offer ingestion, match/tailor-CV/recruiter-message,
   application tracking, LinkedIn post generation/scheduling, dashboard,
   CI/deploy.
-- **Stage 0** (`backlog/mvp.yaml` TASK-016–028): TASK-016–027 defined, not
-  yet implemented; TASK-028 shipped.
-- **Stage 1** (`backlog/mvp.yaml` TASK-032–040): defined, not yet
-  implemented.
-- **Stage 2** (`backlog/mvp.yaml` TASK-029–031): partially defined.
+- **Stage 0** (`backlog/mvp.yaml` TASK-016–028): shipped.
+- **Stage 1** (`backlog/mvp.yaml` TASK-032–048): shipped.
+- **Stage 2** (`backlog/mvp.yaml` TASK-029–031, TASK-049–052): TASK-029–031
+  shipped; TASK-049–052 defined, not yet implemented.
+
+Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
+still read `todo` after shipping. Judge what is done from the code and git
+history, not from that field.
 
 ---
 
@@ -119,21 +122,24 @@ MVP." After this stage the product should look and feel professional.
 
 # Stage 2 — Core Value
 
-`backlog/mvp.yaml` TASK-029–031.
+`backlog/mvp.yaml` TASK-029–031, TASK-049–052.
 
 **Goal:** add the features users would actually pay for.
 
 | Task | Title |
 |---|---|
-| — | Kanban Applications |
-| — | Drag & Drop |
-| — | Application Timeline |
-| TASK-030 | Offer & Application Expiration Detection |
-| — | Advanced Duplicate Detection |
-| — | Recruiter Notes |
-| — | Recent Applications Dashboard |
 | TASK-029 | AI-Generated LinkedIn Content Campaigns |
+| TASK-030 | Offer & Application Expiration Detection |
 | TASK-031 | Unified Notification Center |
+| TASK-049 | Kanban Applications — board view of the offers page with drag-and-drop status changes |
+| TASK-050 | Application Timeline — status-event history plus a recent-activity dashboard card |
+| TASK-051 | Advanced Duplicate Detection — match signal, recency window and user resolution |
+| TASK-052 | Recruiter Notes — free-text notes per application |
+
+Row order matches the task blocks' order in `backlog/mvp.yaml`. The former
+`—` rows collapsed into the four new tasks: "Drag & Drop" is TASK-049's
+interaction rather than a separate feature, and "Recent Applications
+Dashboard" is the dashboard view of TASK-050's status events.
 
 ---
 

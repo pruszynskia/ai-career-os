@@ -2195,6 +2195,310 @@ tasks:
       - Add read/unread persistence, push notifications or email
       - Add a background job, cron or polling loop
   ###############################################################################
+  # TASK-049
+  ###############################################################################
+  - id: TASK-049
+    github:
+      issue: "106"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-011
+      - TASK-048
+    title: Applications Kanban board with drag-and-drop status changes
+    goal: >
+      Add a board view of the unified offers page that groups tracked offers into one column per ApplicationStatus plus a Not tracked column, where dragging a card between columns calls the status mutation that already exists - covering docs/ROADMAP.md Stage 2's "Kanban Applications" and "Drag & Drop" items in one task, since drag-and-drop is the board's interaction rather than a separate feature. Today src/app/(app)/offers/page.tsx renders only the flat UnifiedOfferList and status is changeable exclusively through ApplicationStatusSelect's dropdown.
+
+    scope:
+      - src/app/(app)/offers/page.tsx
+      - src/features/job-offer/components/offer-filters.tsx
+      - src/widgets/application-board/**
+    deliverables:
+      - A List/Board view toggle driven by a view search param alongside the existing q, sort and favorite params on the offers page
+      - src/widgets/application-board/application-board.tsx rendering one column per APPLICATION_STATUS_LABELS entry plus a Not tracked column, fed by the same listOffersWithApplication result the list view already uses
+      - Dropping a card on another status column calling the existing useUpdateApplicationStatus mutation - no new API route, service or table
+      - ApplicationStatusSelect kept on every board card as the keyboard-accessible equivalent of dragging
+    tasks:
+      - Add a view search param (list or board, default list) to src/app/(app)/offers/page.tsx and a toggle in offer-filters.tsx that preserves the existing q, sort and favorite params, matching how that component already reads and rebuilds them
+      - Add src/widgets/application-board/application-board.tsx taking the same OfferWithApplication[] as UnifiedOfferList and bucketing offers by application.status, with untracked offers in a Not tracked column keyed off APPLICATION_STATUS_LABELS
+      - Implement dragging with the native HTML5 drag-and-drop events (draggable, onDragStart, onDragOver, onDrop) - package.json has no drag-and-drop dependency and radix-ui does not provide one
+      - On drop, call useUpdateApplicationStatus with the dragged application id and the target column's status; ignore drops onto the Not tracked column and drops of untracked offers, which have no application row to update
+      - Render compact board cards (offer title link, company, match score, Expired badge, ApplicationStatusSelect) rather than copying unified-offer-list.tsx's full row, which carries description, recruiter message and Download sent CV that a column-width card cannot hold
+    acceptance:
+      - /offers?view=board renders one column per application status plus Not tracked, and /offers without the param still renders the existing UnifiedOfferList unchanged
+      - Dragging a tracked offer's card into another status column persists that status across a reload via the existing PATCH /api/applications/[id]/status route, with no new route added
+      - Switching between list and board preserves the active search, sort and favorites-only filters
+      - Every board card still exposes ApplicationStatusSelect, so status is changeable without a pointer
+      - No drag-and-drop dependency was added to package.json
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Board view, view toggle and drag-to-change-status verified end to end
+      - Feature committed
+    labels:
+      - feature
+      - ui
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      The board is a second rendering of data listOffersWithApplication
+      already returns, and dragging is a second trigger for the mutation
+      ApplicationStatusSelect already calls - no new route, service, table
+      or dependency. Use the native HTML5 drag-and-drop events.
+
+      The board composes job-offer data with the application feature's
+      mutation hook, so it belongs in src/widgets like unified-offer-list,
+      not inside either feature (ARCHITECTURE.md dependency rules, ADR-008).
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a drag-and-drop library (@dnd-kit, react-beautiful-dnd or similar)
+      - Add a new API route, service or table
+      - Remove or replace the existing list view
+      - Persist per-column card ordering
+  ###############################################################################
+  # TASK-050
+  ###############################################################################
+  - id: TASK-050
+    github:
+      issue: "107"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-011
+      - TASK-039
+    title: Application status history - timeline and recent-activity dashboard card
+    goal: >
+      Record every application status change as an immutable event row and surface it two ways - a per-application timeline on the offer detail page and a recent-activity card on the dashboard - covering docs/ROADMAP.md Stage 2's "Application Timeline" and "Recent Applications Dashboard" items, which are two views of the same missing data. Today applications stores only the current status (supabase/migrations/20260724180956_init.sql) and update-status.service.ts overwrites it, so no history exists to render.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/application-status-event/**
+      - src/entities/application/service.ts
+      - src/features/application/services/update-status.service.ts
+      - src/features/application/services/create-application.service.ts
+      - src/features/application/components/application-timeline.tsx
+      - src/features/dashboard/components/recent-activity-card.tsx
+      - src/widgets/offer-detail-panel/offer-detail-panel.tsx
+      - src/app/(app)/offers/[id]/page.tsx
+      - src/app/(app)/dashboard/page.tsx
+    deliverables:
+      - application_status_events table with the same owner_all RLS policy every existing table uses
+      - src/entities/application-status-event/types.ts and service.ts following the existing entity-service convention
+      - An event written on every status transition plus a seed event for the initial APPLIED status at application creation
+      - A status timeline on the offer detail page and a recent-activity card on the dashboard, both reading the same events
+    tasks:
+      - "Add a migration: create table application_status_events (id uuid pk default gen_random_uuid(), owner_id uuid not null references auth.users(id), application_id uuid not null references applications(id) on delete cascade, status application_status not null, created_at timestamptz not null default now()), indexes on application_id and owner_id, and the owner_all RLS policy matching the other tables in supabase/migrations/20260724180956_init.sql"
+      - Add src/entities/application-status-event/types.ts (ApplicationStatusEvent type plus Zod schema) and service.ts (create, findMany by applicationId, findRecent by ownerId), mirroring src/entities/application/service.ts's snake_case-to-camelCase row mapping
+      - Add a lookup by job offer id to applicationService - the offer detail page loads only the offer and CVs today, and existsForOffer returns a boolean rather than the row
+      - Write an event in src/features/application/services/update-status.service.ts after applicationService.update succeeds, and in create-application.service.ts for the initial APPLIED status
+      - Add src/features/application/components/application-timeline.tsx rendering events oldest to newest using APPLICATION_STATUS_LABELS and createdAt
+      - Fetch the offer's application and its events in src/app/(app)/offers/[id]/page.tsx and render the timeline through src/widgets/offer-detail-panel - OfferDetail belongs to the job-offer feature and cannot import the application feature directly (ARCHITECTURE.md dependency rules, ADR-008), so the composition happens in the widget
+      - Add src/features/dashboard/components/recent-activity-card.tsx listing the most recent status events with the offer's company, title, new status and when, and render it in src/app/(app)/dashboard/page.tsx alongside the existing cards
+    acceptance:
+      - Advancing an application through two statuses produces two additional application_status_events rows, and the offer detail page's timeline lists them alongside the initial APPLIED event
+      - The dashboard's recent-activity card shows those changes with the offer's company and title
+      - applications.status is still updated in place - the events table is additive history, not a replacement for the current-status column
+      - npm run lint passes, confirming no feature imports another feature directly under the import/no-restricted-paths rule
+      - npm run typecheck and npm run build succeed
+    done:
+      - Status history recorded on every transition and rendered in both places
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - database
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Events are append-only history for a column that already exists; do
+      not derive the current status from them or remove applications.status.
+      Follow the existing entity-service convention for the new entity, and
+      compose the timeline into the offer detail page at the widget layer.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add an EXPIRED or any other new application_status enum value
+      - Make the timeline editable or allow deleting events
+      - Add a background job, cron or queue
+      - Replace applications.status with a value derived from the events table
+  ###############################################################################
+  # TASK-051
+  ###############################################################################
+  - id: TASK-051
+    github:
+      issue: "108"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-010
+      - TASK-045
+    title: Advanced duplicate detection - match signal, recency window and user resolution
+    goal: >
+      Raise duplicate detection past the TASK-010 fingerprint's known false-positive ceiling and turn its passive notice into a decision, implementing docs/ROADMAP.md Stage 2's "Advanced Duplicate Detection" without embeddings or a vector store. Today isDuplicateFingerprint (src/shared/utils/offer-fingerprint.ts) treats any company+title match as a duplicate - its own comment records the recurring-generic-title false positive and the intended upgrade path - and addOffer creates the offer regardless, leaving add-offer-form.tsx showing a link to the existing offer that the user cannot act on.
+
+    scope:
+      - src/shared/utils/offer-fingerprint.ts
+      - src/entities/job-offer/service.ts
+      - src/features/job-offer/services/add-offer.service.ts
+      - src/features/job-offer/components/add-offer-form.tsx
+      - src/features/job-offer/types.ts
+      - src/app/api/offers/route.ts
+      - tests/smoke/unit/offer-fingerprint.test.ts
+    deliverables:
+      - Fingerprint matching that reports which signal matched instead of a single boolean
+      - A recency window so a company+title-only match against an older offer no longer counts as a duplicate, per the upgrade path already recorded in offer-fingerprint.ts
+      - A duplicate notice the user can resolve - keep both, or delete the offer just created - reusing TASK-045's delete
+      - tests/smoke/unit/offer-fingerprint.test.ts extended to cover each match signal and the recency window
+    tasks:
+      - Change isDuplicateFingerprint to return the matched signal ('canonical-url' | 'content-hash' | 'company-title' | null) instead of a boolean, and update its only caller, add-offer.service.ts
+      - Include created_at in jobOfferService.listFingerprints' select and map it, so the caller can apply a recency window
+      - In add-offer.service.ts, count a company-title-only match as a duplicate only when the existing offer was created within a named recency-window constant; canonical-url and content-hash matches stay unconditional
+      - Return the matched signal alongside duplicateOfferId from addOffer and POST /api/offers, and type it in src/features/job-offer/types.ts next to the existing duplicateOfferId field
+      - Replace add-offer-form.tsx's passive duplicate notice with one that names the matched signal and offers Keep both (dismiss) and Delete this one, the latter calling the existing DELETE /api/offers/[id] from TASK-045
+      - Extend tests/smoke/unit/offer-fingerprint.test.ts to cover each match signal and both sides of the recency window
+    acceptance:
+      - Re-adding an offer with the same canonical URL, or with identical content, is still flagged immediately
+      - A company+title match against an offer created outside the recency window is not flagged; the same match inside the window is
+      - The duplicate notice names the matched signal, and both resolution actions work - Delete this one removes the offer that was just created
+      - No embedding, vector store or semantic-similarity dependency was added
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Match signals, recency window and user resolution verified, with unit tests covering the fingerprint logic
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Advanced here means precision plus a real user decision, not semantic
+      matching: docs/PRODUCT.md defers embedding-based duplicate detection to
+      Phase 3 and TASK-010's do_not forbids a vector store. Follow the
+      upgrade path already written into offer-fingerprint.ts rather than
+      inventing a different one.
+
+      Keep creating the offer first and letting the user resolve afterwards -
+      do not block creation on an unconfirmed match.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add embeddings, a vector store or semantic similarity
+      - Auto-delete or auto-merge an offer without the user choosing
+      - Block offer creation before the user has seen the match
+      - Add a duplicates table or persist dismissals
+  ###############################################################################
+  # TASK-052
+  ###############################################################################
+  - id: TASK-052
+    github:
+      issue: "109"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Stage 2 - Core Value"
+    depends_on:
+      - TASK-011
+      - TASK-050
+    title: Recruiter notes on applications
+    goal: >
+      Give each application a free-text notes field for recruiter-call notes, salary ranges and follow-ups, which today have nowhere to live - applications (supabase/migrations/20260724180956_init.sql) stores only recruiter_message, the AI-generated outbound message, and status. Implements docs/ROADMAP.md Stage 2's "Recruiter Notes".
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/application/types.ts
+      - src/entities/application/service.ts
+      - src/features/application/components/application-notes.tsx
+      - src/features/application/api/application.api.ts
+      - src/features/application/hooks/use-update-application-notes.ts
+      - src/features/application/services/update-notes.service.ts
+      - src/app/api/applications/[id]/route.ts
+      - src/widgets/offer-detail-panel/offer-detail-panel.tsx
+    deliverables:
+      - A nullable notes column on applications - no new table
+      - notes on the Application type and applicationSchema, accepted by applicationService.update
+      - An editable notes field on the offer detail page, saved through a new PATCH /api/applications/[id] route
+      - Notes reachable only where the application already is, without a new route or nav item
+    tasks:
+      - "Add a migration: alter table applications add column notes text"
+      - Add notes (string or null) to the Application interface and applicationSchema, map it in toApplication, and widen applicationService.update's values argument from { status } to a Partial of { status, notes } additively rather than replacing it
+      - Add src/features/application/services/update-notes.service.ts following update-status.service.ts's owner-check plus ApplicationNotFoundError pattern
+      - Add src/app/api/applications/[id]/route.ts (PATCH) validating { notes } with Zod and delegating to that service, mirroring [id]/status/route.ts's structure and its 404 mapping
+      - Add src/features/application/components/application-notes.tsx (textarea plus Save) and use-update-application-notes.ts, following use-update-application-status.ts's toast and router.refresh() pattern
+      - Render the notes editor on the offer detail page through src/widgets/offer-detail-panel, reusing the application lookup TASK-050 added to that page - OfferDetail is in the job-offer feature and cannot import the application feature (ARCHITECTURE.md dependency rules, ADR-008)
+    acceptance:
+      - Saving notes on a tracked offer persists them and they survive a reload
+      - An offer with no application shows no notes editor
+      - applicationService.update still accepts a status-only call, leaving the existing status flow unchanged
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Notes persisted and editable from the offer detail page
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - database
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Notes are one nullable column on the existing applications table and
+      one editable field on a page that already exists. Widen
+      applicationService.update additively so the status flow keeps working.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a notes table, per-note history or timestamps beyond the row's updated_at
+      - Add AI summarization or generation of notes
+      - Add a separate notes route or nav item
+      - Replace or repurpose recruiter_message
+  ###############################################################################
   # TASK-032
   ###############################################################################
   - id: TASK-032
