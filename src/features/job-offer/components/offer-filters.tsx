@@ -8,16 +8,19 @@ import {
   OFFER_SORT_LABELS,
   offerSortOptions,
 } from '@/entities/job-offer/types';
+import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
 export function OfferFilters({
   query,
   sort,
   favoritesOnly,
+  view,
 }: {
   query: string;
   sort: OfferSortOption;
   favoritesOnly: boolean;
+  view: 'list' | 'board';
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -74,6 +77,26 @@ export function OfferFilters({
         />
         Favorites only
       </label>
+      <div className="ml-auto flex items-center gap-1" role="group" aria-label="View">
+        <Button
+          type="button"
+          size="sm"
+          variant={view === 'list' ? 'default' : 'outline'}
+          aria-pressed={view === 'list'}
+          onClick={() => updateParams({ view: undefined })}
+        >
+          List
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={view === 'board' ? 'default' : 'outline'}
+          aria-pressed={view === 'board'}
+          onClick={() => updateParams({ view: 'board' })}
+        >
+          Board
+        </Button>
+      </div>
     </form>
   );
 }

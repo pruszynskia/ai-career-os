@@ -2219,23 +2219,29 @@ tasks:
     deliverables:
       - A List/Board view toggle driven by a view search param alongside the existing q, sort and favorite params on the offers page
       - src/widgets/application-board/application-board.tsx rendering one column per APPLICATION_STATUS_LABELS entry plus a Not tracked column, fed by the same listOffersWithApplication result the list view already uses
-      - Dropping a card on another status column calling the existing useUpdateApplicationStatus mutation - no new API route, service or table
-      - ApplicationStatusSelect kept on every board card as the keyboard-accessible equivalent of dragging
+      - Dropping a tracked card on another status column calling the existing useUpdateApplicationStatus mutation - no new API route, service or table
+      - Dropping an untracked offer's card on a status column calling the existing useCreateApplication mutation (master CV, empty recruiter message) and then useUpdateApplicationStatus for a non-APPLIED target column - still no new API route, service or table
+      - ApplicationStatusSelect kept on every tracked board card as the keyboard-accessible equivalent of dragging
     tasks:
       - Add a view search param (list or board, default list) to src/app/(app)/offers/page.tsx and a toggle in offer-filters.tsx that preserves the existing q, sort and favorite params, matching how that component already reads and rebuilds them
+      - In board view, fetch the master CV in src/app/(app)/offers/page.tsx (cvDocumentService.findFirst isMaster/MASTER, same call the offer detail page makes) and pass its id to the board so an untracked card can be tracked on drop
       - Add src/widgets/application-board/application-board.tsx taking the same OfferWithApplication[] as UnifiedOfferList and bucketing offers by application.status, with untracked offers in a Not tracked column keyed off APPLICATION_STATUS_LABELS
       - Implement dragging with the native HTML5 drag-and-drop events (draggable, onDragStart, onDragOver, onDrop) - package.json has no drag-and-drop dependency and radix-ui does not provide one
-      - On drop, call useUpdateApplicationStatus with the dragged application id and the target column's status; ignore drops onto the Not tracked column and drops of untracked offers, which have no application row to update
-      - Render compact board cards (offer title link, company, match score, Expired badge, ApplicationStatusSelect) rather than copying unified-offer-list.tsx's full row, which carries description, recruiter message and Download sent CV that a column-width card cannot hold
+      - On drop of a tracked card, call useUpdateApplicationStatus with the dragged application id and the target column's status
+      - On drop of an untracked card, call useCreateApplication (dragged offer id, master CV id, empty recruiter message); on success chain useUpdateApplicationStatus to the target column when it is not APPLIED, else router.refresh. If no master CV exists, toast the Profile-upload hint and do nothing
+      - Ignore drops onto the Not tracked column (no un-tracking)
+      - Render compact board cards (offer title link, company, match score, Expired badge, ApplicationStatusSelect or a Not tracked badge) rather than copying unified-offer-list.tsx's full row, which carries description, recruiter message and Download sent CV that a column-width card cannot hold
     acceptance:
       - /offers?view=board renders one column per application status plus Not tracked, and /offers without the param still renders the existing UnifiedOfferList unchanged
       - Dragging a tracked offer's card into another status column persists that status across a reload via the existing PATCH /api/applications/[id]/status route, with no new route added
+      - Dragging an untracked offer's card onto a status column creates its application via the existing POST /api/applications route and lands it in that column across a reload, with no new route added
+      - Dropping an untracked card when no master CV exists shows the Profile-upload hint and creates nothing
       - Switching between list and board preserves the active search, sort and favorites-only filters
-      - Every board card still exposes ApplicationStatusSelect, so status is changeable without a pointer
+      - Every tracked board card still exposes ApplicationStatusSelect, so status is changeable without a pointer
       - No drag-and-drop dependency was added to package.json
       - npm run typecheck, npm run lint and npm run build succeed
     done:
-      - Board view, view toggle and drag-to-change-status verified end to end
+      - Board view, view toggle, drag-to-change-status and drag-to-track verified end to end
       - Feature committed
     labels:
       - feature
@@ -2254,9 +2260,12 @@ tasks:
       Implement ONLY this task.
 
       The board is a second rendering of data listOffersWithApplication
-      already returns, and dragging is a second trigger for the mutation
-      ApplicationStatusSelect already calls - no new route, service, table
-      or dependency. Use the native HTML5 drag-and-drop events.
+      already returns. Dragging a tracked card is a second trigger for the
+      mutation ApplicationStatusSelect already calls; dragging an untracked
+      card is a second trigger for useCreateApplication (master CV, empty
+      recruiter message) followed by that same status mutation - no new
+      route, service, table or dependency. Use the native HTML5
+      drag-and-drop events.
 
       The board composes job-offer data with the application feature's
       mutation hook, so it belongs in src/widgets like unified-offer-list,
