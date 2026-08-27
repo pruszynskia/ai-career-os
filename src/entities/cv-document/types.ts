@@ -18,6 +18,16 @@ export const CV_DOCUMENT_KIND_LABEL: Record<CvDocumentKind, string> = {
   OPTIMIZED_COVER_LETTER: 'Optimized Cover Letter',
 };
 
+// A CV may be attached to an application when it was tailored for that
+// offer, or when it is the owner's master CV — the fallback used before
+// anything has been generated for the offer (TASK-044).
+export function canBeSentCv(
+  cv: Pick<CvDocument, 'jobOfferId' | 'isMaster' | 'kind'>,
+  jobOfferId: string,
+): boolean {
+  return cv.jobOfferId === jobOfferId || (cv.isMaster && cv.kind === 'MASTER');
+}
+
 export const cvDocumentSchema = z.object({
   id: z.string(),
   ownerId: z.string(),

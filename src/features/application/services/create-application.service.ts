@@ -2,6 +2,7 @@ import 'server-only';
 
 import { applicationService } from '@/entities/application/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
+import { canBeSentCv } from '@/entities/cv-document/types';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
 import { getOwnerId } from '@/shared/auth/session';
 
@@ -26,7 +27,7 @@ export async function createApplication(input: {
     id: input.sentCvId,
     ownerId,
   });
-  if (!sentCv || sentCv.jobOfferId !== offer.id) throw new CvNotFoundError();
+  if (!sentCv || !canBeSentCv(sentCv, offer.id)) throw new CvNotFoundError();
 
   return applicationService.create({
     ownerId,
