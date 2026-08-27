@@ -7,6 +7,7 @@ import {
   ClipboardList,
   FileText,
   LayoutDashboard,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Rss,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/ui/utils';
+import { signOut } from '@/shared/auth/actions';
 import { useUiStore } from '@/shared/store/ui-store';
 import type { Notification } from '@/features/notification/types';
 import { NotificationCenter } from '@/widgets/notification-center/notification-center';
@@ -75,6 +77,18 @@ export function Sidebar({ notifications }: { notifications: Notification[] }) {
           );
         })}
       </ul>
+      <form action={signOut} className="mt-auto">
+        <Button
+          type="submit"
+          variant="ghost"
+          className="w-full justify-start gap-2 text-muted-foreground"
+        >
+          <LogOut aria-hidden="true" className="size-4 shrink-0" />
+          <span className={isSidebarOpen ? undefined : 'sr-only'}>
+            Sign out
+          </span>
+        </Button>
+      </form>
     </nav>
   );
 }
