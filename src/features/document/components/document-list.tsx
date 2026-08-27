@@ -11,13 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { DocumentEditor } from '@/shared/ui/document-editor';
 import { EmptyState } from '@/shared/ui/empty-state';
 
-// A CV upload demotes the previous master's isMaster flag but keeps its
-// kind:'MASTER' (kind marks what a document originally was, not whether
+// A CV/cover-letter upload demotes the previous master's isMaster flag but
+// keeps its kind (kind marks what a document originally was, not whether
 // it's still current) — label it distinctly so the list doesn't show two
-// "Master" rows with no way to tell which one is active.
+// "Master"/"Cover Letter" rows with no way to tell which one is active. A
+// jobOfferId-less COVER_LETTER row is always a (possibly former) master —
+// per-offer generated letters always carry a jobOfferId.
 function documentLabel(document: CvDocument): string {
   if (document.kind === 'MASTER' && !document.isMaster)
     return 'Master (previous)';
+  if (
+    document.kind === 'COVER_LETTER' &&
+    !document.isMaster &&
+    !document.jobOfferId
+  )
+    return 'Cover Letter (previous)';
   return CV_DOCUMENT_KIND_LABEL[document.kind];
 }
 

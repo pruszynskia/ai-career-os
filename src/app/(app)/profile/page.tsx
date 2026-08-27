@@ -3,7 +3,9 @@ import type {
   ParsedProfileScore,
 } from '@/entities/profile/types';
 import { profileService } from '@/entities/profile/service';
+import { CoverLetterUploadForm } from '@/features/cv/components/cover-letter-upload-form';
 import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
+import { OptimizeCoverLetterPanel } from '@/features/cv/components/optimize-cover-letter-panel';
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileScoreCard } from '@/features/cv/components/profile-score-card';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
@@ -21,6 +23,8 @@ export default async function ProfilePage() {
   return (
     <AppPageLayout title="Profile">
       <CvUploadForm />
+      <CoverLetterUploadForm />
+      <OptimizeCoverLetterPanel />
 
       {profile ? (
         <>
