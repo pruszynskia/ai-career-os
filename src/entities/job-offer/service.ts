@@ -75,8 +75,7 @@ export const jobOfferService = {
     if (filter.isFavorite !== undefined)
       query = query.eq('is_favorite', filter.isFavorite);
 
-    // Same title/company substring matching as findUnapplied, applied
-    // server-side via ilike instead of a JS filter pass.
+    // Title/company substring matching applied server-side via ilike.
     if (filter.query) {
       const orFilter = buildSearchOrFilter(filter.query);
       query = query.or(orFilter);
@@ -150,43 +149,6 @@ export const jobOfferService = {
       url: (row.url as string | null) ?? null,
       rawContent: row.raw_content as string,
     }));
-  },
-
-  // ponytail: fetches offers + applied-offer ids and filters in JS rather
-  // than a SQL anti-join/ilike-on-embed — fine at single-user scale, move
-  // to a SQL view/RPC if the offer count grows large.
-  async findUnapplied(ownerId: string, query?: string): Promise<JobOffer[]> {
-    const supabase = await createClient();
-    const [offersResult, applicationsResult] = await Promise.all([
-      supabase
-        .from('job_offers')
-        .select('*')
-        .eq('owner_id', ownerId)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('applications')
-        .select('job_offer_id')
-        .eq('owner_id', ownerId),
-    ]);
-
-    if (offersResult.error) throw offersResult.error;
-    if (applicationsResult.error) throw applicationsResult.error;
-
-    const appliedOfferIds = new Set(
-      (applicationsResult.data ?? []).map((row) => row.job_offer_id as string),
-    );
-
-    const normalizedQuery = query?.toLowerCase();
-
-    return (offersResult.data ?? [])
-      .filter((row) => !appliedOfferIds.has(row.id as string))
-      .filter(
-        (row) =>
-          !normalizedQuery ||
-          (row.title as string).toLowerCase().includes(normalizedQuery) ||
-          (row.company as string).toLowerCase().includes(normalizedQuery),
-      )
-      .map(toJobOffer);
   },
 
   async delete(id: string): Promise<void> {

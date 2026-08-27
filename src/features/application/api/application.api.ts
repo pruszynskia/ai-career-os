@@ -1,7 +1,6 @@
 import type {
   ApplicationStatus,
   CreateApplicationResponse,
-  SearchApplicationsResponse,
   UpdateApplicationStatusResponse,
 } from '@/features/application/types';
 
@@ -49,20 +48,6 @@ export async function updateApplicationStatus(
     throw new Error(
       await parseErrorMessage(response, 'Failed to update the status.'),
     );
-  }
-
-  return response.json();
-}
-
-export async function searchApplicationsAndOffers(
-  query: string,
-): Promise<SearchApplicationsResponse> {
-  const response = await fetch(
-    `/api/applications?q=${encodeURIComponent(query)}`,
-  );
-
-  if (!response.ok) {
-    throw new Error(await parseErrorMessage(response, 'Failed to search.'));
   }
 
   return response.json();

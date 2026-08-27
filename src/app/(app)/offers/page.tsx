@@ -1,10 +1,9 @@
-import { jobOfferService } from '@/entities/job-offer/service';
 import { offerSortOptions } from '@/entities/job-offer/types';
 import { AddOfferForm } from '@/features/job-offer/components/add-offer-form';
 import { OfferFilters } from '@/features/job-offer/components/offer-filters';
-import { OfferList } from '@/features/job-offer/components/offer-list';
-import { getOwnerId } from '@/shared/auth/session';
+import { listOffersWithApplication } from '@/features/job-offer/services/list-offers-with-application.service';
 import { AppPageLayout } from '@/shared/layouts';
+import { UnifiedOfferList } from '@/widgets/unified-offer-list/unified-offer-list';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,9 +18,8 @@ export default async function OffersPage({
     offerSortOptions.find((option) => option === sort) ?? 'createdAt';
   const favoritesOnly = favorite === '1';
 
-  const ownerId = await getOwnerId();
-  const offers = await jobOfferService.findMany(
-    { ownerId, query, isFavorite: favoritesOnly || undefined },
+  const offers = await listOffersWithApplication(
+    { query, favoritesOnly },
     { sort: sortOption },
   );
 
@@ -35,7 +33,10 @@ export default async function OffersPage({
         favoritesOnly={favoritesOnly}
       />
 
-      <OfferList offers={offers} isFiltered={Boolean(query) || favoritesOnly} />
+      <UnifiedOfferList
+        offers={offers}
+        isFiltered={Boolean(query) || favoritesOnly}
+      />
     </AppPageLayout>
   );
 }

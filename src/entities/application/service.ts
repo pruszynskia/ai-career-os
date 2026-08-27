@@ -125,23 +125,4 @@ export const applicationService = {
     if (error) throw error;
     return data !== null;
   },
-
-  // ponytail: text-search filtering happens in JS after fetching the owner's
-  // bundle, not via a PostgREST embedded-resource filter — simpler to get
-  // right without a live project to verify embed-filter syntax against, and
-  // fine at single-user scale.
-  async findManyWithOfferSearch(
-    ownerId: string,
-    query?: string,
-  ): Promise<ApplicationBundle[]> {
-    const bundles = await applicationService.findMany({ ownerId });
-    const normalizedQuery = query?.toLowerCase();
-    if (!normalizedQuery) return bundles;
-
-    return bundles.filter(
-      (bundle) =>
-        bundle.jobOffer.title.toLowerCase().includes(normalizedQuery) ||
-        bundle.jobOffer.company.toLowerCase().includes(normalizedQuery),
-    );
-  },
 };

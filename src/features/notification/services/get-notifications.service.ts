@@ -80,7 +80,7 @@ export async function getNotifications(
         id: `application-expired-${application.id}`,
         category: 'action-required',
         message: `Application to ${application.jobOffer.company} expired`,
-        href: '/applications',
+        href: '/offers',
         occurredAt: application.updatedAt,
       });
     } else if (isRecent(application.createdAt)) {
@@ -88,7 +88,7 @@ export async function getNotifications(
         id: `application-created-${application.id}`,
         category: 'general',
         message: `Application to ${application.jobOffer.company} created`,
-        href: '/applications',
+        href: '/offers',
         occurredAt: application.createdAt,
       });
     }

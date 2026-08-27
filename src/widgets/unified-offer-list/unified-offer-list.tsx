@@ -1,31 +1,36 @@
 'use client';
 
-import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
 
+import type { OfferWithApplication } from '@/features/job-offer/types';
+import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
 import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
+import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Spinner } from '@/shared/ui/primitives/feedback/spinner';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
+  CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardAction,
 } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 
-export function OfferList({
+// One row per offer, merging the offer row (favorite, delete, match score,
+// Expired badge) with its application status/actions (status pipeline
+// select, Download sent CV) when the offer is tracked.
+export function UnifiedOfferList({
   offers,
   isFiltered = false,
 }: {
-  offers: JobOffer[];
+  offers: OfferWithApplication[];
   isFiltered?: boolean;
 }) {
-  const mutation = useToggleFavorite();
+  const favoriteMutation = useToggleFavorite();
 
   if (offers.length === 0) {
     return (
@@ -41,9 +46,10 @@ export function OfferList({
 
   return (
     <div className="flex flex-col gap-3">
-      {offers.map((offer) => {
+      {offers.map(({ application, ...offer }) => {
         const isTogglingThis =
-          mutation.isPending && mutation.variables?.id === offer.id;
+          favoriteMutation.isPending &&
+          favoriteMutation.variables?.id === offer.id;
 
         return (
           <Card key={offer.id} className="transition-colors hover:bg-muted">
@@ -62,13 +68,21 @@ export function OfferList({
                   </Badge>
                 )}
               </CardDescription>
-              <CardAction className="flex gap-2">
+              <CardAction className="flex flex-wrap items-center gap-2">
+                {application ? (
+                  <ApplicationStatusSelect
+                    applicationId={application.id}
+                    status={application.status}
+                  />
+                ) : (
+                  <Badge variant="outline">Not tracked</Badge>
+                )}
                 <Button
                   variant={offer.isFavorite ? 'default' : 'outline'}
                   size="sm"
                   disabled={isTogglingThis}
                   onClick={() =>
-                    mutation.mutate({
+                    favoriteMutation.mutate({
                       id: offer.id,
                       isFavorite: !offer.isFavorite,
                     })
@@ -80,10 +94,30 @@ export function OfferList({
                 <DeleteOfferButton offerId={offer.id} />
               </CardAction>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-3">
               <p className="line-clamp-3 text-sm text-muted-foreground">
                 {offer.description}
               </p>
+              {application && (
+                <>
+                  <p className="line-clamp-2 whitespace-pre-wrap text-sm">
+                    {application.recruiterMessage}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="self-start"
+                    onClick={() =>
+                      downloadTextFile(
+                        'sent-cv.txt',
+                        application.sentCv.content,
+                      )
+                    }
+                  >
+                    Download sent CV
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         );

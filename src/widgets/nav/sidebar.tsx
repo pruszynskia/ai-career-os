@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Briefcase,
-  ClipboardList,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -23,7 +22,6 @@ import { NotificationCenter } from '@/widgets/notification-center/notification-c
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/offers', label: 'Offers', icon: Briefcase },
-  { href: '/applications', label: 'Applications', icon: ClipboardList },
   { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/posts', label: 'Posts', icon: Rss },
   { href: '/profile', label: 'Profile', icon: UserCircle },
