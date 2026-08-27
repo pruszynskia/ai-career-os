@@ -68,6 +68,17 @@ export async function updateOffer(
   return response.json();
 }
 
+export async function deleteOffer(id: string): Promise<void> {
+  const response = await fetch(`/api/offers/${id}`, { method: 'DELETE' });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to delete the offer.');
+  }
+}
+
 async function postOfferAction<T>(
   id: string,
   action: string,

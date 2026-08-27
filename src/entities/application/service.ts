@@ -112,6 +112,20 @@ export const applicationService = {
     return toApplication(data);
   },
 
+  async existsForOffer(ownerId: string, jobOfferId: string): Promise<boolean> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('owner_id', ownerId)
+      .eq('job_offer_id', jobOfferId)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data !== null;
+  },
+
   // ponytail: text-search filtering happens in JS after fetching the owner's
   // bundle, not via a PostgREST embedded-resource filter — simpler to get
   // right without a live project to verify embed-filter syntax against, and
