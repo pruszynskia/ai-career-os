@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import { applicationSchema } from '@/entities/application/types';
 import {
@@ -8,11 +9,11 @@ import {
 } from '@/features/application/services/create-application.service';
 import { searchApplicationsAndOffers } from '@/features/application/services/search-applications.service';
 
-const createApplicationSchema = applicationSchema.pick({
-  jobOfferId: true,
-  sentCvId: true,
-  recruiterMessage: true,
-});
+const createApplicationSchema = applicationSchema
+  .pick({ jobOfferId: true, sentCvId: true, recruiterMessage: true })
+  // Empty is allowed: tracking may run before a recruiter message is
+  // generated (TASK-044). The column stays NOT NULL.
+  .extend({ recruiterMessage: z.string() });
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
   if (!parsedInput.success) {
     return NextResponse.json(
-      { message: 'jobOfferId, sentCvId and recruiterMessage are required.' },
+      { message: 'jobOfferId and sentCvId are required.' },
       { status: 400 },
     );
   }

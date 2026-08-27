@@ -9,9 +9,11 @@ import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 export function OfferDetailPanel({
   offer,
   latestTailoredCv,
+  masterCv,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
+  masterCv?: CvDocument;
 }) {
   const createApplicationMutation = useCreateApplication();
 
@@ -19,6 +21,7 @@ export function OfferDetailPanel({
     <OfferDetail
       offer={offer}
       latestTailoredCv={latestTailoredCv}
+      masterCv={masterCv}
       onTrackApplication={(input, options) =>
         createApplicationMutation.mutate(input, options)
       }

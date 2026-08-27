@@ -37,11 +37,13 @@ export interface CreateApplicationInput {
 export function OfferDetail({
   offer,
   latestTailoredCv,
+  masterCv,
   onTrackApplication,
   isTrackingApplication,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
+  masterCv?: CvDocument;
   onTrackApplication: (
     input: CreateApplicationInput,
     options: { onSuccess: () => void },
@@ -63,9 +65,14 @@ export function OfferDetail({
     description: offer.description,
   });
 
-  const sentCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
-  const canTrackApplication =
-    Boolean(sentCv) && recruiterMessageMutation.isSuccess;
+  const tailoredCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
+  const sentCv = tailoredCv ?? masterCv;
+  const canTrackApplication = Boolean(sentCv);
+  const isUsingMasterCvFallback = Boolean(sentCv) && !tailoredCv;
+  const isUsingEmptyMessageFallback =
+    Boolean(sentCv) && !recruiterMessageMutation.isSuccess;
+  const isUsingFallback =
+    isUsingMasterCvFallback || isUsingEmptyMessageFallback;
 
   function openEditDialog() {
     setEditValues({
@@ -92,9 +99,14 @@ export function OfferDetail({
       title={offer.title}
       subtitle={offer.company}
       action={
-        offer.isExpired ? (
-          <Badge variant="destructive">Expired</Badge>
-        ) : undefined
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {offer.isExpired && <Badge variant="destructive">Expired</Badge>}
+          <span>
+            {offer.expiresAt
+              ? `Expires on ${offer.expiresAt.toLocaleDateString()}`
+              : 'No expiration set'}
+          </span>
+        </div>
       }
     >
       <Card>
@@ -319,12 +331,15 @@ export function OfferDetail({
         <CardContent className="flex flex-col gap-3">
           {!sentCv && (
             <p className="text-sm text-muted-foreground">
-              Generate a tailored CV before tracking this application.
+              Upload a CV in Profile before tracking this application.
             </p>
           )}
-          {sentCv && !recruiterMessageMutation.isSuccess && (
+          {isUsingFallback && (
             <p className="text-sm text-muted-foreground">
-              Generate a recruiter message before tracking this application.
+              Tracking will use{' '}
+              {isUsingMasterCvFallback ? 'your master CV' : 'the tailored CV'}
+              {isUsingEmptyMessageFallback && ' and an empty recruiter message'}
+              .
             </p>
           )}
           <Button
@@ -333,12 +348,12 @@ export function OfferDetail({
             disabled={!canTrackApplication || isTrackingApplication}
             onClick={() =>
               sentCv &&
-              recruiterMessageMutation.data &&
               onTrackApplication(
                 {
                   jobOfferId: offer.id,
                   sentCvId: sentCv.id,
-                  recruiterMessage: recruiterMessageMutation.data.message,
+                  recruiterMessage:
+                    recruiterMessageMutation.data?.message ?? '',
                 },
                 { onSuccess: () => router.push('/applications') },
               )
