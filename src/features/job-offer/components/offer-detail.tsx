@@ -5,6 +5,7 @@ import type { JobOffer } from '@/entities/job-offer/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
 import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
@@ -106,6 +107,7 @@ export function OfferDetail({
               ? `Expires on ${offer.expiresAt.toLocaleDateString()}`
               : 'No expiration set'}
           </span>
+          <DeleteOfferButton offerId={offer.id} redirectTo="/offers" />
         </div>
       }
     >

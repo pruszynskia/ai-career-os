@@ -3,6 +3,7 @@
 import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
 
+import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Spinner } from '@/shared/ui/primitives/feedback/spinner';
@@ -61,7 +62,7 @@ export function OfferList({
                   </Badge>
                 )}
               </CardDescription>
-              <CardAction>
+              <CardAction className="flex gap-2">
                 <Button
                   variant={offer.isFavorite ? 'default' : 'outline'}
                   size="sm"
@@ -76,6 +77,7 @@ export function OfferList({
                   {isTogglingThis && <Spinner size="sm" />}
                   {offer.isFavorite ? 'Favorited' : 'Favorite'}
                 </Button>
+                <DeleteOfferButton offerId={offer.id} />
               </CardAction>
             </CardHeader>
             <CardContent>

@@ -2,6 +2,42 @@
 
 ## Current Sprint
 
+### Feature: TASK-045 — Offer delete capability
+
+Status:
+
+Implemented, review fix pass round 1 applied. Pending re-review via `/task-cycle`.
+
+Notes:
+
+Delete path added end to end. Entity layer: `jobOfferService.delete(id)`
+(RLS-scoped `.delete().eq('id')`, mirrors `update`),
+`cvDocumentService.deleteByJobOffer(jobOfferId)` (removes non-master docs —
+tailored CVs / cover letters — with an `is_master=false` guard),
+`applicationService.existsForOffer(ownerId, jobOfferId)`. Feature service
+`deleteOffer` (`src/features/job-offer/services/delete-offer.service.ts`)
+throws `OfferHasApplicationError` when an application exists, otherwise
+deletes the offer's tailored docs then the offer — two sequential deletes,
+not a transaction (`ponytail:` comment, fine at single-user scale; no FK
+has `ON DELETE`, and `applications`→`job_offers` is the only blocking ref).
+`DELETE` handler added to `src/app/api/offers/[id]/route.ts` alongside
+TASK-035's PATCH: 404 on `OfferNotFoundError`, 409 on
+`OfferHasApplicationError`. Client: `deleteOffer` in `job-offer.api.ts`,
+`useDeleteOffer(redirectTo?)` hook (toast + `router.push(redirectTo)` on the
+detail page, `router.refresh()` on the list). Shared `DeleteOfferButton`
+(confirm dialog reusing the `Dialog` primitive, `DialogFooter showCloseButton`
+for Cancel) wired into `offer-list.tsx` (CardAction) and `offer-detail.tsx`
+(header slot, `redirectTo="/offers"`).
+
+Review fix pass: hook-level `router.refresh()` + call-level `router.push`
+raced on the detail route (refresh re-rendered the now-`null` offer page →
+`notFound()` flash); collapsed into `useDeleteOffer(redirectTo?)` branching
+push-vs-refresh in one place. Also removed a dead `size` prop and a dead
+`OfferNotFoundError` re-export, added a Cancel button to the confirm dialog,
+and marked the non-atomic delete with a `ponytail:` comment.
+
+---
+
 ### Feature: TASK-042 — Profile automatic CV/application score
 
 Status:

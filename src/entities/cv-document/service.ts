@@ -134,6 +134,19 @@ export const cvDocumentService = {
     if (error) throw error;
   },
 
+  // Removes tailored CVs / cover letters generated for an offer; master
+  // documents never carry a job_offer_id, the is_master guard is belt-and-braces.
+  async deleteByJobOffer(jobOfferId: string): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('cv_documents')
+      .delete()
+      .eq('job_offer_id', jobOfferId)
+      .eq('is_master', false);
+
+    if (error) throw error;
+  },
+
   // kind defaults to 'MASTER' so every existing caller (tailor-cv,
   // optimize-cv, per-offer cover-letter generation) keeps resolving the
   // master CV unchanged; the master cover letter is a separate kind.
