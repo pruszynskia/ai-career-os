@@ -2,50 +2,105 @@
 
 ## Current Sprint
 
-### Feature: TASK-052 — Recruiter notes on applications
+### Feature: TASK-053 — Self-serve sign-up, email verification and password reset
 
 Status:
 
-Implemented + fix round 1 applied. Pending re-review via `/task-cycle`.
+Implemented + round-2 recovery-link fix applied; gate green. Live email
+round-trip not yet run — blocked on Supabase built-in email rate limit
+(~2/hour project-wide); needs custom SMTP configured first. Deferred by
+decision, to be verified alongside a later task.
 
-Fix round 1 (from Opus review):
-- #1 (medium): `aria-label="Recruiter notes"` on the Textarea — it's a bare
-  `<textarea>` with no implicit label; matches the
-  `aria-label="Application status"` precedent.
-- #2: `key={application.id}` on `<ApplicationNotes>` in the panel so the
-  useState-seeded notes can't leak between offers on a client nav.
-- #3: service now writes `notes.trim() || null`, so clearing notes restores
-  `null` instead of storing `''`.
-- #4: `maxLength={10_000}` on the Textarea so the server cap is visible
-  client-side.
+Opens the Monetization Milestone. Additive on ADR-009 Supabase Auth — no new
+auth library, no users/accounts table, `getOwnerId()` and every `owner_all`
+RLS policy untouched. `scripts/create-owner-user.ts` left in place.
 
 What shipped:
-- `supabase/migrations/20260828130000_application_notes.sql`: `alter table
-  applications add column notes text` — one nullable column, no history
-  table.
-- `src/entities/application/types.ts`: `notes: string | null` on
-  `Application` + `notes: z.string().nullable()` on `applicationSchema`.
-- `src/entities/application/service.ts`: `toApplication` maps `notes`;
-  `applicationService.update` widened additively from `{ status }` to
-  `{ status?, notes? }` — builds the patch object from whichever keys are
-  present, so status-only calls are unchanged.
-- `src/features/application/services/update-notes.service.ts`: owner-check +
-  reuses `ApplicationNotFoundError` from update-status.service (re-exported).
-- `src/app/api/applications/[id]/route.ts`: PATCH, Zod `{ notes:
-  string().max(10_000) }`, delegates to the service, 404 on
-  `ApplicationNotFoundError` — mirrors `[id]/status/route.ts`.
-- `src/features/application/api/application.api.ts` +
-  `types.ts`: `updateApplicationNotes` client fn +
-  `UpdateApplicationNotesResponse`.
-- `src/features/application/hooks/use-update-application-notes.ts`: mirrors
-  use-update-application-status (toast + `router.refresh()`).
-- `src/features/application/components/application-notes.tsx`: Card +
-  Textarea + Save button, reusing shared primitives.
-- Wired through `src/widgets/offer-detail-panel` (new `application` prop) →
-  `OfferDetail` (`applicationNotes?: ReactNode`, ADR-008 boundary kept) →
-  `offers/[id]/page.tsx` passes the existing `application` lookup.
+- `src/shared/auth/actions.ts`: added `signUp`, `requestPasswordReset`,
+  `updatePassword` server actions alongside `signOut`. `siteOrigin()` helper
+  derives the absolute redirect base from request headers
+  (`origin` → `x-forwarded-host`/`host`). Forgot-password always redirects to
+  `?sent=1` (no account-existence disclosure).
+- `src/app/sign-up/page.tsx`: server-action form mirroring `sign-in/page.tsx`,
+  calls `signUp` (which sets `emailRedirectTo` → `/auth/callback`).
+  `?sent=1` shows "check your email", `?error=1` shows failure. Link to
+  `/sign-in`.
+- `src/app/forgot-password/page.tsx`: `requestPasswordReset` form,
+  `redirectTo` → `/auth/callback?next=/reset-password`.
+- `src/app/reset-password/page.tsx`: `updatePassword` form (`auth.updateUser`),
+  `minLength={8}`, redirects to `/` on success.
+- `src/app/auth/callback/route.ts`: GET, `exchangeCodeForSession(code)`, then
+  redirect to `next` param (`/dashboard` default, `/reset-password` for
+  recovery links); `/sign-in?error=1` on failure.
+- `src/proxy.ts`: replaced the single `isSignInPage` equality check with a
+  `PUBLIC_PATHS` list (`/sign-in`, `/sign-up`, `/forgot-password`,
+  `/reset-password`, `/auth/callback`). Redirect behaviour for every other
+  path unchanged.
+- `src/app/sign-in/page.tsx`: added "Forgot password?" and "Sign up" links
+  (no change to the existing inline `authenticate` action).
+- `docs/PRODUCT.md`: Vision, Target Users, Secondary Users and the
+  "Out of Scope" entry reframed from single-user to multi-user self-serve;
+  the postponed item is now OAuth providers (TASK-054) only.
+- `docs/TECH_STACK.md`: Authentication section describes self-serve
+  registration + reset, notes `db:seed` is no longer the only path, fixes the
+  stale `src/middleware.ts` reference to `src/proxy.ts`.
 
-Checks: typecheck, lint (only the pre-existing Avatar `<img>` warning),
-build, 21 tests — all green. Design-review loop (Playwright) not run: needs a
-live authenticated dev server; the notes card is built entirely from the
-same Card/Textarea/Button/Spinner primitives already used 6× on that page.
+Review fixes (round 1):
+- `src/app/auth/callback/route.ts`: exported `safeNextPath()` — `next` must be
+  a same-origin absolute path (`/^\/(?!\/|\\)/`), else `/dashboard`. Closes the
+  open redirect (`https://evil.com`, `//evil.com`, `/\evil.com`).
+- `src/shared/auth/actions.ts`: `siteOrigin()` now prefers
+  `NEXT_PUBLIC_SITE_URL` over request headers (host-header poisoning →
+  reset-token theft) and falls back to `http://` for localhost. Key added to
+  `.env.example`; `docs/TECH_STACK.md` notes the `/auth/callback` allowlist
+  requirement.
+- Reverted 8 out-of-scope Prettier-only reflows (`git checkout --`).
+- `tests/smoke/unit/auth-redirect.test.ts`: covers `safeNextPath`.
+
+Review fixes (round 2 — live test showed the recovery link never reached
+`/reset-password`):
+- Root cause (Supabase `auth_logs`, project `wqaibeijmnubvplydbzg`):
+  `/auth/v1/verify` 303'd with `redirect_to` = the bare Site URL. Supabase
+  discards a `redirectTo` that is not an exact match in the Redirect URLs
+  allowlist and substitutes the Site URL, so `/auth/callback` was never hit.
+  Secondary: `/auth/callback` only handled the PKCE `code`, which needs the
+  code-verifier cookie and so breaks whenever the email is opened on another
+  device.
+- `src/app/auth/callback/route.ts`: added a `token_hash` + `type`
+  (`verifyOtp`) branch ahead of the `code` branch — stateless, cross-device.
+  `next` defaults by type (`recovery` → `/reset-password`, else `/dashboard`).
+  Failure now routes `recovery` → `/forgot-password?error=expired`, else
+  `/sign-in?error=link` (was always `/sign-in?error=1`). `code` /
+  `exchangeCodeForSession` branch kept for TASK-054.
+- `src/shared/auth/actions.ts`: `requestPasswordReset` `redirectTo` dropped
+  its `?next=` query string (now an exact allowlist match; `next` comes from
+  the email template). `updatePassword` compares `password`/`confirmPassword`
+  → `?error=mismatch` on mismatch; success now `/dashboard` (verifyOtp already
+  signed them in).
+- `src/app/reset-password/page.tsx`: `getUser()` guard → redirect to
+  `/forgot-password?error=expired` with no session. Added Confirm-password
+  field, `autoComplete="new-password"` on both, error copy keyed off
+  `?error=` (`mismatch`).
+- `src/app/forgot-password/page.tsx`: renders `?error=expired` message.
+- `src/app/sign-in/page.tsx`: `?error=link` vs `?error=1` copy.
+- `docs/TECH_STACK.md`: exact Redirect URL entries + the two email-template
+  link strings recorded as load-bearing config.
+- Blocked on Andrzej before live verification: 2 Redirect URL allowlist
+  entries + 2 email-template rewrites in the Supabase dashboard, and custom
+  SMTP (built-in sender is capped ~2 emails/hour project-wide — hit `429:
+  email rate limit exceeded` on `/recover` during testing; server action
+  swallows it and still shows `?sent=1`). See `ai-notes.md` Lessons Learned.
+
+Known gap (no code change): a signed-in user can change their password at
+`/reset-password` without re-entering the current one. Mitigate via Supabase
+Auth "Secure password change" (require recent login / reauthentication).
+
+Validation:
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run build` — pass; `/sign-up`, `/forgot-password`, `/reset-password`,
+  `/auth/callback` all in the route manifest
+- `npx vitest run` — 21 passed
+- Playwright design-review loop / live email round-trips not run
+  (non-interactive session) — needs manual end-to-end verification against a
+  real Supabase project during review.

@@ -369,11 +369,39 @@ Supabase Auth, email/password
 
 Usage:
 
-- single seeded account (created via `scripts/create-owner-user.ts`)
-- session handled by `@supabase/ssr`, gate enforced in `src/middleware.ts`
+- self-serve registration at `/sign-up` with email verification, plus
+  forgot/reset-password flows, all through `supabase.auth` (TASK-053)
+- `scripts/create-owner-user.ts` (`npm run db:seed`) still provisions the
+  original owner account but is no longer the only way an account is created
+- session handled by `@supabase/ssr`, gate enforced in `src/proxy.ts`
+- `NEXT_PUBLIC_SITE_URL` builds the email redirect links (falls back to
+  request headers in local dev). `/auth/callback` verifies `token_hash` +
+  `type` via `verifyOtp` (stateless — works when the email is opened on
+  another device), keeping the PKCE `code` branch for OAuth (TASK-054).
+- Load-bearing Supabase dashboard config (no MCP/API tool covers auth config —
+  set by hand). Authentication → URL Configuration → Redirect URLs must list:
 
-This is a single-user tool — no registration flow, no OAuth providers enabled
-yet. See ADR-003 and ADR-009 in `memory-bank/decisions.md`.
+  ```
+  http://localhost:3000/auth/callback
+  https://<production-domain>/auth/callback
+  ```
+
+  A `redirectTo` not on this list is silently replaced with the Site URL, so
+  the templates below pass no query string and the entries must match exactly.
+  Authentication → Email Templates → Confirm signup link:
+
+  ```
+  {{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email&next=/dashboard
+  ```
+
+  Authentication → Email Templates → Reset Password link:
+
+  ```
+  {{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password
+  ```
+
+Per-account data isolation stays RLS-enforced. OAuth providers are not enabled
+yet (TASK-054). See ADR-003 and ADR-009 in `memory-bank/decisions.md`.
 
 ---
 

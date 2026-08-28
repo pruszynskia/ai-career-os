@@ -1,6 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// Reachable without a session; every other path redirects to /sign-in.
+const PUBLIC_PATHS = [
+  '/sign-in',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/callback',
+];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -28,9 +37,9 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isSignedIn = Boolean(user);
-  const isSignInPage = request.nextUrl.pathname === '/sign-in';
+  const isPublicPath = PUBLIC_PATHS.includes(request.nextUrl.pathname);
 
-  if (!isSignedIn && !isSignInPage) {
+  if (!isSignedIn && !isPublicPath) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
