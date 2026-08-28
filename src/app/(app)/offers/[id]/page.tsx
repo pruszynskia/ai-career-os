@@ -36,6 +36,7 @@ export default async function OfferPage({
       latestTailoredCv={result.latestTailoredCv}
       masterCv={masterCv ?? undefined}
       statusEvents={statusEvents}
+      application={application}
     />
   );
 }

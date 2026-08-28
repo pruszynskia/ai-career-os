@@ -17,6 +17,7 @@ function toApplication(row: Record<string, unknown>): Application {
     sentCvId: row.sent_cv_id as string,
     recruiterMessage: row.recruiter_message as string,
     status: row.status as ApplicationStatus,
+    notes: (row.notes as string | null) ?? null,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
   };
@@ -98,12 +99,18 @@ export const applicationService = {
 
   async update(
     id: string,
-    values: { status: ApplicationStatus },
+    values: { status?: ApplicationStatus; notes?: string | null },
   ): Promise<Application> {
     const supabase = await createClient();
+    const patch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (values.status !== undefined) patch.status = values.status;
+    if (values.notes !== undefined) patch.notes = values.notes;
+
     const { data, error } = await supabase
       .from('applications')
-      .update({ status: values.status, updated_at: new Date().toISOString() })
+      .update(patch)
       .eq('id', id)
       .select()
       .single();

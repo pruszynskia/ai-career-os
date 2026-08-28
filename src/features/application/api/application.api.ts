@@ -1,6 +1,7 @@
 import type {
   ApplicationStatus,
   CreateApplicationResponse,
+  UpdateApplicationNotesResponse,
   UpdateApplicationStatusResponse,
 } from '@/features/application/types';
 
@@ -47,6 +48,25 @@ export async function updateApplicationStatus(
   if (!response.ok) {
     throw new Error(
       await parseErrorMessage(response, 'Failed to update the status.'),
+    );
+  }
+
+  return response.json();
+}
+
+export async function updateApplicationNotes(
+  id: string,
+  notes: string,
+): Promise<UpdateApplicationNotesResponse> {
+  const response = await fetch(`/api/applications/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await parseErrorMessage(response, 'Failed to update the notes.'),
     );
   }
 

@@ -21,6 +21,7 @@ export const applicationSchema = z.object({
   sentCvId: z.string().min(1),
   recruiterMessage: z.string().min(1),
   status: applicationStatusSchema,
+  notes: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -32,6 +33,7 @@ export interface Application {
   sentCvId: string;
   recruiterMessage: string;
   status: ApplicationStatus;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

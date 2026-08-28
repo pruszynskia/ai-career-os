@@ -11,4 +11,8 @@ export interface UpdateApplicationStatusResponse {
   application: Application;
 }
 
+export interface UpdateApplicationNotesResponse {
+  application: Application;
+}
+
 export type { ApplicationStatus };

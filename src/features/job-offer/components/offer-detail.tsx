@@ -42,6 +42,7 @@ export function OfferDetail({
   onTrackApplication,
   isTrackingApplication,
   applicationTimeline,
+  applicationNotes,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -54,6 +55,7 @@ export function OfferDetail({
   // Composed in the widget layer — OfferDetail (job-offer feature) cannot
   // import the application feature directly (ADR-008).
   applicationTimeline?: ReactNode;
+  applicationNotes?: ReactNode;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -370,6 +372,8 @@ export function OfferDetail({
           </Button>
         </CardContent>
       </Card>
+
+      {applicationNotes}
 
       {applicationTimeline}
     </AppPageLayout>
