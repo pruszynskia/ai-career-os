@@ -1,41 +1,25 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
-import { createClient } from '@/shared/db/client';
+import { signUp } from '@/shared/auth/actions';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 
-export default async function SignInPage({
+export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string }>;
 }) {
-  const { error } = await searchParams;
-
-  async function authenticate(formData: FormData) {
-    'use server';
-    const supabase = await createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
-    });
-
-    if (signInError) {
-      redirect('/sign-in?error=1');
-    }
-
-    redirect('/');
-  }
+  const { error, sent } = await searchParams;
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <h1 className="text-2xl font-semibold">Sign in</h1>
+          <h1 className="text-2xl font-semibold">Create account</h1>
         </CardHeader>
         <CardContent>
-          <form action={authenticate} className="flex flex-col gap-4">
+          <form action={signUp} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -57,34 +41,30 @@ export default async function SignInPage({
                 name="password"
                 type="password"
                 placeholder="Password"
+                minLength={8}
                 required
               />
             </div>
             <Button type="submit" className="mt-1">
-              Sign in
+              Sign up
             </Button>
           </form>
-          {error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              {error === 'link'
-                ? 'That link is invalid or has expired.'
-                : 'Invalid email or password.'}
+          {sent && (
+            <p role="status" className="mt-4 text-sm text-muted-foreground">
+              Check your email for a confirmation link.
             </p>
           )}
-          <div className="mt-4 flex flex-col gap-1 text-sm">
-            <Link href="/forgot-password" className="font-medium underline">
-              Forgot password?
+          {error && (
+            <p role="alert" className="mt-4 text-sm text-destructive">
+              Could not create account. Try a different email.
+            </p>
+          )}
+          <p className="mt-4 text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link href="/sign-in" className="underline">
+              Sign in
             </Link>
-            <span className="text-muted-foreground">
-              Need an account?{' '}
-              <Link
-                href="/sign-up"
-                className="font-medium text-foreground underline"
-              >
-                Sign up
-              </Link>
-            </span>
-          </div>
+          </p>
         </CardContent>
       </Card>
     </main>

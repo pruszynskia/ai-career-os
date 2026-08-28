@@ -8,8 +8,9 @@ AI Career OS
 
 # Product Vision
 
-A single-user tool that helps the owner get more recruiter attention on
-LinkedIn and never lose track of a job application.
+A tool that helps a job-seeking professional get more recruiter attention on
+LinkedIn and never lose track of a job application. Anyone can self-serve
+register an account; each account's data stays isolated (RLS-enforced).
 
 Every job search generates scattered artifacts — offers across portals, CVs
 tailored ad hoc, one-off recruiter messages, inconsistent LinkedIn posting.
@@ -32,7 +33,7 @@ Help `the owner (job-seeking professional)` land more interviews by:
 
 ## Primary Users
 
-### The owner — a single job-seeking professional
+### A job-seeking professional
 
 Especially:
 
@@ -41,14 +42,15 @@ Especially:
 
 Typical users:
 
-- the app owner (single-user tool, not multi-tenant)
+- an individual job seeker with their own self-serve account (per-account
+  data isolation, not shared workspaces)
 
 ---
 
 ## Secondary Users
 
-None. This is a personal tool built for one user; there is no team or
-multi-tenant use case in the MVP.
+None. Each account is a single person's workspace; there are no teams,
+shared workspaces, or organisations in the MVP.
 
 ---
 
@@ -188,12 +190,13 @@ single-user MVP. Posts are generated in-app and copy-pasted manually instead.
 
 ---
 
-## Multi-user / OAuth authentication
+## OAuth sign-in providers (Google, LinkedIn, GitHub)
 
 Reason:
 
-This is a personal tool for one owner. A single seeded account is sufficient;
-multi-tenant auth adds data-isolation complexity with no current user to serve.
+Self-serve email/password registration, email verification and password reset
+now ship (TASK-053). Social-login providers are a later addition (TASK-054)
+and not required for account creation.
 
 ---
 
