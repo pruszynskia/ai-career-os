@@ -26,8 +26,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { jobOffer, duplicateOfferId } = await addOffer(parsedInput.data);
-    return NextResponse.json({ jobOffer, duplicateOfferId });
+    const { jobOffer, duplicateOfferId, duplicateMatchSignal } = await addOffer(
+      parsedInput.data,
+    );
+    return NextResponse.json({
+      jobOffer,
+      duplicateOfferId,
+      duplicateMatchSignal,
+    });
   } catch (error) {
     if (error instanceof OfferFetchError) {
       return NextResponse.json({ message: error.message }, { status: 422 });

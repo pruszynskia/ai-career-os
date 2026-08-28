@@ -44,20 +44,38 @@ export function computeOfferFingerprint(input: {
   };
 }
 
-// ponytail: company+title matching alone can false-positive on a recurring
-// generic title reposted by the same company (e.g. "Software Engineer" at
-// Google, months apart). Catching that without false positives needs actual
-// posting-date/req-id data or semantic similarity — out of scope per the
-// task (no embeddings). Upgrade path: compare only against offers added
-// within a recent window, or require user confirmation before flagging on
-// company+title alone.
+export type FingerprintMatchSignal =
+  | 'canonical-url'
+  | 'content-hash'
+  | 'company-title';
+
+// Returns which signal matched, strongest first, or null. 'company-title'
+// alone false-positives on a recurring generic title reposted by the same
+// company months apart, so the caller gates it behind a recency window
+// (add-offer.service.ts); 'canonical-url' and 'content-hash' are exact and
+// stay unconditional.
 export function isDuplicateFingerprint(
   a: OfferFingerprint,
   b: OfferFingerprint,
-): boolean {
-  if (a.companyTitleKey === b.companyTitleKey) return true;
+): FingerprintMatchSignal | null {
   if (a.canonicalUrl && b.canonicalUrl && a.canonicalUrl === b.canonicalUrl) {
-    return true;
+    return 'canonical-url';
   }
-  return a.contentHash === b.contentHash;
+  if (a.contentHash === b.contentHash) return 'content-hash';
+  if (a.companyTitleKey === b.companyTitleKey) return 'company-title';
+  return null;
+}
+
+// A bare company+title match false-positives on a generic role reposted
+// months later, so it only counts as a duplicate when the existing offer is
+// recent. Exact URL / content matches are unconditional.
+export const COMPANY_TITLE_RECENCY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+export function isDuplicateWithinWindow(
+  signal: FingerprintMatchSignal,
+  existingCreatedAt: Date,
+  now: number = Date.now(),
+): boolean {
+  if (signal !== 'company-title') return true;
+  return now - existingCreatedAt.getTime() <= COMPANY_TITLE_RECENCY_WINDOW_MS;
 }
