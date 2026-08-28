@@ -530,3 +530,50 @@ Consequences:
 - `CoverLetterResponse` changed from `{ content }` to `{ cvDocument }` —
   every consumer (`offer-detail.tsx`, the cover-letter route handler)
   updated in the same change.
+
+---
+
+## ADR-014
+
+Date:
+
+2026-08-28
+
+Decision:
+
+`application_status_events` (TASK-050, migration
+`20260828120000_application_status_events.sql`) is an append-only event log
+and carries `id, owner_id, application_id, status, created_at` — **no
+`updated_at`**, deviating from `ARCHITECTURE.md`'s "every table carries
+`id`, `owner_id`, `created_at`, `updated_at`". Rows are never updated or
+deleted in place (only via the `applications` cascade). History writes in
+`create-application.service.ts` and `update-status.service.ts` are
+best-effort (`.catch` + `console.error`), not part of the transaction that
+writes `applications.status`.
+
+Reason:
+
+An `updated_at` on an immutable row is dead weight and misleading — it would
+always equal `created_at`. The status column on `applications` stays the
+source of truth for current state; this table is additive history only.
+Making the event write fail the request would turn a committed
+`createApplication` (which has no duplicate guard) into a 500 whose retry
+creates a second application — the history is strictly secondary to the
+write it records.
+
+Alternatives Considered:
+
+- Add `updated_at` anyway for schema uniformity — rejected: a column that
+  can never legitimately change invites code that tries to change it.
+- Wrap both writes in a Postgres RPC for atomicity — deferred: worth doing
+  only if history ever has to be transactional; a single-writer app does
+  not need it now (same call recorded in `delete-offer.service.ts`).
+
+Consequences:
+
+- A new table without `updated_at`; any generic "touch `updated_at`" helper
+  added later must not assume it exists on every table.
+- A dropped event on a transient DB error leaves a gap in the timeline but
+  never blocks the user; `applications.status` remains correct.
+- `applicationService.existsForOffer` was removed — `findByOffer(...)  !==
+  null` covers its one caller (`delete-offer.service.ts`).

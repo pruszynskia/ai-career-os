@@ -3,7 +3,7 @@
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
@@ -41,6 +41,7 @@ export function OfferDetail({
   masterCv,
   onTrackApplication,
   isTrackingApplication,
+  applicationTimeline,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -50,6 +51,9 @@ export function OfferDetail({
     options: { onSuccess: () => void },
   ) => void;
   isTrackingApplication: boolean;
+  // Composed in the widget layer — OfferDetail (job-offer feature) cannot
+  // import the application feature directly (ADR-008).
+  applicationTimeline?: ReactNode;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -366,6 +370,8 @@ export function OfferDetail({
           </Button>
         </CardContent>
       </Card>
+
+      {applicationTimeline}
     </AppPageLayout>
   );
 }
