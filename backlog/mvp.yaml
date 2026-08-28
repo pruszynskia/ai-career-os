@@ -24,6 +24,7 @@ project:
     - "Stage 0 - MVP Stabilization"
     - "Stage 1 - Product Refinement"
     - "Stage 2 - Core Value"
+    - "Monetization Milestone"
   statuses:
     - backlog
     - todo
@@ -3683,3 +3684,873 @@ tasks:
       - Add a Kanban/drag-and-drop view (that is Stage 2 scope)
       - Remove any existing per-offer or per-application action
       - Introduce a new search implementation instead of reusing TASK-040's
+
+  ###############################################################################
+  # TASK-053
+  ###############################################################################
+  - id: TASK-053
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-003
+    title: Self-serve sign-up, email verification and password reset
+    goal: >
+      Replace the single CLI-seeded account with real self-serve registration so
+      people other than the owner can create an account, opening the Monetization
+      Milestone. Today scripts/create-owner-user.ts is the only way an account
+      comes into existence - it calls createAdminClient() with AUTH_OWNER_EMAIL
+      and AUTH_OWNER_PASSWORD - and src/app/sign-in/page.tsx is the only auth
+      page, with no sign-up, no password reset and no email-confirmation
+      callback. This is additive on the Supabase Auth already in place (ADR-009):
+      getOwnerId() in src/shared/auth/session.ts and every table's owner_all RLS
+      policy stay exactly as they are.
+
+    scope:
+      - src/app/sign-up/page.tsx
+      - src/app/forgot-password/page.tsx
+      - src/app/reset-password/page.tsx
+      - src/app/auth/callback/route.ts
+      - src/app/sign-in/page.tsx
+      - src/shared/auth/actions.ts
+      - src/proxy.ts
+      - docs/PRODUCT.md
+      - docs/TECH_STACK.md
+    deliverables:
+      - A sign-up page that registers an email/password account through supabase.auth.signUp and triggers Supabase's confirmation email
+      - A code-exchange callback route that completes email confirmation and password-reset links
+      - Forgot-password and reset-password pages using supabase.auth.resetPasswordForEmail and updateUser
+      - src/proxy.ts allowing the new unauthenticated paths while still redirecting every other route to /sign-in
+      - docs/PRODUCT.md's single-user framing revised to describe a multi-user product
+    tasks:
+      - Add src/app/sign-up/page.tsx following src/app/sign-in/page.tsx's server-action form pattern, calling supabase.auth.signUp with an emailRedirectTo pointing at /auth/callback
+      - Add src/app/auth/callback/route.ts exchanging the code query parameter for a session via supabase.auth.exchangeCodeForSession and redirecting to /dashboard, or to /reset-password when the link is a recovery link
+      - Add src/app/forgot-password/page.tsx (resetPasswordForEmail) and src/app/reset-password/page.tsx (auth.updateUser with the new password), both as server actions in the same style as the sign-in page
+      - Add signUp, requestPasswordReset and updatePassword server actions to src/shared/auth/actions.ts alongside the existing signOut
+      - Widen src/proxy.ts's public-path check from the single isSignInPage equality test to a named PUBLIC_PATHS list covering /sign-in, /sign-up, /forgot-password, /reset-password and /auth/callback, leaving the redirect behaviour for every other path unchanged
+      - Add a link between /sign-in and /sign-up in both directions, and a Forgot password link on the sign-in page
+      - Update docs/PRODUCT.md's Vision, Target Users and "Out of Scope for MVP" sections so multi-user authentication is no longer listed as postponed, and update docs/TECH_STACK.md where it presents npm run db:seed and AUTH_OWNER_EMAIL as the way an account comes into existence
+    acceptance:
+      - Signing up with a new email creates an auth.users row, sends a confirmation email, and after following the link the user lands authenticated on /dashboard with an empty profile
+      - The forgot-password flow emails a recovery link that lands on /reset-password and successfully sets a new password
+      - The pre-existing seeded owner account still signs in and still sees only its own data
+      - An anonymous request to any /(app) route or /api route is still redirected to /sign-in, and the five public paths are reachable while signed out
+      - getOwnerId(), src/shared/db/client.ts and every RLS policy are unchanged
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Self-serve account creation, email verification and password reset verified end to end
+      - Feature committed
+    labels:
+      - auth
+      - backend
+      - frontend
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is additive on the Supabase Auth from ADR-009, not an auth
+      rewrite: no new auth library, no users or accounts table - Supabase's
+      auth.users stays the source of truth, and per-owner isolation stays
+      RLS-enforced exactly as it is today.
+
+      Leave scripts/create-owner-user.ts in place; it stops being the only
+      way to create an account, it does not need deleting.
+
+      OAuth providers are TASK-054, not this task.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add next-auth, Auth.js or any auth library other than Supabase Auth
+      - Add a users, accounts or profiles-per-account table
+      - Add OAuth providers (TASK-054)
+      - Add teams, workspaces, organisations or seats
+      - Change getOwnerId(), the owner_id columns or any RLS policy
+      - Use createAdminClient() anywhere in request-handling code
+
+  ###############################################################################
+  # TASK-054
+  ###############################################################################
+  - id: TASK-054
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-053
+    title: Google OAuth sign-in
+    goal: >
+      Add Google as a sign-in and sign-up provider so new customers can start
+      without creating a password, the lowest-friction path onto a paid product.
+      ADR-009 records that with Supabase Auth "OAuth providers are a dashboard
+      toggle" rather than a framework swap, and ADR-005 named Google, LinkedIn
+      and GitHub as the additive providers - this task delivers the first of
+      them on top of the /auth/callback route TASK-053 adds.
+
+    scope:
+      - src/app/sign-in/page.tsx
+      - src/app/sign-up/page.tsx
+      - src/app/auth/callback/route.ts
+      - src/shared/auth/actions.ts
+      - docs/TECH_STACK.md
+    deliverables:
+      - A signInWithGoogle server action calling supabase.auth.signInWithOAuth with a redirect to the existing /auth/callback route
+      - A "Continue with Google" button on both the sign-in and sign-up pages
+      - Documentation of the Supabase-dashboard-side provider configuration and the redirect URLs it needs
+    tasks:
+      - Add a signInWithGoogle action to src/shared/auth/actions.ts calling supabase.auth.signInWithOAuth({ provider - 'google', options - { redirectTo - <origin>/auth/callback } }) and redirecting to the returned url
+      - Add a "Continue with Google" button plus an "or" divider to src/app/sign-in/page.tsx and src/app/sign-up/page.tsx, reusing the existing shared Button and primitives rather than new markup
+      - Confirm src/app/auth/callback/route.ts's code exchange handles the OAuth callback unchanged, and extend it only if the provider flow needs it
+      - Document in docs/TECH_STACK.md's authentication section which redirect URLs must be registered in the Supabase dashboard and in the Google console, noting that no provider secret belongs in the repository
+    acceptance:
+      - Clicking Continue with Google completes the OAuth round trip and lands on /dashboard with a session
+      - The Google account creates its own auth.users row, and its offers, CVs and applications are invisible to the email/password account and vice versa
+      - No Google client id or secret appears anywhere in the repository or in NEXT_PUBLIC_ environment variables
+      - Email/password sign-in and sign-up from TASK-053 still work
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Google sign-in verified end to end with data isolation between two accounts
+      - Feature committed
+    labels:
+      - auth
+      - frontend
+      - ui
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Provider configuration is Supabase-dashboard-side per ADR-009 - the
+      repository change is one server action, two buttons and a docs note.
+      Reuse the /auth/callback route TASK-053 added instead of adding a
+      second callback.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Commit any provider client id or secret
+      - Add providers beyond Google
+      - Add account linking or merging between a Google and an email account
+      - Add a second OAuth callback route
+
+  ###############################################################################
+  # TASK-055
+  ###############################################################################
+  - id: TASK-055
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-053
+    title: Public marketing landing and pricing pages
+    goal: >
+      Give an anonymous visitor something to read and a plan to choose instead of
+      an immediate redirect to /sign-in, and define the pricing tiers the rest of
+      the milestone charges for. Today src/app/page.tsx is redirect('/dashboard')
+      and src/proxy.ts sends every unauthenticated request to /sign-in, so there
+      is no public surface at all; docs/PRODUCT.md contains no tiers, prices or
+      trial model, so the plan definition this task writes is what TASK-056's
+      Stripe prices and TASK-058's entitlement gate encode.
+
+    scope:
+      - src/app/(marketing)/layout.tsx
+      - src/app/(marketing)/page.tsx
+      - src/app/(marketing)/pricing/page.tsx
+      - src/app/page.tsx
+      - src/proxy.ts
+      - src/features/marketing/components/pricing-table.tsx
+      - docs/PRODUCT.md
+    deliverables:
+      - A public landing page describing the product, and a pricing page listing the tiers
+      - A PricingTable component the onboarding flow can reuse, built from src/shared/ui/primitives
+      - src/app/page.tsx serving the landing page to anonymous visitors while still sending signed-in users to /dashboard
+      - A pricing and packaging section in docs/PRODUCT.md naming the tiers, their limits and their prices
+    tasks:
+      - Decide and write the tier definition into docs/PRODUCT.md first - free tier, paid tier, what each includes and the AI-action allowance that TASK-058 and TASK-059 will enforce - since every later task in this milestone reads it
+      - Add the src/app/(marketing) route group with its own layout (public header with sign-in and sign-up links, no app sidebar), a landing page and a /pricing page
+      - Add src/features/marketing/components/pricing-table.tsx rendering the tiers from a single exported constant, composed from src/shared/ui/primitives rather than hand-written Tailwind layout
+      - Change src/app/page.tsx to render the marketing landing page for anonymous visitors and redirect signed-in users to /dashboard
+      - Add the marketing paths to src/proxy.ts's public-path handling from TASK-053, leaving every /(app) and /api path gated
+    acceptance:
+      - A logged-out visit to / renders the landing page with no redirect, and /pricing renders the tiers with a call to action pointing at /sign-up
+      - A logged-in visit to / still lands on /dashboard
+      - A logged-out visit to /dashboard, /offers or any /api route is still redirected to /sign-in
+      - docs/PRODUCT.md names the tiers, their limits and their prices, and the PricingTable renders from that same tier constant
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Public landing and pricing pages live, tiers defined in docs/PRODUCT.md
+      - Feature committed
+    labels:
+      - frontend
+      - ui
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - docs/COMPONENT_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      The tier definition is the real deliverable here - TASK-056's Stripe
+      prices, TASK-058's entitlement gate and TASK-059's quota all read it,
+      so write it into docs/PRODUCT.md and express it once as a constant the
+      PricingTable renders.
+
+      Compose the pages from src/shared/ui/primitives per
+      docs/COMPONENT_GUIDE.md; this is not a place for a new UI approach.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a CMS, MDX pipeline or blog
+      - Add internationalisation
+      - Add Stripe checkout buttons (TASK-056)
+      - Hand-write Tailwind layout instead of composing primitives
+      - Duplicate the tier definition in more than one place
+
+  ###############################################################################
+  # TASK-056
+  ###############################################################################
+  - id: TASK-056
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-002
+      - TASK-053
+      - TASK-055
+    title: Subscriptions schema, Stripe Checkout and webhook
+    goal: >
+      Take money - the billing core of the Monetization Milestone. Add a
+      subscriptions table, a Checkout-session route and the Stripe webhook that
+      writes subscription state back, so an account can move from free to paid.
+      No billing code, table or dependency exists anywhere today. This is the
+      first thing in the codebase that legitimately writes with the service-role
+      client from a request path, because a signature-verified webhook has no
+      user session and therefore no auth.uid() for RLS to match, so it records a
+      new ADR.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/shared/billing/stripe.ts
+      - src/entities/subscription/types.ts
+      - src/entities/subscription/service.ts
+      - src/features/billing/services/create-checkout-session.service.ts
+      - src/features/billing/services/sync-subscription.service.ts
+      - src/app/api/billing/checkout/route.ts
+      - src/app/api/stripe/webhook/route.ts
+      - src/features/marketing/components/pricing-table.tsx
+      - memory-bank/decisions.md
+      - ARCHITECTURE.md
+      - docs/TECH_STACK.md
+    deliverables:
+      - A subscriptions table with owner_id and the same owner_all RLS policy every existing table uses, readable by its owner and written only by the webhook
+      - src/entities/subscription/{types.ts,service.ts} following the existing entity-service convention
+      - POST /api/billing/checkout creating a Stripe Checkout session for the signed-in owner
+      - POST /api/stripe/webhook verifying the Stripe signature and syncing subscription state
+      - ADR-015 in memory-bank/decisions.md recording the Stripe dependency, the billing table and the single sanctioned service-role write path
+    tasks:
+      - "Add a migration: create table subscriptions (id uuid pk default gen_random_uuid(), owner_id uuid not null references auth.users(id), stripe_customer_id text not null, stripe_subscription_id text unique, status text not null, plan text not null, current_period_end timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now()), a unique index on owner_id, an index on stripe_customer_id, and the owner_all RLS policy matching supabase/migrations/20260724180956_init.sql"
+      - Add src/shared/billing/stripe.ts exporting a lazily-constructed Stripe client reading STRIPE_SECRET_KEY, marked 'server-only' the same way src/shared/ai/service.ts is
+      - Add src/entities/subscription/types.ts (Subscription type plus Zod schema) and service.ts (findByOwnerId, findByStripeCustomerId, upsertFromStripe), mirroring src/entities/application/service.ts's snake_case-to-camelCase row mapping
+      - Add src/features/billing/services/create-checkout-session.service.ts creating or reusing the Stripe customer for the owner and returning a Checkout session url for the requested tier's price id
+      - Add src/app/api/billing/checkout/route.ts (POST) - getOwnerId, Zod-validate the requested plan, call that one service, return the url - keeping the route handler thin per ADR-006
+      - Add src/features/billing/services/sync-subscription.service.ts translating a Stripe subscription object into an upsert on subscriptions, using createAdminClient() because the webhook has no user session
+      - Add src/app/api/stripe/webhook/route.ts verifying the signature with STRIPE_WEBHOOK_SECRET against the raw body and handling checkout.session.completed, customer.subscription.updated and customer.subscription.deleted by delegating to that service
+      - Wire the pricing table's call to action to POST /api/billing/checkout for a signed-in user, and to /sign-up for an anonymous one
+      - Record ADR-015 in memory-bank/decisions.md and note the billing layer in ARCHITECTURE.md and docs/TECH_STACK.md, which already anticipates a subscriptions table
+    acceptance:
+      - Completing Stripe Checkout in test mode writes a subscriptions row for that owner with status active and the chosen plan
+      - A customer.subscription.deleted webhook event updates that row's status rather than inserting a second one
+      - The webhook rejects a request whose Stripe signature is missing or invalid, and does not write
+      - Querying subscriptions through the normal request client returns only the signed-in owner's row
+      - createAdminClient() appears only in the webhook's service path, and STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are read only in server-only modules - neither is exposed through a NEXT_PUBLIC_ variable or reaches a component
+      - ADR-015 is recorded in memory-bank/decisions.md
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - A test-mode subscription can be purchased and its lifecycle events land in the subscriptions table
+      - Feature committed
+    labels:
+      - feature
+      - backend
+      - database
+      - architecture
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      Stripe is the source of truth for billing state; the subscriptions
+      table is a local projection kept current by the webhook. Do not
+      reconstruct entitlements from Checkout redirects - only the webhook
+      writes.
+
+      The service-role client is used exactly once, in the webhook's service,
+      and ADR-015 must say why: a signature-verified webhook has no
+      auth.uid() for RLS to match. Everywhere else the request client and RLS
+      still apply.
+
+      Read the tier definition TASK-055 wrote into docs/PRODUCT.md rather
+      than inventing plan names here.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add an ORM or a query builder
+      - Store card numbers or any raw payment instrument
+      - Build the billing portal or the settings UI (TASK-057)
+      - Build usage metering or quota enforcement (TASK-058, TASK-059)
+      - Add a second payment provider
+      - Read Stripe keys anywhere outside a server-only module
+
+  ###############################################################################
+  # TASK-057
+  ###############################################################################
+  - id: TASK-057
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-004
+      - TASK-056
+    title: Billing portal and account settings page
+    goal: >
+      Give a subscriber somewhere to see and change their plan. TASK-056 can
+      create a subscription but nothing in the app displays it or lets the user
+      cancel or update a card, and there is no settings route at all under
+      src/app/(app) today. Plan changes, cancellation and payment-method updates
+      are delegated to Stripe's hosted customer portal rather than rebuilt.
+
+    scope:
+      - src/app/(app)/settings/page.tsx
+      - src/app/api/billing/portal/route.ts
+      - src/features/billing/services/create-portal-session.service.ts
+      - src/features/billing/components/billing-panel.tsx
+      - src/features/billing/components/plan-badge.tsx
+      - src/widgets/nav/sidebar.tsx
+    deliverables:
+      - A settings page showing the owner's current plan, status and renewal date read from the subscriptions table
+      - POST /api/billing/portal returning a Stripe customer-portal url for the signed-in owner
+      - A Manage billing action for subscribers and an upgrade call to action for owners with no active subscription
+      - A settings entry in the existing sidebar navigation
+    tasks:
+      - Add src/features/billing/services/create-portal-session.service.ts looking up the owner's stripe_customer_id through subscriptionService and creating a billingPortal session with a return url back to /settings
+      - Add src/app/api/billing/portal/route.ts (POST) delegating to that one service, mirroring the checkout route's structure and its error mapping
+      - Add src/features/billing/components/plan-badge.tsx and billing-panel.tsx rendering plan, status and current_period_end, with Manage billing when a subscription exists and an upgrade link to /pricing when it does not
+      - Add src/app/(app)/settings/page.tsx loading the owner's subscription through subscriptionService.findByOwnerId and rendering the billing panel
+      - Add a Settings link to src/widgets/nav/sidebar.tsx alongside the sign-out action from TASK-046
+    acceptance:
+      - A subscriber opening Manage billing lands in the Stripe customer portal for their own customer and returns to /settings
+      - The settings page shows the plan, status and renewal date matching the subscriptions row
+      - An owner with no subscription sees an upgrade call to action linking to /pricing and no portal button
+      - Requesting the portal for an owner without a Stripe customer returns a handled error, not a 500 stack
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Plan visible and manageable from the app, portal round trip verified
+      - Feature committed
+    labels:
+      - feature
+      - frontend
+      - ui
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Plan changes, cancellation and card updates belong to Stripe's hosted
+      portal - this task links to it, it does not rebuild them. Read
+      subscription state through the entity service TASK-056 added rather
+      than querying Supabase from the page or the route handler.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Rebuild plan switching, cancellation or card entry in the app
+      - Render invoices or payment history
+      - Query the subscriptions table outside src/entities/subscription/service.ts
+      - Add a second settings surface when one already exists
+
+  ###############################################################################
+  # TASK-058
+  ###############################################################################
+  - id: TASK-058
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-055
+      - TASK-056
+    title: Plan model and entitlement gate
+    goal: >
+      Make a subscription mean something. One helper that maps an owner to their
+      current plan and its limits, and one gate every paid-feature check calls -
+      so entitlement logic exists in a single module rather than spreading
+      through route handlers and components as the milestone continues. Consumed
+      immediately by TASK-059's AI quota; without it each AI route would grow its
+      own copy of the same check.
+
+    scope:
+      - src/shared/billing/plans.ts
+      - src/shared/billing/entitlements.ts
+      - src/shared/billing/errors.ts
+      - src/entities/subscription/service.ts
+      - src/features/marketing/components/pricing-table.tsx
+      - docs/API_GUIDE.md
+    deliverables:
+      - A single plans module encoding the tiers and limits docs/PRODUCT.md defines, shared by the pricing table and the gate
+      - getPlanForOwner(ownerId) resolving an owner's effective plan from their subscription status, defaulting to the free plan
+      - requirePlan / assertWithinLimit helpers throwing a typed entitlement error
+      - A documented 402 response shape carrying the limit that was hit and an upgrade path
+    tasks:
+      - Add src/shared/billing/plans.ts exporting the tier definitions (id, label, price id, AI-action allowance) from docs/PRODUCT.md as one constant, and repoint src/features/marketing/components/pricing-table.tsx at it so the tiers are defined once
+      - Add src/shared/billing/entitlements.ts with getPlanForOwner(ownerId) reading subscriptionService.findByOwnerId and treating active and trialing as paid, everything else (canceled, past_due, no row) as free
+      - Add src/shared/billing/errors.ts with an EntitlementError and a toEntitlementErrorResponse mapping it to a 402 with a typed body, following the shape src/shared/ai/errors.ts's toAiErrorResponse already establishes
+      - Document the 402 response and its body in docs/API_GUIDE.md next to the existing error responses
+    acceptance:
+      - getPlanForOwner returns the paid plan for an active or trialing subscription and the free plan for canceled, past_due or no subscription
+      - A route calling the gate for a free owner on a paid capability returns 402 with the typed body, not a 500
+      - The tier list is defined once in src/shared/billing/plans.ts and rendered by the pricing table from that same constant
+      - Unit tests cover getPlanForOwner's mapping for each subscription status
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Entitlement resolution and the 402 contract verified by unit tests
+      - Feature committed
+    labels:
+      - backend
+      - feature
+      - architecture
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - docs/API_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      This task adds the mechanism, not the enforcement points - TASK-059
+      applies it to the AI paths. Its value is that the check exists exactly
+      once, so do not leave a second copy of the plan mapping anywhere.
+
+      Model the error response on src/shared/ai/errors.ts rather than
+      inventing a different error convention.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Duplicate the plan or limit definition outside src/shared/billing/plans.ts
+      - Put plan checks inside components
+      - Meter or count usage here (TASK-059)
+      - Gate offers, applications, documents or any existing core feature in this task
+      - Add a feature-flag service
+
+  ###############################################################################
+  # TASK-059
+  ###############################################################################
+  - id: TASK-059
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-005
+      - TASK-058
+    title: Per-owner AI usage metering and free-tier quota
+    goal: >
+      Stop the free tier from costing more than it earns, and give the paid tier
+      something concrete to buy. Every AI call in the product runs through
+      getAiService() in src/shared/ai/service.ts - eleven feature services use it
+      - and none of them count anything or check who is calling, so a single
+      account can spend without limit. Record each AI action per owner and
+      enforce the allowance TASK-055 defined through TASK-058's gate.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/ai-usage/types.ts
+      - src/entities/ai-usage/service.ts
+      - src/shared/ai/service.ts
+      - src/shared/ai/errors.ts
+      - src/features/cv/services/*.service.ts
+      - src/features/job-offer/services/*.service.ts
+      - src/features/linkedin-posts/services/*.service.ts
+      - src/features/billing/components/usage-meter.tsx
+      - src/app/(app)/settings/page.tsx
+    deliverables:
+      - An ai_usage table recording one row per AI action per owner, with owner_id and the same owner_all RLS policy every existing table uses
+      - A metered accessor that resolves the caller's owner, checks the allowance and records the action around the existing getAiService()
+      - Every one of the eleven AI feature services going through that accessor
+      - A usage meter on the settings page showing actions used against the plan allowance
+    tasks:
+      - "Add a migration: create table ai_usage (id uuid pk default gen_random_uuid(), owner_id uuid not null references auth.users(id), action text not null, created_at timestamptz not null default now()), an index on (owner_id, created_at), and the owner_all RLS policy matching supabase/migrations/20260724180956_init.sql"
+      - Add src/entities/ai-usage/types.ts and service.ts (record, countForOwnerSince) following the existing entity-service convention
+      - Add a metered entry point in src/shared/ai/service.ts that takes the action name, resolves the owner via getOwnerId(), asserts the allowance through src/shared/billing/entitlements.ts and records the usage row after a successful call - leaving the existing getAiService() as the unmetered provider factory it already is
+      - Repoint all eleven services that currently call getAiService() (src/features/cv/services/optimize-cv, optimize-cover-letter and upload-cv; src/features/job-offer/services/add-offer, match-offer, tailor-cv, recruiter-message and cover-letter; src/features/linkedin-posts/services/generate-post, plan-posts and generate-campaign) at the metered entry point, passing their action name
+      - Map the entitlement error to the API responses in src/shared/ai/errors.ts's toAiErrorResponse so an over-quota call returns the typed 402 rather than a generic 500
+      - Add src/features/billing/components/usage-meter.tsx showing actions used this period against the plan allowance, and render it on the settings page next to the billing panel
+    acceptance:
+      - A free owner at the allowance gets the typed 402 with an upgrade call to action from every AI endpoint, and no AI provider request is made
+      - A paid owner is held to the paid allowance, and both allowances come from src/shared/billing/plans.ts
+      - Each successful AI action writes exactly one ai_usage row for the calling owner, and a failed call writes none
+      - No feature service calls getAiService() directly any more - a grep over src/features returns no matches
+      - One owner's usage count is unaffected by another owner's activity
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Metering and quota enforcement verified across free and paid plans
+      - Feature committed
+    labels:
+      - ai
+      - backend
+      - database
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      getAiService() is already the single choke point every AI call passes
+      through - meter there, not in eleven route handlers. The allowance
+      numbers come from TASK-055's tier definition through TASK-058's gate;
+      do not restate them here.
+
+      Count actions, not tokens - a token-level cost model is not what the
+      pricing page promises.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a cron job, queue or background worker for metering
+      - Add per-endpoint bespoke limits instead of the shared allowance
+      - Restrict any non-AI feature
+      - Duplicate the allowance numbers outside src/shared/billing/plans.ts
+      - Record prompt or completion text in ai_usage
+
+  ###############################################################################
+  # TASK-060
+  ###############################################################################
+  - id: TASK-060
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-006
+      - TASK-008
+      - TASK-053
+      - TASK-055
+    title: New-user onboarding flow
+    goal: >
+      Turn a fresh signup into an activated user. Once TASK-053 lets anyone
+      register, a new account lands on a dashboard of empty cards - the only
+      guidance anywhere is the passive "No profile yet - upload your CV to get
+      started" empty state on the profile page - and docs/PRODUCT.md's own
+      success metric is the first CV uploaded and parsed. Walk a new account
+      through choosing a plan, uploading a CV and adding a first offer, and
+      remember when that is finished.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/entities/profile/types.ts
+      - src/entities/profile/service.ts
+      - src/app/(app)/onboarding/page.tsx
+      - src/app/(app)/layout.tsx
+      - src/features/onboarding/components/onboarding-stepper.tsx
+      - src/features/onboarding/services/complete-onboarding.service.ts
+      - src/widgets/onboarding-panel/onboarding-panel.tsx
+    deliverables:
+      - A nullable onboarded_at column on profiles, backfilled for existing accounts - no new table
+      - A three-step onboarding route reusing the existing CV upload form, add-offer form and pricing table
+      - A redirect into onboarding for accounts that have not finished it, and straight to the dashboard afterwards
+      - A skip that does not lose the prompt
+    tasks:
+      - "Add a migration: alter table profiles add column onboarded_at timestamptz, then backfill it to created_at for every existing profile row so current accounts are treated as already onboarded"
+      - Add onboardedAt to the Profile interface and profileSchema, map it in the row mapper, and widen profileService's update values additively rather than replacing the existing signature
+      - Add src/app/(app)/onboarding/page.tsx with a three-step stepper - choose a plan (reusing src/features/marketing/components/pricing-table.tsx), upload a CV (reusing the TASK-006 upload form), add a first offer (reusing the TASK-008 add-offer form) - composing the cross-feature steps in src/widgets/onboarding-panel because a feature cannot import another feature
+      - Add src/features/onboarding/services/complete-onboarding.service.ts setting onboarded_at for the owner, called on finish and on skip
+      - Redirect to /onboarding from src/app/(app)/layout.tsx when the signed-in owner has no onboarded_at, allowing /onboarding and /settings themselves through
+    acceptance:
+      - A newly confirmed account is routed to /onboarding, can complete plan, CV and first offer, and afterwards lands on /dashboard on every subsequent sign-in
+      - Skipping sets onboarded_at and stops the redirect, and the dashboard keeps its existing empty states
+      - Every pre-existing account has onboarded_at set by the migration and never sees onboarding
+      - The CV upload and add-offer steps reuse the existing forms - no second implementation of either
+      - Onboarding is reachable on the free plan without paying
+      - npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - First-run flow verified for a new account and confirmed absent for existing ones
+      - Feature committed
+    labels:
+      - feature
+      - frontend
+      - ui
+      - database
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/PRODUCT.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Every step reuses a form that already exists; this task is routing,
+      sequencing and one nullable column. Cross-feature composition happens
+      at the widget layer per ADR-008, not by importing one feature from
+      another.
+
+      The free tier must be able to finish onboarding - the plan step offers
+      a choice, it does not block.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Require a paid plan to complete onboarding
+      - Add a product-tour or coachmark library
+      - Reimplement CV upload or add-offer instead of reusing the existing forms
+      - Add an onboarding table or per-step progress rows
+      - Remove the existing empty states
+
+  ###############################################################################
+  # TASK-061
+  ###############################################################################
+  - id: TASK-061
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-015
+    title: Error monitoring and environment variable validation
+    goal: >
+      Find out that production is broken from something other than a customer
+      email. Errors today reach console.error and nothing else - there is no
+      monitoring dependency in the project - and every environment variable is
+      read with a bare non-null assertion (process.env.X!) in
+      src/shared/db/client.ts, src/shared/db/admin.ts and src/proxy.ts, so a
+      missing value surfaces as an obscure runtime failure rather than a refusal
+      to start. Both matter once accounts and payments are real.
+
+    scope:
+      - src/shared/env.ts
+      - src/shared/db/client.ts
+      - src/shared/db/admin.ts
+      - src/proxy.ts
+      - instrumentation.ts
+      - next.config.ts
+      - .env.example
+      - memory-bank/project-context.md
+      - memory-bank/ai-notes.md
+      - docs/TECH_STACK.md
+    deliverables:
+      - A Zod-validated environment module that fails fast with a readable message listing what is missing
+      - Error monitoring capturing unhandled server and client errors
+      - A committed .env.example listing every variable the app needs
+      - memory-bank/project-context.md and ai-notes.md corrected where they describe the project as pre-implementation or reference paths that no longer exist
+    tasks:
+      - Add src/shared/env.ts exporting a Zod-parsed env object covering the Supabase URL and anon key, the service-role key, the AI provider and its keys, and the Stripe keys, distinguishing server-only from NEXT_PUBLIC_ variables
+      - Replace the process.env non-null assertions in src/shared/db/client.ts, src/shared/db/admin.ts and src/proxy.ts with that module
+      - Add error monitoring initialised through instrumentation.ts and the Next.js error hooks, reporting unhandled server errors and leaving the existing console.error diagnostics in place
+      - Add .env.example documenting every variable with a placeholder value and a comment saying which are server-only, and reference it from docs/TECH_STACK.md's environment section
+      - Update memory-bank/project-context.md's status section, which still says no code has shipped, and correct ai-notes.md's reference to shared/components when the real path is src/shared/ui
+    acceptance:
+      - Starting the app with a required variable missing fails immediately with a message naming that variable, rather than failing later inside a request
+      - An unhandled server error appears in the monitoring service with a stack trace
+      - No bare process.env non-null assertion remains in src/shared/db/client.ts, src/shared/db/admin.ts or src/proxy.ts
+      - .env.example lists every variable the running app reads, and no real secret is committed
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed, and CI still passes with its placeholder environment
+    done:
+      - Fail-fast environment validation and error reporting verified
+      - Feature committed
+    labels:
+      - quality
+      - deployment
+      - backend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/TECH_STACK.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      CI builds with placeholder Supabase values - the validation must not
+      break .github/workflows/ci.yml's build step, so check the shape of what
+      CI provides before deciding which variables are required at build time
+      versus at request time.
+
+      Error monitoring means unhandled errors reaching a service, nothing
+      more; tracing, profiling and log shipping are not in scope.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add tracing, profiling, session replay or a log-shipping pipeline
+      - Send prompt text, CV content or personal data to the monitoring service
+      - Commit a real secret in .env.example
+      - Break the CI build's placeholder environment
+      - Change any RLS policy or the auth model
+
+  ###############################################################################
+  # TASK-062
+  ###############################################################################
+  - id: TASK-062
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-056
+      - TASK-061
+    title: Launch hardening - rate limiting, security headers, admin-client guard and account deletion
+    goal: >
+      Close the gaps that only matter once strangers can sign up and pay. There
+      is no rate limiting of our own anywhere - the auth pages and every AI
+      endpoint accept unlimited attempts - next.config.ts sets no security
+      headers, the rule that createAdminClient() must never reach request code is
+      only a comment in src/shared/db/admin.ts with nothing enforcing it, and a
+      customer who wants to leave has no way to delete their account or take
+      their data.
+
+    scope:
+      - src/shared/rate-limit/**
+      - src/proxy.ts
+      - next.config.ts
+      - eslint.config.mjs
+      - src/app/api/account/route.ts
+      - src/app/api/account/export/route.ts
+      - src/features/account/services/delete-account.service.ts
+      - src/features/account/components/danger-zone.tsx
+      - src/app/(app)/settings/page.tsx
+      - docs/TESTING.md
+    deliverables:
+      - Rate limiting on the authentication pages and the AI endpoints, with the Stripe webhook exempt
+      - Security headers and a content security policy in next.config.ts
+      - A lint rule failing the build if src/shared/db/admin.ts is imported outside the paths allowed to use it
+      - Account deletion that cancels the subscription and removes the owner's data, and a data export
+    tasks:
+      - Add src/shared/rate-limit with a single limiter helper and apply it to sign-in, sign-up and forgot-password, and to the AI endpoints, keyed per owner where there is a session and per IP where there is not - exempting /api/stripe/webhook, which Stripe retries on its own schedule
+      - Add security headers and a content security policy to next.config.ts, verifying the Stripe Checkout and portal redirects and the Supabase endpoints still work under it
+      - Add a no-restricted-imports rule to eslint.config.mjs forbidding src/shared/db/admin.ts outside scripts/ and the Stripe webhook's service path, so the comment in that file becomes enforced
+      - Add src/features/account/services/delete-account.service.ts cancelling any active Stripe subscription, deleting the owner's rows and then the auth.users row, and src/app/api/account/route.ts (DELETE) delegating to it behind an explicit confirmation
+      - Add src/app/api/account/export/route.ts returning the signed-in owner's profile, offers, documents, applications, posts and status events as JSON
+      - Add a danger-zone section to the settings page with export and delete, and document the auth, RLS-isolation and subscription-flow journeys in docs/TESTING.md
+    acceptance:
+      - Repeated rapid sign-in attempts are rejected with 429 while a normal sign-in is unaffected, and the Stripe webhook is never rate limited
+      - The security headers are present on a response and the app, Stripe redirects and Supabase calls all still work under the content security policy
+      - npm run lint fails when src/shared/db/admin.ts is imported from src/app or src/features outside the allowed webhook path
+      - Deleting an account cancels its Stripe subscription and leaves no rows for that owner in any table, and the export returns that owner's data and nobody else's
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Rate limiting, headers, the import guard and account lifecycle verified
+      - Feature committed
+    labels:
+      - quality
+      - backend
+      - auth
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/TESTING.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Account deletion is destructive and irreversible - require an explicit
+      typed confirmation, cancel the subscription before deleting, and rely
+      on the owner_id foreign keys for the cascade rather than hand-deleting
+      each table in an order that can drift.
+
+      The import guard is the point of the lint rule: the comment in
+      src/shared/db/admin.ts has never been enforced, and after TASK-056 the
+      service-role client is genuinely reachable from request code.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a WAF, CDN rules or other infrastructure-level tooling
+      - Build an admin or support dashboard
+      - Change any RLS policy or the owner_id model
+      - Rate limit the Stripe webhook
+      - Delete an account without cancelling its subscription first
