@@ -138,7 +138,7 @@ export const jobOfferService = {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('job_offers')
-      .select('id, company, title, url, raw_content')
+      .select('id, company, title, url, raw_content, created_at')
       .eq('owner_id', ownerId);
 
     if (error) throw error;
@@ -148,6 +148,7 @@ export const jobOfferService = {
       title: row.title as string,
       url: (row.url as string | null) ?? null,
       rawContent: row.raw_content as string,
+      createdAt: new Date(row.created_at as string),
     }));
   },
 

@@ -1,6 +1,7 @@
 import type { ApplicationBundle } from '@/entities/application/types';
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
+import type { FingerprintMatchSignal } from '@/shared/utils/offer-fingerprint';
 
 // A job offer annotated with its application, if the offer is tracked.
 export type OfferWithApplication = JobOffer & {
@@ -10,6 +11,7 @@ export type OfferWithApplication = JobOffer & {
 export interface AddOfferResponse {
   jobOffer: JobOffer;
   duplicateOfferId?: string;
+  duplicateMatchSignal?: FingerprintMatchSignal;
 }
 
 export interface ToggleFavoriteResponse {
