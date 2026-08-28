@@ -30,8 +30,9 @@ pay for."
   CI/deploy.
 - **Stage 0** (`backlog/mvp.yaml` TASK-016–028): shipped.
 - **Stage 1** (`backlog/mvp.yaml` TASK-032–048): shipped.
-- **Stage 2** (`backlog/mvp.yaml` TASK-029–031, TASK-049–052): TASK-029–031
-  shipped; TASK-049–052 defined, not yet implemented.
+- **Stage 2** (`backlog/mvp.yaml` TASK-029–031, TASK-049–052): shipped.
+- **Monetization Milestone** (`backlog/mvp.yaml` TASK-053–062): defined, not yet
+  implemented.
 
 Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
 still read `todo` after shipping. Judge what is done from the code and git
@@ -145,11 +146,48 @@ Dashboard" is the dashboard view of TASK-050's status events.
 
 # Monetization Milestone
 
+`backlog/mvp.yaml` TASK-053–062.
+
 After Stage 2, the user has a complete workflow: **start selling
 subscriptions.** This is the point multi-user support and billing become
 real, near-term requirements — not speculative ones. ADR-005/ADR-009's
 `owner_id` + RLS + Supabase Auth groundwork exists specifically so this
 milestone doesn't require a schema or auth rewrite.
+
+**Goal:** go from a single seeded account to strangers signing up, paying, and
+being served within a plan's limits — without touching the `owner_id` + RLS
+model that already isolates their data.
+
+| Task | Title |
+|---|---|
+| TASK-053 | Self-serve sign-up, email verification and password reset |
+| TASK-054 | Google OAuth sign-in |
+| TASK-055 | Public marketing landing and pricing pages |
+| TASK-056 | Subscriptions schema, Stripe Checkout and webhook |
+| TASK-057 | Billing portal and account settings page |
+| TASK-058 | Plan model and entitlement gate |
+| TASK-059 | Per-owner AI usage metering and free-tier quota |
+| TASK-060 | New-user onboarding flow |
+| TASK-061 | Error monitoring and environment variable validation |
+| TASK-062 | Launch hardening — rate limiting, security headers, admin-client guard and account deletion |
+
+Row order matches the task blocks' order in `backlog/mvp.yaml`, and follows
+`docs/BACKLOG_MANAGEMENT.md` §6: accounts first (TASK-053/054), then the
+storefront that names the tiers (TASK-055), then the billing core that charges
+for them (TASK-056/057), then the gate and meter that make a plan mean something
+(TASK-058/059), then activation (TASK-060) and the operational work that only
+matters once strangers can sign up and pay (TASK-061/062).
+
+TASK-055 carries a product decision, not just UI: the tier/price/allowance
+definition it writes into `docs/PRODUCT.md` is what TASK-056's Stripe prices,
+TASK-058's entitlement gate and TASK-059's quota all read. `docs/PRODUCT.md` has
+no pricing model today, so that task is the one that creates it.
+
+TASK-056 records **ADR-015** — the Stripe dependency, the `subscriptions` table,
+and the single sanctioned use of the service-role client in a request path (a
+signature-verified webhook has no session, so there is no `auth.uid()` for RLS to
+match). TASK-062 then adds the lint rule that keeps that exception to exactly one
+call site.
 
 ---
 
