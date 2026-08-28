@@ -112,17 +112,22 @@ export const applicationService = {
     return toApplication(data);
   },
 
-  async existsForOffer(ownerId: string, jobOfferId: string): Promise<boolean> {
+  async findByOffer(
+    ownerId: string,
+    jobOfferId: string,
+  ): Promise<Application | null> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('applications')
-      .select('id')
+      .select('*')
       .eq('owner_id', ownerId)
       .eq('job_offer_id', jobOfferId)
+      .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (error) throw error;
-    return data !== null;
+    return data ? toApplication(data) : null;
   },
+
 };

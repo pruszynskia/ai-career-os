@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
 
+import { applicationService } from '@/entities/application/service';
+import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { getOwnerId } from '@/shared/auth/session';
@@ -14,18 +16,26 @@ export default async function OfferPage({
 }) {
   const { id } = await params;
   const ownerId = await getOwnerId();
-  const [result, masterCv] = await Promise.all([
+  const [result, masterCv, application] = await Promise.all([
     jobOfferService.findWithLatestTailoredCv(id),
     cvDocumentService.findFirst({ ownerId, isMaster: true, kind: 'MASTER' }),
+    applicationService.findByOffer(ownerId, id),
   ]);
 
   if (!result) notFound();
+
+  const statusEvents = application
+    ? await applicationStatusEventService.findMany({
+        applicationId: application.id,
+      })
+    : [];
 
   return (
     <OfferDetailPanel
       offer={result.offer}
       latestTailoredCv={result.latestTailoredCv}
       masterCv={masterCv ?? undefined}
+      statusEvents={statusEvents}
     />
   );
 }

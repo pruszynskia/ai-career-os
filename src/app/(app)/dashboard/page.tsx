@@ -1,9 +1,11 @@
 import { applicationService } from '@/entities/application/service';
+import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { postService } from '@/entities/post/service';
 import { ApplicationStatusBreakdownCard } from '@/features/dashboard/components/application-status-breakdown-card';
 import { FavoriteOffersCard } from '@/features/dashboard/components/favorite-offers-card';
 import { NextPostCard } from '@/features/dashboard/components/next-post-card';
+import { RecentActivityCard } from '@/features/dashboard/components/recent-activity-card';
 import { RecentOffersCard } from '@/features/dashboard/components/recent-offers-card';
 import { UpcomingInterviewsCard } from '@/features/dashboard/components/upcoming-interviews-card';
 import { getOwnerId } from '@/shared/auth/session';
@@ -14,8 +16,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const ownerId = await getOwnerId();
-  const [posts, applications, favoriteOffers, recentOffers] = await Promise.all(
-    [
+  const [posts, applications, favoriteOffers, recentOffers, recentActivity] =
+    await Promise.all([
       postService.findMany(
         { ownerId, status: 'SCHEDULED' },
         { orderBy: 'scheduledAt', take: 1 },
@@ -23,8 +25,8 @@ export default async function DashboardPage() {
       applicationService.findMany({ ownerId }),
       jobOfferService.findMany({ ownerId, isFavorite: true }),
       jobOfferService.findMany({ ownerId }, { take: 5 }),
-    ],
-  );
+      applicationStatusEventService.findRecent({ ownerId }, { take: 5 }),
+    ]);
   const upcoming = applications.filter((a) => a.status !== 'APPLIED');
 
   return (
@@ -33,6 +35,7 @@ export default async function DashboardPage() {
         <NextPostCard post={posts[0] ?? null} />
         <UpcomingInterviewsCard applications={upcoming} />
         <ApplicationStatusBreakdownCard applications={applications} />
+        <RecentActivityCard events={recentActivity} />
         <FavoriteOffersCard offers={favoriteOffers} />
         <RecentOffersCard offers={recentOffers} />
       </Grid>

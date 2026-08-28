@@ -18,7 +18,7 @@ export async function deleteOffer(id: string): Promise<void> {
   const ownerId = await getOwnerId();
   await getOfferOrThrow(id);
 
-  if (await applicationService.existsForOffer(ownerId, id)) {
+  if (await applicationService.findByOffer(ownerId, id)) {
     throw new OfferHasApplicationError();
   }
 
