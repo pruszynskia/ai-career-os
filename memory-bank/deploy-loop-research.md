@@ -2,7 +2,7 @@
 
 Deep-research pass behind the autonomous deployment loop (`/deploy-cycle`).
 Eleven findings, each with the design change it forced. Kept in the repo so the
-loop's non-obvious choices don't read as arbitrary. See `ADR-015` in
+loop's non-obvious choices don't read as arbitrary. See `ADR-016` in
 `decisions.md` for the recorded decisions and `.claude/commands/deploy-cycle.md`
 for the mechanism.
 

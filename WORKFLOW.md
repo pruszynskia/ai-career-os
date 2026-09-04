@@ -73,7 +73,7 @@ GitHub Project → wait for CI and the Vercel build → merge → sync `main` �
 verify the production deploy → `scripts/next-task.sh` picks the next task →
 repeat. The merge gate and all hard caps are in `scripts/merge-gate.sh` and
 GitHub branch protection, not the prompt. Ships at `autonomy: pr-only` (stops
-with the PR open); see `memory-bank/deploy-loop-research.md` and `ADR-015`.
+with the PR open); see `memory-bank/deploy-loop-research.md` and `ADR-016`.
 
 ## 9. Iterate
 
