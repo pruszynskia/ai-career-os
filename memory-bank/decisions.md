@@ -577,3 +577,76 @@ Consequences:
   never blocks the user; `applications.status` remains correct.
 - `applicationService.existsForOffer` was removed — `findByOffer(...)  !==
   null` covers its one caller (`delete-offer.service.ts`).
+
+---
+
+## ADR-015
+
+Date:
+
+2026-09-04
+
+Decision:
+
+The autonomous deployment loop (`/loop /deploy-cycle`,
+`.claude/commands/deploy-cycle.md`) runs the full per-task cycle unattended:
+implement → independent review → fix → commit → open PR → wait for CI + the
+Vercel build → merge → sync `main` → verify the production deploy → pick the
+next task. Two decisions are load-bearing:
+
+1. **Production stays auto-deployed on merge.** Vercel's staged-production
+   toggle (disable *Auto-assign Custom Production Domains*, promote explicitly)
+   was proposed so the human gate could move from merge to promote. Declined —
+   a merged PR goes live immediately.
+2. **Autonomy is a config level in `.claude/deploy-loop-state.json`**:
+   `pr-only` (loop stops with the PR open, Andrzej merges) → `auto-merge`
+   (`scripts/merge-gate.sh` then `gh pr merge --auto`). Ships at `pr-only`.
+
+The merge gate and every hard cap are deterministic and live outside the
+prompt: `scripts/merge-gate.sh` (checks green, path guard on `package.json` /
+lockfile / `supabase/migrations/**` / `.github/workflows/**` / `vercel.json` /
+`.env*` / `src/proxy.ts` / `src/shared/auth/**`, ≤15 files / ≤400 lines,
+`review_verdict == Approved` and `fix_round <= 1`, not behind `origin/main`),
+state-file budgets (`max_ticks_per_task` 20, `max_tasks_per_run` 5,
+`consecutive_failures` 3, wall-clock `deadline`), and GitHub branch protection
+requiring the `build` check. The reviewer (`deploy-review`) is a different
+model (Opus) on a fresh context seeing only the diff + the task spec.
+
+Reason:
+
+Merge to `main` here is reversible (revert PR); production exposure is not, and
+the Hobby plan's Instant Rollback only reaches the immediately previous
+deployment. Research (`memory-bank/deploy-loop-research.md`, F1–F11) is
+consistent: LLM self-review misses ~1/3 of semantic drift and self-bias
+amplifies under iterative refinement, so the review verdict is necessary but
+not sufficient — deterministic checks and platform-enforced required checks
+carry the gate. Runaway agent loops are a documented five-figure failure mode,
+hence the layered caps. Going attended → unattended gradually is the unanimous
+practitioner recommendation, hence `pr-only` as the shipped default.
+
+Alternatives Considered:
+
+- Staged production with a promote gate — declined by Andrzej; recorded because
+  it changes the risk profile (live-on-merge). Revisit if a bad deploy ever
+  reaches users.
+- Keep the merge gate in the orchestrator prompt — rejected: hard limits must
+  be in the control plane, not model judgment (F3). A bug in our own logic must
+  not be able to merge a red PR; branch protection guarantees that.
+- Single implementer-reviews-own-diff — rejected (F1). Opus-reviews-Sonnet on a
+  fresh context is a safety property, not a cost choice.
+- One combined `next-task` state field from `backlog/mvp.yaml` `status:` —
+  rejected: that field is stale. Done-ness is read from `origin/main` commit
+  subjects (`(TASK-NNN)`).
+
+Consequences:
+
+- New: `scripts/{next-task,merge-gate,start-task}.sh` (+ `.test.sh` self-checks),
+  `scripts/lib/issue-body.sh` (extracted from `sync-backlog.sh`, which now
+  sources it), `.claude/agents/deploy-{orchestrator,impl,review,fix,commit}.md`,
+  `.claude/commands/deploy-cycle.md`.
+- Runtime state in `.claude/deploy-loop-{state.json,ledger.jsonl}` (git-ignored);
+  git + `gh` remain the truth for what's merged.
+- One-time setup outside the loop: `gh auth refresh -s project,read:project`
+  and branch protection on `main` requiring `build`.
+- `start-task.sh`'s backlog commit subject deliberately omits `(TASK-NNN)` so
+  `next-task.sh` does not read it as the task being done.

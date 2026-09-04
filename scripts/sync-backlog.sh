@@ -18,6 +18,9 @@ FILE="backlog/mvp.yaml"
 
 MODE=${1:-push}
 
+# Issue body rendering is shared with the deploy loop (scripts/next-task.sh etc).
+source "$(dirname "$0")/lib/issue-body.sh"
+
 
 
 echo "🔄 Backlog sync mode: $MODE"
@@ -123,52 +126,7 @@ echo "--------------------------------"
 
 BODY_FILE=$(mktemp)
 
-
-
-cat > "$BODY_FILE" <<EOF
-# $ID
-
-
-## Goal
-
-$(yq ".tasks[$i].goal" "$FILE")
-
-
-## Scope
-
-$(yq ".tasks[$i].scope[]?" "$FILE" | sed 's/^/- /')
-
-
-## Deliverables
-
-$(yq ".tasks[$i].deliverables[]?" "$FILE" | sed 's/^/- /')
-
-
-## Tasks
-
-$(yq ".tasks[$i].tasks[]?" "$FILE" | sed 's/^/- /')
-
-
-## Acceptance Criteria
-
-$(yq ".tasks[$i].acceptance[]?" "$FILE" | sed 's/^/- /')
-
-
-## Done
-
-$(yq ".tasks[$i].done[]?" "$FILE" | sed 's/^/- /')
-
-
-## Prompt
-
-$(yq ".tasks[$i].prompt" "$FILE")
-
-
-## Do not
-
-$(yq ".tasks[$i].do_not[]?" "$FILE" | sed 's/^/- /')
-
-EOF
+build_issue_body "$i" > "$BODY_FILE"
 
 
 
