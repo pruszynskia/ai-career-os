@@ -119,6 +119,16 @@ phase agents `deploy-{impl,review,fix,commit}`. Defaults to `autonomy:
 pr-only` (stops with the PR open for a human merge); background and rationale
 in `memory-bank/deploy-loop-research.md`.
 
+### `/deploy-loop`
+
+File: `claude/commands/deploy-loop.md`
+
+One-shot launcher for the unattended loop — runs preflight (on clean `main`,
+next task resolvable), resets `.claude/deploy-loop-state.json` to idle with a
+fresh 4-hour `deadline`, then starts `/loop /deploy-cycle`. Saves typing the
+`/loop` wrapper; autonomy is still read from the state file (`pr-only` by
+default, so it stops at the first open PR).
+
 ## Documentation
 
 Not yet defined. `CLAUDE.md`'s "Documentation Rules" section already tells
