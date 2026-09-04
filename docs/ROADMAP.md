@@ -31,7 +31,7 @@ pay for."
 - **Stage 0** (`backlog/mvp.yaml` TASK-016–028): shipped.
 - **Stage 1** (`backlog/mvp.yaml` TASK-032–048): shipped.
 - **Stage 2** (`backlog/mvp.yaml` TASK-029–031, TASK-049–052): shipped.
-- **Monetization Milestone** (`backlog/mvp.yaml` TASK-053–062): defined, not yet
+- **Monetization Milestone** (`backlog/mvp.yaml` TASK-053–063): defined, not yet
   implemented.
 
 Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
@@ -146,7 +146,7 @@ Dashboard" is the dashboard view of TASK-050's status events.
 
 # Monetization Milestone
 
-`backlog/mvp.yaml` TASK-053–062.
+`backlog/mvp.yaml` TASK-053–063.
 
 After Stage 2, the user has a complete workflow: **start selling
 subscriptions.** This is the point multi-user support and billing become
@@ -170,6 +170,7 @@ model that already isolates their data.
 | TASK-060 | New-user onboarding flow |
 | TASK-061 | Error monitoring and environment variable validation |
 | TASK-062 | Launch hardening — rate limiting, security headers, admin-client guard and account deletion |
+| TASK-063 | Rotate development secrets before public launch |
 
 Row order matches the task blocks' order in `backlog/mvp.yaml`, and follows
 `docs/BACKLOG_MANAGEMENT.md` §6: accounts first (TASK-053/054), then the
