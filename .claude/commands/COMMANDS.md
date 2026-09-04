@@ -103,8 +103,21 @@ TASK` workflow.
 
 ## Deployment
 
-Not yet defined. See `WORKFLOW.md` step 8 and `github/workflows/ci.yml` for
-the current (manual-trigger) deployment path.
+### `/deploy-cycle`
+
+File: `claude/commands/deploy-cycle.md`
+
+The body of the autonomous deployment loop — one invocation advances it by
+one phase transition. Wrap it in `/loop /deploy-cycle` to run unattended:
+open PR (linked to the issue + GitHub Project) → wait for CI + the Vercel
+build → merge → sync `main` → verify the production deploy → cut the next
+branch → pick the next task → repeat. Hard limits and the merge gate live
+in `scripts/merge-gate.sh`, `scripts/next-task.sh`, `scripts/start-task.sh`
+and GitHub branch protection, not in the prompt. Three tiers: this thin
+dispatcher → `deploy-orchestrator` (`.claude/agents/`) → the pinned-tier
+phase agents `deploy-{impl,review,fix,commit}`. Defaults to `autonomy:
+pr-only` (stops with the PR open for a human merge); background and rationale
+in `memory-bank/deploy-loop-research.md`.
 
 ## Documentation
 

@@ -41,6 +41,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# deploy loop (runtime state — truth is git + gh)
+.claude/deploy-loop-state.json
+.claude/deploy-loop-ledger.jsonl
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

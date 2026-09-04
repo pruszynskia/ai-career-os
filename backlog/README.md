@@ -23,6 +23,11 @@ via `scripts/sync-backlog.sh`.
   the Issue and writes the number back.
 - **One task, one concern**: each task should be implementable and reviewable
   independently. If a task's `scope` list is sprawling, split it.
+- **Next-task selection**: `scripts/next-task.sh` picks the next task for the
+  autonomous loop — lowest `TASK-NNN` in the active milestone whose subject is
+  not yet on `origin/main` and whose `depends_on` all are. Done-ness comes from
+  git history (`(TASK-NNN)` in a merged commit subject), never the `status:`
+  field.
 
 See `templates/TASK.md` for the field-by-field template this schema is based
 on, and `WORKFLOW.md` for how the backlog fits into the full project loop.
