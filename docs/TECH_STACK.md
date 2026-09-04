@@ -365,22 +365,19 @@ Why:
 
 ## Authentication Solution
 
-Supabase Auth, email/password plus Google OAuth
+Supabase Auth, email/password
 
 Usage:
 
 - self-serve registration at `/sign-up` with email verification, plus
   forgot/reset-password flows, all through `supabase.auth` (TASK-053)
-- "Continue with Google" on `/sign-in` and `/sign-up` calls the
-  `signInWithGoogle` server action (`supabase.auth.signInWithOAuth`), which
-  redirects through Google and back to `/auth/callback` (TASK-054)
 - `scripts/create-owner-user.ts` (`npm run db:seed`) still provisions the
   original owner account but is no longer the only way an account is created
 - session handled by `@supabase/ssr`, gate enforced in `src/proxy.ts`
 - `NEXT_PUBLIC_SITE_URL` builds the email redirect links (falls back to
   request headers in local dev). `/auth/callback` verifies `token_hash` +
   `type` via `verifyOtp` (stateless — works when the email is opened on
-  another device); the PKCE `code` branch handles the Google OAuth callback.
+  another device), keeping the PKCE `code` branch for OAuth (TASK-054).
 - Load-bearing Supabase dashboard config (no MCP/API tool covers auth config —
   set by hand). Authentication → URL Configuration → Redirect URLs must list:
 
@@ -403,23 +400,8 @@ Usage:
   {{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password
   ```
 
-- Google provider config is dashboard- and console-side; nothing lands in the
-  repo. Authentication → Providers → Google: enable it and paste the Google
-  OAuth client ID and secret there (never in `.env*` or a `NEXT_PUBLIC_` var).
-  In the Google Cloud console (APIs & Services → Credentials → OAuth client),
-  register the Supabase callback as an authorized redirect URI:
-
-  ```
-  https://<project-ref>.supabase.co/auth/v1/callback
-  ```
-
-  The app's own `/auth/callback` route still needs to be in Supabase's
-  Redirect URLs list above (`http://localhost:3000/auth/callback` and the
-  production URL) since that is where `signInWithOAuth`'s `redirectTo` points.
-
-Per-account data isolation stays RLS-enforced — a Google account gets its own
-`auth.users` row and sees only its own rows. See ADR-003 and ADR-009 in
-`memory-bank/decisions.md`.
+Per-account data isolation stays RLS-enforced. OAuth providers are not enabled
+yet (TASK-054). See ADR-003 and ADR-009 in `memory-bank/decisions.md`.
 
 ---
 

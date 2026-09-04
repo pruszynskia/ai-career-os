@@ -1,10 +1,9 @@
 import Link from 'next/link';
 
-import { signInWithGoogle, signUp } from '@/shared/auth/actions';
+import { signUp } from '@/shared/auth/actions';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
-import { Divider } from '@/shared/ui/primitives';
 
 export default async function SignUpPage({
   searchParams,
@@ -48,16 +47,6 @@ export default async function SignUpPage({
             </div>
             <Button type="submit" className="mt-1">
               Sign up
-            </Button>
-          </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-            <Divider className="flex-1" />
-            or
-            <Divider className="flex-1" />
-          </div>
-          <form action={signInWithGoogle}>
-            <Button type="submit" variant="outline" className="w-full">
-              Continue with Google
             </Button>
           </form>
           {sent && (
