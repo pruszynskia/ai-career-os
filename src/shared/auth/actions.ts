@@ -39,6 +39,20 @@ export async function signUp(formData: FormData) {
   redirect('/sign-up?sent=1');
 }
 
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${await siteOrigin()}/auth/callback` },
+  });
+
+  if (error || !data.url) {
+    redirect('/sign-in?error=oauth');
+  }
+
+  redirect(data.url);
+}
+
 export async function requestPasswordReset(formData: FormData) {
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(formData.get('email') as string, {

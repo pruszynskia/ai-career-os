@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { signInWithGoogle } from '@/shared/auth/actions';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
+import { Divider } from '@/shared/ui/primitives';
 
 export default async function SignInPage({
   searchParams,
@@ -64,11 +66,23 @@ export default async function SignInPage({
               Sign in
             </Button>
           </form>
+          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+            <Divider className="flex-1" />
+            or
+            <Divider className="flex-1" />
+          </div>
+          <form action={signInWithGoogle}>
+            <Button type="submit" variant="outline" className="w-full">
+              Continue with Google
+            </Button>
+          </form>
           {error && (
             <p role="alert" className="mt-4 text-sm text-destructive">
               {error === 'link'
                 ? 'That link is invalid or has expired.'
-                : 'Invalid email or password.'}
+                : error === 'oauth'
+                  ? 'Could not sign in with Google. Please try again.'
+                  : 'Invalid email or password.'}
             </p>
           )}
           <div className="mt-4 flex flex-col gap-1 text-sm">
