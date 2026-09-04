@@ -3684,7 +3684,6 @@ tasks:
       - Add a Kanban/drag-and-drop view (that is Stage 2 scope)
       - Remove any existing per-offer or per-application action
       - Introduce a new search implementation instead of reusing TASK-040's
-
   ###############################################################################
   # TASK-053
   ###############################################################################
@@ -3700,15 +3699,7 @@ tasks:
       - TASK-003
     title: Self-serve sign-up, email verification and password reset
     goal: >
-      Replace the single CLI-seeded account with real self-serve registration so
-      people other than the owner can create an account, opening the Monetization
-      Milestone. Today scripts/create-owner-user.ts is the only way an account
-      comes into existence - it calls createAdminClient() with AUTH_OWNER_EMAIL
-      and AUTH_OWNER_PASSWORD - and src/app/sign-in/page.tsx is the only auth
-      page, with no sign-up, no password reset and no email-confirmation
-      callback. This is additive on the Supabase Auth already in place (ADR-009):
-      getOwnerId() in src/shared/auth/session.ts and every table's owner_all RLS
-      policy stay exactly as they are.
+      Replace the single CLI-seeded account with real self-serve registration so people other than the owner can create an account, opening the Monetization Milestone. Today scripts/create-owner-user.ts is the only way an account comes into existence - it calls createAdminClient() with AUTH_OWNER_EMAIL and AUTH_OWNER_PASSWORD - and src/app/sign-in/page.tsx is the only auth page, with no sign-up, no password reset and no email-confirmation callback. This is additive on the Supabase Auth already in place (ADR-009): getOwnerId() in src/shared/auth/session.ts and every table's owner_all RLS policy stay exactly as they are.
 
     scope:
       - src/app/sign-up/page.tsx
@@ -3779,13 +3770,12 @@ tasks:
       - Add teams, workspaces, organisations or seats
       - Change getOwnerId(), the owner_id columns or any RLS policy
       - Use createAdminClient() anywhere in request-handling code
-
   ###############################################################################
   # TASK-054
   ###############################################################################
   - id: TASK-054
     github:
-      issue: null
+      issue: "117"
       project_item: null
     status: todo
     priority: P2
@@ -3795,12 +3785,7 @@ tasks:
       - TASK-053
     title: Google OAuth sign-in
     goal: >
-      Add Google as a sign-in and sign-up provider so new customers can start
-      without creating a password, the lowest-friction path onto a paid product.
-      ADR-009 records that with Supabase Auth "OAuth providers are a dashboard
-      toggle" rather than a framework swap, and ADR-005 named Google, LinkedIn
-      and GitHub as the additive providers - this task delivers the first of
-      them on top of the /auth/callback route TASK-053 adds.
+      Add Google as a sign-in and sign-up provider so new customers can start without creating a password, the lowest-friction path onto a paid product. ADR-009 records that with Supabase Auth "OAuth providers are a dashboard toggle" rather than a framework swap, and ADR-005 named Google, LinkedIn and GitHub as the additive providers - this task delivers the first of them on top of the /auth/callback route TASK-053 adds.
 
     scope:
       - src/app/sign-in/page.tsx
@@ -3852,7 +3837,6 @@ tasks:
       - Add providers beyond Google
       - Add account linking or merging between a Google and an email account
       - Add a second OAuth callback route
-
   ###############################################################################
   # TASK-055
   ###############################################################################
@@ -3868,13 +3852,7 @@ tasks:
       - TASK-053
     title: Public marketing landing and pricing pages
     goal: >
-      Give an anonymous visitor something to read and a plan to choose instead of
-      an immediate redirect to /sign-in, and define the pricing tiers the rest of
-      the milestone charges for. Today src/app/page.tsx is redirect('/dashboard')
-      and src/proxy.ts sends every unauthenticated request to /sign-in, so there
-      is no public surface at all; docs/PRODUCT.md contains no tiers, prices or
-      trial model, so the plan definition this task writes is what TASK-056's
-      Stripe prices and TASK-058's entitlement gate encode.
+      Give an anonymous visitor something to read and a plan to choose instead of an immediate redirect to /sign-in, and define the pricing tiers the rest of the milestone charges for. Today src/app/page.tsx is redirect('/dashboard') and src/proxy.ts sends every unauthenticated request to /sign-in, so there is no public surface at all; docs/PRODUCT.md contains no tiers, prices or trial model, so the plan definition this task writes is what TASK-056's Stripe prices and TASK-058's entitlement gate encode.
 
     scope:
       - src/app/(marketing)/layout.tsx
@@ -3936,7 +3914,6 @@ tasks:
       - Add Stripe checkout buttons (TASK-056)
       - Hand-write Tailwind layout instead of composing primitives
       - Duplicate the tier definition in more than one place
-
   ###############################################################################
   # TASK-056
   ###############################################################################
@@ -3954,14 +3931,7 @@ tasks:
       - TASK-055
     title: Subscriptions schema, Stripe Checkout and webhook
     goal: >
-      Take money - the billing core of the Monetization Milestone. Add a
-      subscriptions table, a Checkout-session route and the Stripe webhook that
-      writes subscription state back, so an account can move from free to paid.
-      No billing code, table or dependency exists anywhere today. This is the
-      first thing in the codebase that legitimately writes with the service-role
-      client from a request path, because a signature-verified webhook has no
-      user session and therefore no auth.uid() for RLS to match, so it records a
-      new ADR.
+      Take money - the billing core of the Monetization Milestone. Add a subscriptions table, a Checkout-session route and the Stripe webhook that writes subscription state back, so an account can move from free to paid. No billing code, table or dependency exists anywhere today. This is the first thing in the codebase that legitimately writes with the service-role client from a request path, because a signature-verified webhook has no user session and therefore no auth.uid() for RLS to match, so it records a new ADR.
 
     scope:
       - supabase/migrations/*.sql
@@ -4042,7 +4012,6 @@ tasks:
       - Build usage metering or quota enforcement (TASK-058, TASK-059)
       - Add a second payment provider
       - Read Stripe keys anywhere outside a server-only module
-
   ###############################################################################
   # TASK-057
   ###############################################################################
@@ -4059,11 +4028,7 @@ tasks:
       - TASK-056
     title: Billing portal and account settings page
     goal: >
-      Give a subscriber somewhere to see and change their plan. TASK-056 can
-      create a subscription but nothing in the app displays it or lets the user
-      cancel or update a card, and there is no settings route at all under
-      src/app/(app) today. Plan changes, cancellation and payment-method updates
-      are delegated to Stripe's hosted customer portal rather than rebuilt.
+      Give a subscriber somewhere to see and change their plan. TASK-056 can create a subscription but nothing in the app displays it or lets the user cancel or update a card, and there is no settings route at all under src/app/(app) today. Plan changes, cancellation and payment-method updates are delegated to Stripe's hosted customer portal rather than rebuilt.
 
     scope:
       - src/app/(app)/settings/page.tsx
@@ -4119,7 +4084,6 @@ tasks:
       - Render invoices or payment history
       - Query the subscriptions table outside src/entities/subscription/service.ts
       - Add a second settings surface when one already exists
-
   ###############################################################################
   # TASK-058
   ###############################################################################
@@ -4136,12 +4100,7 @@ tasks:
       - TASK-056
     title: Plan model and entitlement gate
     goal: >
-      Make a subscription mean something. One helper that maps an owner to their
-      current plan and its limits, and one gate every paid-feature check calls -
-      so entitlement logic exists in a single module rather than spreading
-      through route handlers and components as the milestone continues. Consumed
-      immediately by TASK-059's AI quota; without it each AI route would grow its
-      own copy of the same check.
+      Make a subscription mean something. One helper that maps an owner to their current plan and its limits, and one gate every paid-feature check calls - so entitlement logic exists in a single module rather than spreading through route handlers and components as the milestone continues. Consumed immediately by TASK-059's AI quota; without it each AI route would grow its own copy of the same check.
 
     scope:
       - src/shared/billing/plans.ts
@@ -4200,7 +4159,6 @@ tasks:
       - Meter or count usage here (TASK-059)
       - Gate offers, applications, documents or any existing core feature in this task
       - Add a feature-flag service
-
   ###############################################################################
   # TASK-059
   ###############################################################################
@@ -4217,12 +4175,7 @@ tasks:
       - TASK-058
     title: Per-owner AI usage metering and free-tier quota
     goal: >
-      Stop the free tier from costing more than it earns, and give the paid tier
-      something concrete to buy. Every AI call in the product runs through
-      getAiService() in src/shared/ai/service.ts - eleven feature services use it
-      - and none of them count anything or check who is calling, so a single
-      account can spend without limit. Record each AI action per owner and
-      enforce the allowance TASK-055 defined through TASK-058's gate.
+      Stop the free tier from costing more than it earns, and give the paid tier something concrete to buy. Every AI call in the product runs through getAiService() in src/shared/ai/service.ts - eleven feature services use it - and none of them count anything or check who is calling, so a single account can spend without limit. Record each AI action per owner and enforce the allowance TASK-055 defined through TASK-058's gate.
 
     scope:
       - supabase/migrations/*.sql
@@ -4289,7 +4242,6 @@ tasks:
       - Restrict any non-AI feature
       - Duplicate the allowance numbers outside src/shared/billing/plans.ts
       - Record prompt or completion text in ai_usage
-
   ###############################################################################
   # TASK-060
   ###############################################################################
@@ -4308,13 +4260,7 @@ tasks:
       - TASK-055
     title: New-user onboarding flow
     goal: >
-      Turn a fresh signup into an activated user. Once TASK-053 lets anyone
-      register, a new account lands on a dashboard of empty cards - the only
-      guidance anywhere is the passive "No profile yet - upload your CV to get
-      started" empty state on the profile page - and docs/PRODUCT.md's own
-      success metric is the first CV uploaded and parsed. Walk a new account
-      through choosing a plan, uploading a CV and adding a first offer, and
-      remember when that is finished.
+      Turn a fresh signup into an activated user. Once TASK-053 lets anyone register, a new account lands on a dashboard of empty cards - the only guidance anywhere is the passive "No profile yet - upload your CV to get started" empty state on the profile page - and docs/PRODUCT.md's own success metric is the first CV uploaded and parsed. Walk a new account through choosing a plan, uploading a CV and adding a first offer, and remember when that is finished.
 
     scope:
       - supabase/migrations/*.sql
@@ -4378,7 +4324,6 @@ tasks:
       - Reimplement CV upload or add-offer instead of reusing the existing forms
       - Add an onboarding table or per-step progress rows
       - Remove the existing empty states
-
   ###############################################################################
   # TASK-061
   ###############################################################################
@@ -4394,13 +4339,7 @@ tasks:
       - TASK-015
     title: Error monitoring and environment variable validation
     goal: >
-      Find out that production is broken from something other than a customer
-      email. Errors today reach console.error and nothing else - there is no
-      monitoring dependency in the project - and every environment variable is
-      read with a bare non-null assertion (process.env.X!) in
-      src/shared/db/client.ts, src/shared/db/admin.ts and src/proxy.ts, so a
-      missing value surfaces as an obscure runtime failure rather than a refusal
-      to start. Both matter once accounts and payments are real.
+      Find out that production is broken from something other than a customer email. Errors today reach console.error and nothing else - there is no monitoring dependency in the project - and every environment variable is read with a bare non-null assertion (process.env.X!) in src/shared/db/client.ts, src/shared/db/admin.ts and src/proxy.ts, so a missing value surfaces as an obscure runtime failure rather than a refusal to start. Both matter once accounts and payments are real.
 
     scope:
       - src/shared/env.ts
@@ -4464,7 +4403,6 @@ tasks:
       - Commit a real secret in .env.example
       - Break the CI build's placeholder environment
       - Change any RLS policy or the auth model
-
   ###############################################################################
   # TASK-062
   ###############################################################################
@@ -4481,13 +4419,7 @@ tasks:
       - TASK-061
     title: Launch hardening - rate limiting, security headers, admin-client guard and account deletion
     goal: >
-      Close the gaps that only matter once strangers can sign up and pay. There
-      is no rate limiting of our own anywhere - the auth pages and every AI
-      endpoint accept unlimited attempts - next.config.ts sets no security
-      headers, the rule that createAdminClient() must never reach request code is
-      only a comment in src/shared/db/admin.ts with nothing enforcing it, and a
-      customer who wants to leave has no way to delete their account or take
-      their data.
+      Close the gaps that only matter once strangers can sign up and pay. There is no rate limiting of our own anywhere - the auth pages and every AI endpoint accept unlimited attempts - next.config.ts sets no security headers, the rule that createAdminClient() must never reach request code is only a comment in src/shared/db/admin.ts with nothing enforcing it, and a customer who wants to leave has no way to delete their account or take their data.
 
     scope:
       - src/shared/rate-limit/**
@@ -4554,7 +4486,6 @@ tasks:
       - Change any RLS policy or the owner_id model
       - Rate limit the Stripe webhook
       - Delete an account without cancelling its subscription first
-
   ###############################################################################
   # TASK-063
   ###############################################################################
@@ -4571,13 +4502,7 @@ tasks:
       - TASK-061
     title: Rotate development secrets before public launch
     goal: >
-      Every credential the app uses today was created during single-user
-      development and has sat in .env / .env.local throughout - the Supabase
-      anon and service-role keys, the AI provider key, the seeded owner
-      password. None were ever committed (git history is clean), but they are
-      dev-grade and must be rotated and re-homed to the Vercel project before
-      strangers can sign up and pay. This is the pre-launch rotation pass, not
-      incident response.
+      Every credential the app uses today was created during single-user development and has sat in .env / .env.local throughout - the Supabase anon and service-role keys, the AI provider key, the seeded owner password. None were ever committed (git history is clean), but they are dev-grade and must be rotated and re-homed to the Vercel project before strangers can sign up and pay. This is the pre-launch rotation pass, not incident response.
 
     scope:
       - .env.example
