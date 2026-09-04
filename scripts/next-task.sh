@@ -26,7 +26,14 @@ if [ -n "${ON_MAIN_TASKS:-}" ]; then
 else
   git fetch origin --quiet 2>/dev/null || true
   SUBJECTS="$(git log origin/main --format='%s' 2>/dev/null || true)"
-  on_main() { printf '%s\n' "$SUBJECTS" | grep -qF "(TASK-$1)"; }
+  # TASK-001..015 (the original MVP) were merged before commit subjects carried
+  # "(TASK-NNN)". They are permanently done — hardcode them so downstream
+  # depends_on resolves. Every task since does carry the parenthesised form.
+  PRE_CONVENTION_DONE=" 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 "
+  on_main() {
+    case "$PRE_CONVENTION_DONE" in *" $1 "*) return 0 ;; esac
+    printf '%s\n' "$SUBJECTS" | grep -qF "(TASK-$1)"
+  }
 fi
 
 # --- 1. in-flight: on a task branch whose task is not yet on main -----------
