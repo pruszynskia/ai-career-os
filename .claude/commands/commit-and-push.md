@@ -32,6 +32,10 @@ None.
 
 4. Commit, then push the current branch (`git push`, or
    `git push -u origin <branch>` if it has no upstream yet).
+   - First check the current branch (`git rev-parse --abbrev-ref HEAD`). If it
+     is `main` or `master`, **stop** — do not commit or push. Report that HEAD
+     is on the default branch so the caller can check out the task branch
+     first. This is what keeps the deploy loop's `pr-only` gate intact.
 
 5. Run `git status` again to confirm a clean working tree and a successful
    push.
@@ -48,5 +52,6 @@ None.
   per step 2 — the goal is "commit everything relevant," not "commit
   everything without looking."
 - Do not force-push, amend, or rewrite existing history.
+- Do not commit or push while HEAD is on `main`/`master` (step 4).
 - Do not skip hooks (`--no-verify`) if a commit hook fails — fix the
   underlying issue and retry.
