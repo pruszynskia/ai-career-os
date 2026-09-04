@@ -177,6 +177,47 @@ Users can:
 
 ---
 
+# Pricing & Packaging
+
+AI Career OS is sold as a subscription with two plans. This section is the
+single source of truth for tier names, limits and prices: TASK-056's Stripe
+prices, TASK-058's entitlement gate and TASK-059's usage quota all encode
+what is written here, and `src/features/marketing/components/pricing-table.tsx`
+renders it from one exported `PLANS` constant.
+
+## Plans
+
+| Plan | Price | AI actions / month | Job offers | Applications |
+|---|---|---|---|---|
+| **Free** | €0 / month | 10 | unlimited | unlimited |
+| **Pro** | €12 / month | 500 | unlimited | unlimited |
+
+Both plans include the full application tracker: master profile and CV,
+job-offer ingestion, duplicate-offer detection, the interview pipeline and
+company search. The only thing a plan limits is the monthly **AI-action
+allowance**.
+
+## What counts as one AI action
+
+Any single AI generation the user triggers:
+
+- an offer match-score calculation
+- a tailored CV generation
+- a recruiter-message generation
+- a LinkedIn post draft (including AI-planned next posts)
+
+The allowance resets at the start of each calendar month (TASK-059). When it
+is exhausted, AI generations are blocked with an upgrade prompt while all
+non-AI features keep working.
+
+## Trial model
+
+There is no time-limited trial. The Free plan is the trial: every new account
+starts on Free with no card required, and upgrades to Pro from the pricing
+page or account settings.
+
+---
+
 # Out of Scope for MVP
 
 The following features are intentionally postponed:

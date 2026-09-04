@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // Reachable without a session; every other path redirects to /sign-in.
 const PUBLIC_PATHS = [
+  '/',
+  '/pricing',
   '/sign-in',
   '/sign-up',
   '/forgot-password',
