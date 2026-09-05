@@ -4487,6 +4487,82 @@ tasks:
       - Rate limit the Stripe webhook
       - Delete an account without cancelling its subscription first
   ###############################################################################
+  # TASK-064
+  ###############################################################################
+  - id: TASK-064
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: S
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-056
+      - TASK-059
+    title: Clear Supabase security and performance advisories
+    goal: >
+      Get the linked Supabase project to a clean advisor report before strangers sign up. The performance advisor flags auth_rls_initplan on all nine public tables (profiles, job_offers, cv_documents, applications, posts, post_campaigns, application_status_events, ai_usage, subscriptions): every owner_all / owner_read policy calls auth.uid() bare, so Postgres re-evaluates it once per row instead of once per query - irrelevant at two rows, real once tables fill up. The security advisor flags auth_leaked_password_protection: Supabase Auth is not checking new passwords against HaveIBeenPwned. Both were surfaced by get_advisors during the TASK-060 migration-drift work and neither is blocking, which is why they sit here rather than in TASK-062.
+
+    scope:
+      - supabase/migrations/*.sql
+      - memory-bank/decisions.md
+      - memory-bank/ai-notes.md
+    deliverables:
+      - One migration recreating every owner_all / owner_read RLS policy on the nine public tables with (select auth.uid()) in place of a bare auth.uid(), each policy keeping its exact command scope - subscriptions stays SELECT-only per ADR-015, every other table stays ALL
+      - Supabase "Leaked password protection" enabled so the security advisor no longer reports auth_leaked_password_protection
+      - A get_advisors performance run that no longer reports auth_rls_initplan for any public table
+      - An ADR note recording (select auth.uid()) as the canonical RLS policy form every future migration copies
+    tasks:
+      - Add a migration under supabase/migrations/ that, for each of profiles, job_offers, cv_documents, applications, posts, post_campaigns, application_status_events, ai_usage and subscriptions, drops the existing owner policy and recreates it with using ((select auth.uid()) = owner_id) plus the matching with check for the ALL policies, keeping subscriptions' policy SELECT-only
+      - Apply it with npm run db:push - never the Supabase MCP apply_migration or the dashboard SQL editor, which stamp their own version and desynchronise the ledger (see memory-bank/ai-notes.md) - and confirm npm run db:status shows local and remote in sync
+      - Enable Leaked password protection in the Supabase dashboard under Authentication, and record in memory-bank/ai-notes.md that it is on
+      - Re-run the Supabase security and performance advisors and confirm auth_leaked_password_protection and auth_rls_initplan are both gone with no new advisory introduced
+      - Amend memory-bank/decisions.md - an addition to ADR-009's RLS note or a new dated ADR - stating every RLS policy uses (select auth.uid()) so the predicate is evaluated once per query
+    acceptance:
+      - pg_policies shows all nine public tables' owner policies using (select auth.uid()), subscriptions still SELECT-only and every other table still ALL, and RLS still isolates one owner's rows from another's
+      - The Supabase performance advisor reports no auth_rls_initplan entry for any public table, and the security advisor no longer reports auth_leaked_password_protection
+      - npm run db:status shows no drift after the migration is applied
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed - there is no application code change, so this is a regression check
+    done:
+      - RLS policies rewritten and both advisories cleared, verified with get_advisors
+      - Feature committed
+    labels:
+      - database
+      - auth
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - memory-bank/decisions.md
+      - memory-bank/ai-notes.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is a performance and configuration pass, not a behaviour change:
+      each rewritten policy must be semantically identical to the one it
+      replaces - same command scope, same owner_id predicate - only wrapping
+      auth.uid() in a scalar sub-select so Postgres evaluates it once per
+      query instead of once per row. subscriptions keeps its SELECT-only
+      owner_read policy from ADR-015; do not widen it to ALL.
+
+      Apply the migration with npm run db:push. Never use the Supabase MCP
+      apply_migration or the dashboard SQL editor - they stamp their own
+      version and desynchronise the migration ledger (see
+      memory-bank/ai-notes.md).
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change any policy's command scope, predicate or the owner_id model
+      - Widen subscriptions' owner_read policy to allow writes (ADR-015)
+      - Apply the migration through the Supabase MCP or the dashboard SQL editor
+      - Add application code changes, new indexes or new tables
+      - Enable Supabase Auth features beyond leaked-password protection
+  ###############################################################################
   # TASK-063
   ###############################################################################
   - id: TASK-063

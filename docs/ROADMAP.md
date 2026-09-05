@@ -170,6 +170,7 @@ model that already isolates their data.
 | TASK-060 | New-user onboarding flow |
 | TASK-061 | Error monitoring and environment variable validation |
 | TASK-062 | Launch hardening — rate limiting, security headers, admin-client guard and account deletion |
+| TASK-064 | Clear Supabase security and performance advisories |
 | TASK-063 | Rotate development secrets before public launch |
 
 Row order matches the task blocks' order in `backlog/mvp.yaml`, and follows
