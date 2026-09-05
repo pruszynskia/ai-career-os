@@ -92,6 +92,7 @@ export const profileSchema = z
     score: z.unknown(),
     createdAt: z.date(),
     updatedAt: z.date(),
+    onboardedAt: z.date().nullable(),
   })
   .extend(jobPreferencesSchema.shape);
 
@@ -105,4 +106,5 @@ export interface Profile extends JobPreferences {
   score: unknown;
   createdAt: Date;
   updatedAt: Date;
+  onboardedAt: Date | null;
 }
