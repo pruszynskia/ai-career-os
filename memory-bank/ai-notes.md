@@ -54,6 +54,17 @@ memory-bank/current-task.md
   (`{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=…&next=…`). Email links
   use the stateless `token_hash` + `verifyOtp` path so they work cross-device;
   the PKCE `code` path needs a code-verifier cookie and only works same-browser.
+- Migrations: apply with `npm run db:push` only. Applying via the Supabase MCP
+  `apply_migration` or the dashboard SQL editor stamps a *new* version
+  timestamp (not the file's), so the ledger row's version stops matching the
+  `supabase/migrations/*.sql` filename. Once that happens `supabase db push`
+  re-runs every mismatched migration and fails on the first `create type` /
+  `create table`. Sept 2026: 4 merged migrations (`job_offer_expiration`,
+  `application_notes`, `subscriptions`, `ai_usage`) were silently never
+  applied to the linked dev DB because `db push` had been broken this way for
+  weeks. Recovery: `supabase migration repair --linked --status reverted <mcp
+  versions> --status applied <file versions>`, then `db push`. Check drift
+  anytime with `npm run db:status`.
 
 ---
 
