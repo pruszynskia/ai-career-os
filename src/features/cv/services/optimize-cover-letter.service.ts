@@ -6,7 +6,7 @@ import {
   buildOptimizeCoverLetterUserMessage,
   optimizeCoverLetterSystemPrompt,
 } from '@/shared/ai/prompts/optimize-cover-letter';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 export async function optimizeCoverLetter() {
@@ -17,8 +17,9 @@ export async function optimizeCoverLetter() {
     'COVER_LETTER',
   );
 
-  const { optimizedContent, improvements } =
-    await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('optimize_cover_letter');
+  const { optimizedContent, improvements } = await aiService.generateStructured(
+    {
       messages: [
         { role: 'system', content: optimizeCoverLetterSystemPrompt },
         {
@@ -31,7 +32,8 @@ export async function optimizeCoverLetter() {
       schema: optimizedCoverLetterSchema,
       schemaName: 'optimized_cover_letter',
       maxTokens: 8192,
-    });
+    },
+  );
 
   const cvDocument = await cvDocumentService.createVersion({
     ownerId,

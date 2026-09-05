@@ -13,7 +13,7 @@ import {
   buildGenerateCampaignUserMessage,
   generateCampaignSystemPrompt,
 } from '@/shared/ai/prompts/generate-campaign';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 export { NoProfileError };
@@ -34,7 +34,8 @@ export async function generateCampaign(
 
   if (!profile) throw new NoProfileError();
 
-  const { posts: generatedPosts } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('generate_campaign');
+  const { posts: generatedPosts } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: generateCampaignSystemPrompt },
       {

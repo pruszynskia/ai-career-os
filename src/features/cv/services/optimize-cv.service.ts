@@ -6,7 +6,7 @@ import {
   buildOptimizeCvUserMessage,
   optimizeCvSystemPrompt,
 } from '@/shared/ai/prompts/optimize-cv';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 export async function optimizeCv() {
@@ -16,8 +16,9 @@ export async function optimizeCv() {
     'Upload a CV before optimizing it.',
   );
 
-  const { optimizedContent, improvements } =
-    await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('optimize_cv');
+  const { optimizedContent, improvements } = await aiService.generateStructured(
+    {
       messages: [
         { role: 'system', content: optimizeCvSystemPrompt },
         { role: 'user', content: buildOptimizeCvUserMessage(masterCv.content) },
@@ -25,7 +26,8 @@ export async function optimizeCv() {
       schema: optimizedCvSchema,
       schemaName: 'optimized_cv',
       maxTokens: 8192,
-    });
+    },
+  );
 
   const cvDocument = await cvDocumentService.createVersion({
     ownerId,

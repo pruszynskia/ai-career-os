@@ -9,7 +9,7 @@ import {
   buildGeneratePostUserMessage,
   generatePostSystemPrompt,
 } from '@/shared/ai/prompts/generate-post';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 export class NoProfileError extends Error {
@@ -43,7 +43,8 @@ export async function generatePost(topic: string) {
 
   if (!profile) throw new NoProfileError();
 
-  const { content } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('generate_post');
+  const { content } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: generatePostSystemPrompt },
       {

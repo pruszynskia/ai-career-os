@@ -9,7 +9,7 @@ import {
   buildMatchOfferUserMessage,
   matchOfferSystemPrompt,
 } from '@/shared/ai/prompts/match-offer';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 const matchScoreSchema = z.object({
@@ -24,7 +24,8 @@ export async function matchOffer(id: string) {
     'Upload a CV before using it for this offer.',
   );
 
-  const { matchScore } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('match_offer');
+  const { matchScore } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: matchOfferSystemPrompt },
       {

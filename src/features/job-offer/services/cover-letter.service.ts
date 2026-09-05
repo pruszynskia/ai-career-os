@@ -8,7 +8,7 @@ import {
   buildCoverLetterUserMessage,
   coverLetterSystemPrompt,
 } from '@/shared/ai/prompts/cover-letter';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 const coverLetterSchema = z.object({
@@ -23,7 +23,8 @@ export async function generateCoverLetter(id: string) {
     'Upload a CV before using it for this offer.',
   );
 
-  const { content } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('cover_letter');
+  const { content } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: coverLetterSystemPrompt },
       {

@@ -8,7 +8,7 @@ import {
   buildRecruiterMessageUserMessage,
   recruiterMessageSystemPrompt,
 } from '@/shared/ai/prompts/recruiter-message';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 const recruiterMessageSchema = z.object({
@@ -23,7 +23,8 @@ export async function generateRecruiterMessage(id: string) {
     'Upload a CV before using it for this offer.',
   );
 
-  return getAiService().generateStructured({
+  const aiService = await getMeteredAiService('recruiter_message');
+  return aiService.generateStructured({
     messages: [
       { role: 'system', content: recruiterMessageSystemPrompt },
       {

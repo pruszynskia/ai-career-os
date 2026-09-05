@@ -12,7 +12,7 @@ import {
   buildPlanPostsUserMessage,
   planPostsSystemPrompt,
 } from '@/shared/ai/prompts/plan-posts';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 const plannedPostsSchema = z.object({
@@ -37,7 +37,8 @@ export async function planPosts() {
       ? sentPosts.map((post) => post.content).join('\n\n')
       : 'No posts sent yet.';
 
-  const { posts: plannedPosts } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('plan_posts');
+  const { posts: plannedPosts } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: planPostsSystemPrompt },
       {
