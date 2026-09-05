@@ -350,7 +350,11 @@ Usage:
 Usage:
 
 - database access via the Supabase query builder
-- schema management via `supabase/migrations/*.sql`
+- schema management via `supabase/migrations/*.sql`, applied with `npm run db:push`
+  (`supabase db push --linked`); `npm run db:status` shows local-vs-remote drift.
+  Never apply migrations through the Supabase MCP `apply_migration` or the
+  dashboard SQL editor — those stamp their own version timestamp, which
+  desynchronises the migration ledger from the filenames and breaks `db push`.
 - authorization enforced by Row Level Security (`owner_id = auth.uid()`)
 
 Why:
