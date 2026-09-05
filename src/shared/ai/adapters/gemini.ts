@@ -7,7 +7,7 @@ import type { AiService, StructuredCallOptions } from '../types';
 
 export function createGeminiAdapter(): AiService {
   const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  const model = process.env.GEMINI_MODEL ?? 'gemini-flash-latest';
+  const model = process.env.GEMINI_MODEL ?? 'gemini-3.6-flash';
 
   return {
     async generateStructured<Schema extends z.ZodObject>({
