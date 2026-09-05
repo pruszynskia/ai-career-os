@@ -2,6 +2,56 @@
 
 ## Current Sprint
 
+### Feature: TASK-057 — Billing portal and account settings page
+
+Status: **done** — green on typecheck/lint/test/build. Playwright
+design-review loop not run (non-interactive session, backend-adjacent
+settings page) — needs a visual pass on `/settings` during review.
+
+What shipped:
+
+- `src/features/billing/services/create-portal-session.service.ts` —
+  `createPortalSession(ownerId)` reads the owner's subscription via
+  `subscriptionService.findByOwnerId`, throws `NoStripeCustomerError` if none
+  exists, otherwise creates a Stripe `billingPortal.sessions` session with
+  `return_url` back to `/settings`. Duplicates the private `siteOrigin()`
+  helper from `create-checkout-session.service.ts` (same reasoning as that
+  file's own comment: not exported, and exporting it isn't in this task's
+  scope).
+- `src/app/api/billing/portal/route.ts` (POST) — thin: `getOwnerId()`, calls
+  the service, returns `{ url }`; maps `NoStripeCustomerError` to a 422
+  instead of a 500, mirroring the checkout route's error-mapping structure.
+- `src/features/billing/components/plan-badge.tsx` — presentational, maps
+  `SubscriptionStatus` to a `Badge` variant (active/trialing → success,
+  past_due/unpaid → destructive, everything else → secondary).
+- `src/features/billing/components/billing-panel.tsx` — client component;
+  renders `PlanBadge` + renewal date + a "Manage billing" button that
+  `fetch()`s `/api/billing/portal` and redirects to the returned URL when a
+  subscription row exists, otherwise an "Upgrade to Pro" CTA linking to
+  `/pricing`. No new hook/api file — the fetch is inline, since this task's
+  `scope:` list doesn't include one and the checkout feature's `useMutation`
+  hook lives in `features/marketing` (FSA forbids importing it cross-feature).
+- `src/app/(app)/settings/page.tsx` — new route; loads the owner's
+  subscription through `subscriptionService.findByOwnerId` and renders
+  `BillingPanel` inside `AppPageLayout`.
+- `src/widgets/nav/sidebar.tsx` — added a `Settings` nav entry (`lucide-react`
+  icon) pointing at `/settings`, alongside the existing sign-out action.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning in
+  `Avatar.tsx`)
+- `npm run test` — 27 passed (no new tests: this is UI plumbing over an
+  already-tested entity service and a thin Stripe wrapper with no test
+  precedent — `create-checkout-session.service.ts` has none either)
+- `npm run build` — pass; `/settings` and `/api/billing/portal` both compile
+  as dynamic routes
+
+Not verified in this session: an actual round trip into Stripe's hosted
+customer portal (needs live `STRIPE_SECRET_KEY` and a real Stripe customer)
+— code typechecks against the Stripe SDK; a live smoke test is a follow-up.
+
 ### Feature: TASK-056 — Subscriptions schema, Stripe Checkout and webhook
 
 Status: **done** — implementation complete (migration, entity, services,
