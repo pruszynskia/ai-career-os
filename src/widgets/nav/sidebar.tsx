@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Rss,
+  Settings,
   UserCircle,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/posts', label: 'Posts', icon: Rss },
   { href: '/profile', label: 'Profile', icon: UserCircle },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Sidebar({ notifications }: { notifications: Notification[] }) {
