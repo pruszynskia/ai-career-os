@@ -30,6 +30,7 @@ export const subscriptionSchema = z.object({
   status: subscriptionStatusSchema,
   plan: z.string().min(1),
   currentPeriodEnd: z.date().nullable(),
+  lastStripeEventAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -42,6 +43,7 @@ export interface Subscription {
   status: SubscriptionStatus;
   plan: string;
   currentPeriodEnd: Date | null;
+  lastStripeEventAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

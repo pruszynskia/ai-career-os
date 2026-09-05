@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 
+// CheckoutButton lives in this feature, not features/billing, because FSA
+// forbids feature-to-feature imports (eslint import/no-restricted-paths) and
+// this pricing table is its only consumer; create-checkout-session.service.ts
+// (the actual Stripe call) is the piece that belongs to features/billing.
 import { CheckoutButton } from '@/features/marketing/components/checkout-button';
 import { subscriptionService } from '@/entities/subscription/service';
 import { createClient } from '@/shared/db/client';
@@ -67,7 +71,9 @@ export async function PricingTable() {
     data: { user },
   } = await supabase.auth.getUser();
   const isSignedIn = Boolean(user);
-  const subscription = user ? await subscriptionService.findByOwnerId(user.id) : null;
+  const subscription = user
+    ? await subscriptionService.findByOwnerId(user.id)
+    : null;
   const isPro = subscription
     ? ['active', 'trialing'].includes(subscription.status)
     : false;

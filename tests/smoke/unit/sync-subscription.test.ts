@@ -34,7 +34,9 @@ beforeEach(() => {
 
 describe('syncSubscriptionFromStripe', () => {
   it('throws MissingOwnerIdError when metadata and the customer id both fail to resolve an owner', async () => {
-    vi.mocked(subscriptionService.findByStripeCustomerId).mockResolvedValue(null);
+    vi.mocked(subscriptionService.findByStripeCustomerId).mockResolvedValue(
+      null,
+    );
 
     await expect(
       syncSubscriptionFromStripe(fakeSubscription(), 1_700_000_100),
@@ -42,7 +44,7 @@ describe('syncSubscriptionFromStripe', () => {
     expect(subscriptionService.upsertFromStripe).not.toHaveBeenCalled();
   });
 
-  it('skips an event older than the row already on file (out-of-order delivery)', async () => {
+  it('skips an event older than the last event already applied (out-of-order delivery)', async () => {
     vi.mocked(subscriptionService.findByOwnerId).mockResolvedValue({
       id: 'row_1',
       ownerId: 'owner_1',
@@ -51,19 +53,22 @@ describe('syncSubscriptionFromStripe', () => {
       status: 'active',
       plan: 'pro',
       currentPeriodEnd: null,
+      lastStripeEventAt: new Date(1_700_000_500 * 1000),
       createdAt: new Date(0),
-      updatedAt: new Date(1_700_000_500_000),
+      // Written well after the event's own clock — proves the guard compares
+      // against lastStripeEventAt, not this processing-time write clock.
+      updatedAt: new Date(1_900_000_000_000),
     });
 
     await syncSubscriptionFromStripe(
       fakeSubscription({ ownerId: 'owner_1' }),
-      1_700_000_100, // older than the row's updatedAt
+      1_700_000_100, // older than the row's lastStripeEventAt
     );
 
     expect(subscriptionService.upsertFromStripe).not.toHaveBeenCalled();
   });
 
-  it('writes when the event is newer than the row on file', async () => {
+  it('writes when the event is newer than the last event already applied', async () => {
     vi.mocked(subscriptionService.findByOwnerId).mockResolvedValue({
       id: 'row_1',
       ownerId: 'owner_1',
@@ -72,8 +77,31 @@ describe('syncSubscriptionFromStripe', () => {
       status: 'incomplete',
       plan: 'pro',
       currentPeriodEnd: null,
+      lastStripeEventAt: new Date(1_700_000_000 * 1000),
       createdAt: new Date(0),
       updatedAt: new Date(1_700_000_000_000),
+    });
+
+    await syncSubscriptionFromStripe(
+      fakeSubscription({ ownerId: 'owner_1' }),
+      1_700_000_100,
+    );
+
+    expect(subscriptionService.upsertFromStripe).toHaveBeenCalledTimes(1);
+  });
+
+  it('writes when the row has no lastStripeEventAt yet (first sync)', async () => {
+    vi.mocked(subscriptionService.findByOwnerId).mockResolvedValue({
+      id: 'row_1',
+      ownerId: 'owner_1',
+      stripeCustomerId: 'cus_1',
+      stripeSubscriptionId: 'sub_1',
+      status: 'incomplete',
+      plan: 'pro',
+      currentPeriodEnd: null,
+      lastStripeEventAt: null,
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
     });
 
     await syncSubscriptionFromStripe(

@@ -39,7 +39,10 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error('Invalid Stripe webhook signature', error);
-    return NextResponse.json({ message: 'Invalid signature.' }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid signature.' },
+      { status: 400 },
+    );
   }
 
   try {

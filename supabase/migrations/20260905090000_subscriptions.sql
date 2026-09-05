@@ -16,6 +16,10 @@ create table subscriptions (
   status text not null,
   plan text not null,
   current_period_end timestamptz,
+  -- Stripe's event.created for the last webhook event actually applied to
+  -- this row (not our own write clock — see sync-subscription.service.ts's
+  -- out-of-order guard).
+  last_stripe_event_at timestamptz,
 
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

@@ -63,13 +63,18 @@ export async function createCheckoutSession(
 
     // An abandoned checkout never reaches a webhook that would save the
     // customer id, so check Stripe for one we already created before
-    // minting another for the same owner.
+    // minting another for the same owner. Filter by our own owner_id
+    // metadata (not just email) so a Stripe customer that happens to share
+    // this email for an unrelated reason is never reused.
     const existingByEmail = user?.email
-      ? await stripe.customers.list({ email: user.email, limit: 1 })
+      ? await stripe.customers.list({ email: user.email, limit: 10 })
       : null;
+    const ownedByThisUser = existingByEmail?.data.find(
+      (customer) => customer.metadata.owner_id === ownerId,
+    );
 
     customerId =
-      existingByEmail?.data[0]?.id ??
+      ownedByThisUser?.id ??
       (
         await stripe.customers.create({
           email: user?.email,

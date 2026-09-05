@@ -592,9 +592,12 @@ Billing runs on Stripe Checkout + webhook, not a hand-rolled payment flow.
 `subscriptions` (migration `20260905090000_subscriptions.sql`) is a local
 projection of Stripe's own subscription state — `owner_id`, `stripe_customer_id`,
 `stripe_subscription_id`, `status`, `plan`, `current_period_end` — carrying
-the same `owner_all` RLS policy every other table uses, so the signed-in
-owner can read their own row through the normal request client. The only
-writer is `src/features/billing/services/sync-subscription.service.ts`,
+an `owner_read` RLS policy — select-only, unlike the `owner_all` policy
+every other table uses — so the signed-in owner can read their own row
+through the normal request client, but cannot write it: an insert/update
+policy would let a signed-in user self-grant `status='active'`/`plan='pro'`
+from the browser. The only writer is
+`src/features/billing/services/sync-subscription.service.ts`,
 called from `POST /api/stripe/webhook` after Stripe-signature verification,
 and it is the first place in the codebase that legitimately calls
 `createAdminClient()` (service-role, bypasses RLS) from request-handling
@@ -627,10 +630,12 @@ Alternatives Considered:
 - Grant access directly from the Checkout success-page redirect — rejected:
   the redirect is client-controlled and unverified; only the signed webhook
   event proves payment.
-- Loosen the `owner_all` RLS policy so a service-role write isn't needed —
-  rejected: RLS still correctly protects reads for every other client; the
-  gap is session-less writes, which policy relaxation doesn't fix without
-  also weakening owner isolation for signed-in requests.
+- Give `subscriptions` the same `owner_all` policy every other table uses so
+  a service-role write isn't needed — rejected: an insert/update policy on
+  this table would let a signed-in user write their own `status`/`plan` from
+  the browser, which is exactly what the service-role exception exists to
+  prevent. `owner_read` (select-only) plus the service-role writer is the
+  correct split.
 - Call `createAdminClient()` directly inside `src/entities/subscription/service.ts`
   — rejected: that would make the entity service always capable of
   bypassing RLS, defeating the point of confining the exception to one
