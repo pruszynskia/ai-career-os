@@ -318,6 +318,44 @@ toAiErrorResponse classifies the error into one of two responses:
 Domain errors (e.g. NoMasterCvError, OfferNotFoundError, NoProfileError)
 stay in each route's own catch block and keep their route-specific status
 codes (400/404/422); only the rate-limit/generic tail is shared.
+Entitlement Error Handling
+
+Any route gating a paid capability calls requirePlan or assertWithinLimit
+from src/shared/billing/entitlements.ts. Both throw the same typed error,
+EntitlementError (src/shared/billing/errors.ts), which the route maps with
+toEntitlementErrorResponse(error):
+
+catch(error){
+
+if (error instanceof EntitlementError) {
+  return toEntitlementErrorResponse(error);
+}
+
+return toAiErrorResponse(error, 'Failed to do the thing.');
+
+}
+
+toEntitlementErrorResponse always returns status 402, with a body shaped
+like:
+
+interface EntitlementErrorBody {
+
+message:string;
+
+plan:'free'|'pro';
+
+limit:number;
+
+upgradePath:string;
+
+}
+
+`plan` is the owner's current plan id, `limit` is the AI-action allowance
+that was hit (0 when the route required a higher plan tier rather than a
+usage cap), and `upgradePath` is the path the client should send the user to
+(`/pricing`). The tier list itself - names, prices, AI-action allowances -
+lives once in src/shared/billing/plans.ts and is rendered by the pricing
+table from that same constant.
 Loading States
 
 Every API-driven UI must handle:

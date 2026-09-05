@@ -2,6 +2,46 @@
 
 ## Current Sprint
 
+### Feature: TASK-058 — Plan model and entitlement gate
+
+Status: **done** — green on typecheck/lint/test/build. Backend-only, no
+Playwright design-review loop needed.
+
+What shipped:
+
+- `src/shared/billing/plans.ts` (new) — `PlanId`, `Plan`, the `PLANS`
+  constant (moved verbatim from `pricing-table.tsx`, which now imports it),
+  `FREE_PLAN` and `getPlanById`. Single source of truth for tier
+  name/price/AI-action allowance, ordered lowest-to-highest tier.
+- `src/shared/billing/errors.ts` (new) — `EntitlementError` (carries `plan`,
+  `limit`, `upgradePath`) and `toEntitlementErrorResponse` mapping it to a
+  402 JSON body, modeled on `src/shared/ai/errors.ts`'s `toAiErrorResponse`.
+- `src/shared/billing/entitlements.ts` (new) — `getPlanForOwner(ownerId)`
+  (active/trialing → that plan, everything else including no row → free, via
+  `subscriptionService.findByOwnerId`), `requirePlan(ownerId, planId)`
+  (throws `EntitlementError` with `limit: 0` if the owner's plan index is
+  below the required plan's), `assertWithinLimit(used, plan)` (throws when
+  `used >= plan.aiActionsPerMonth`; does not count usage itself — TASK-059).
+- `src/features/marketing/components/pricing-table.tsx` — `PlanId`/`Plan`/
+  `PLANS` now imported from `@/shared/billing/plans` instead of being
+  defined locally; no behaviour change.
+- `docs/API_GUIDE.md` — new "Entitlement Error Handling" section next to the
+  existing AI-routes error section, documenting the 402 body shape.
+- `tests/smoke/unit/entitlements.test.ts` (new) — covers `getPlanForOwner`
+  for every `SubscriptionStatus` value, `requirePlan`'s throw/pass paths, and
+  `assertWithinLimit`'s boundary.
+
+Not done in this task (explicitly out of scope): no route wires these
+helpers in yet (no existing feature is gated) — that starts with TASK-059's
+AI quota.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 40 passed (13 new)
+- `npm run build` — pass
+
 ### Feature: TASK-057 — Billing portal and account settings page
 
 Status: **done** — green on typecheck/lint/test/build. Playwright
