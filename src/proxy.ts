@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/forgot-password',
   '/reset-password',
   '/auth/callback',
+  '/api/stripe/webhook',
 ];
 
 export async function proxy(request: NextRequest) {
