@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 
+import { CheckoutButton } from '@/features/marketing/components/checkout-button';
+import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Grid, HStack, Heading, Text, VStack } from '@/shared/ui/primitives';
@@ -58,7 +60,13 @@ export const PLANS: readonly Plan[] = [
   },
 ] as const;
 
-export function PricingTable() {
+export async function PricingTable() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isSignedIn = Boolean(user);
+
   return (
     <Grid cols={1} colsMd={2} gap={6}>
       {PLANS.map((plan) => (
@@ -89,13 +97,23 @@ export function PricingTable() {
                   </HStack>
                 ))}
               </VStack>
-              <Button
-                asChild
-                variant={plan.featured ? 'default' : 'outline'}
-                className="w-full"
-              >
-                <Link href="/sign-up">{plan.cta}</Link>
-              </Button>
+              {isSignedIn ? (
+                plan.id === 'pro' ? (
+                  <CheckoutButton
+                    plan={plan.id}
+                    label={plan.cta}
+                    featured={plan.featured}
+                  />
+                ) : null
+              ) : (
+                <Button
+                  asChild
+                  variant={plan.featured ? 'default' : 'outline'}
+                  className="w-full"
+                >
+                  <Link href="/sign-up">{plan.cta}</Link>
+                </Button>
+              )}
             </VStack>
           </CardContent>
         </Card>

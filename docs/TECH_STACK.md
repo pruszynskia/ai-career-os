@@ -467,6 +467,42 @@ Rules:
 
 ---
 
+# Billing
+
+## Provider
+
+**Stripe** — Checkout for the free-to-paid upgrade and the Stripe webhook as
+the single writer of subscription state. See ADR-015 in
+`memory-bank/decisions.md`.
+
+Usage:
+
+- `POST /api/billing/checkout` creates a Checkout session for the signed-in
+  owner via `src/features/billing/services/create-checkout-session.service.ts`
+- `POST /api/stripe/webhook` verifies the Stripe signature and syncs
+  `checkout.session.completed` / `customer.subscription.updated` /
+  `customer.subscription.deleted` into the `subscriptions` table via
+  `src/features/billing/services/sync-subscription.service.ts`
+- `src/entities/subscription/service.ts` is the only module reading or
+  writing the `subscriptions` table
+
+Environment variables (server-only, never `NEXT_PUBLIC_`):
+
+- `STRIPE_SECRET_KEY` — read only by `src/shared/billing/stripe.ts`
+- `STRIPE_WEBHOOK_SECRET` — read only by the webhook route
+- `STRIPE_PRICE_ID_PRO` — the Pro plan's Stripe Price id
+
+Rules:
+
+- Stripe is the source of truth for billing state; `subscriptions` is a
+  local projection kept current by the webhook, never reconstructed from a
+  Checkout redirect
+- `createAdminClient()` (service-role, bypasses RLS) is used only in the
+  webhook's sync service — every other read goes through the request client
+  and RLS
+
+---
+
 # Testing
 
 ## Unit Testing

@@ -2,6 +2,74 @@
 
 ## Current Sprint
 
+### Feature: TASK-056 — Subscriptions schema, Stripe Checkout and webhook
+
+Status: **done** — implementation complete (migration, entity, services,
+routes, pricing-table wiring, ADR-015, docs) and green on
+typecheck/lint/test/build.
+
+The one out-of-scope touch: `src/proxy.ts` gates every `/api` path behind a
+signed-in session (TASK-055: "Every `/(app)` and `/api` path stays gated").
+Stripe calls `POST /api/stripe/webhook` with no session cookie at all, so
+without adding that path to `PUBLIC_PATHS`, the proxy would redirect
+Stripe's webhook request to `/sign-in` before the route handler's signature
+verification ever runs. `src/proxy.ts` was not in TASK-056's `scope:` list;
+Andrzej signed off on the one-line addition (`/api/stripe/webhook` to
+`PUBLIC_PATHS`, commit `088fcdc`) since route-level signature verification is
+the actual security boundary for that path.
+
+What's in place:
+
+- `supabase/migrations/20260905090000_subscriptions.sql` — `subscriptions`
+  table (`owner_id`, `stripe_customer_id`, `stripe_subscription_id` unique,
+  `status`, `plan`, `current_period_end`), unique index on `owner_id`, index
+  on `stripe_customer_id`, `owner_all` RLS policy.
+- `src/shared/billing/stripe.ts` — lazily-constructed `Stripe` client reading
+  `STRIPE_SECRET_KEY`, `server-only`.
+- `src/entities/subscription/{types.ts,service.ts}` — `Subscription` type +
+  Zod schema; `findByOwnerId`, `findByStripeCustomerId`, `upsertFromStripe`
+  (takes an optional `SupabaseClient` so the webhook can pass
+  `createAdminClient()` without the entity service ever calling it itself).
+- `src/features/billing/services/create-checkout-session.service.ts` —
+  creates/reuses the Stripe customer, returns a Checkout session URL for the
+  `pro` plan's `STRIPE_PRICE_ID_PRO`.
+- `src/features/billing/services/sync-subscription.service.ts` — the one
+  caller of `createAdminClient()` in request-handling code; reads `owner_id`
+  from the Stripe subscription's own metadata (stamped at Checkout-session
+  creation), upserts into `subscriptions`.
+- `src/app/api/billing/checkout/route.ts` (POST) — thin: `getOwnerId()`,
+  Zod-validates `{ plan: 'pro' }`, calls the service, returns `{ url }`.
+- `src/app/api/stripe/webhook/route.ts` (POST) — verifies
+  `STRIPE_WEBHOOK_SECRET` against the raw body, handles
+  `checkout.session.completed` / `customer.subscription.updated` /
+  `customer.subscription.deleted`.
+- `src/features/marketing/components/checkout-button.tsx` (new, not in
+  original scope list but required once `PricingTable` became a server
+  component reading auth state — a client component is the only way to wire
+  a button click to `fetch('/api/billing/checkout')`) — client button posting
+  to the checkout route and redirecting to the returned Stripe URL.
+- `src/features/marketing/components/pricing-table.tsx` — now `async`, reads
+  `supabase.auth.getUser()`; signed-in visitors see `CheckoutButton` on the
+  `pro` plan, signed-out visitors still see the `/sign-up` CTA.
+- ADR-015 in `memory-bank/decisions.md`, billing section in
+  `docs/TECH_STACK.md`, `billing` slice note in `ARCHITECTURE.md`.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 23 passed (no new tests added; no existing entity/feature
+  service in this codebase has one either)
+- `npm run build` — pass, with or without Stripe env vars set (client is
+  lazy)
+
+Not verified in this session: an actual Stripe test-mode Checkout completing
+end-to-end (needs live `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/
+`STRIPE_PRICE_ID_PRO` and the Stripe CLI or a deployed webhook URL) — code
+paths for `checkout.session.completed` / `customer.subscription.updated` /
+`customer.subscription.deleted` are implemented and typecheck against the
+Stripe SDK's types, but a live smoke test is a follow-up, not blocking.
+
 ### Feature: TASK-055 — Public marketing landing and pricing pages
 
 Status: Implemented; gate green (typecheck / lint / test / build). Playwright
