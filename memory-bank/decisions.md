@@ -580,6 +580,83 @@ Consequences:
 
 ---
 
+## ADR-015
+
+Date:
+
+2026-09-05
+
+Decision:
+
+Billing runs on Stripe Checkout + webhook, not a hand-rolled payment flow.
+`subscriptions` (migration `20260905090000_subscriptions.sql`) is a local
+projection of Stripe's own subscription state — `owner_id`, `stripe_customer_id`,
+`stripe_subscription_id`, `status`, `plan`, `current_period_end` — carrying
+an `owner_read` RLS policy — select-only, unlike the `owner_all` policy
+every other table uses — so the signed-in owner can read their own row
+through the normal request client, but cannot write it: an insert/update
+policy would let a signed-in user self-grant `status='active'`/`plan='pro'`
+from the browser. The only writer is
+`src/features/billing/services/sync-subscription.service.ts`,
+called from `POST /api/stripe/webhook` after Stripe-signature verification,
+and it is the first place in the codebase that legitimately calls
+`createAdminClient()` (service-role, bypasses RLS) from request-handling
+code: a signature-verified webhook has no user session and therefore no
+`auth.uid()` for RLS's `owner_id = auth.uid()` check to match. Every other
+billing read (`src/entities/subscription/service.ts`'s `findByOwnerId` /
+`findByStripeCustomerId`, and the Checkout-session service) goes through the
+request client and RLS as normal — `createAdminClient()` is threaded in as
+an optional parameter to `upsertFromStripe` rather than called inside the
+entity service itself, so the exception stays visible at its one call site.
+`owner_id` reaches the webhook via metadata stamped on the Stripe
+subscription at Checkout-session creation (`subscription_data.metadata`),
+not by looking up an existing `subscriptions` row — the first sync for a new
+subscriber has none yet.
+
+Reason:
+
+Stripe already handles PCI compliance, card storage and retry logic for
+failed payments; rebuilding any of that would be pure liability for no
+product value at MVP scale. Making Stripe the source of truth and the
+webhook the only writer means a Checkout redirect can never be trusted to
+grant access on its own (a user can land on the success URL without Stripe
+having actually confirmed payment) — only a verified webhook event does
+that. The service-role client is the correct tool for exactly this one gap:
+RLS's `auth.uid()` model assumes a Supabase Auth session, which a webhook
+delivered by Stripe's servers never has.
+
+Alternatives Considered:
+
+- Grant access directly from the Checkout success-page redirect — rejected:
+  the redirect is client-controlled and unverified; only the signed webhook
+  event proves payment.
+- Give `subscriptions` the same `owner_all` policy every other table uses so
+  a service-role write isn't needed — rejected: an insert/update policy on
+  this table would let a signed-in user write their own `status`/`plan` from
+  the browser, which is exactly what the service-role exception exists to
+  prevent. `owner_read` (select-only) plus the service-role writer is the
+  correct split.
+- Call `createAdminClient()` directly inside `src/entities/subscription/service.ts`
+  — rejected: that would make the entity service always capable of
+  bypassing RLS, defeating the point of confining the exception to one
+  call site the acceptance criteria (and, later, TASK-062's lint guard) can
+  point at.
+
+Consequences:
+
+- New: `subscriptions` table + migration, `src/shared/billing/stripe.ts`,
+  `src/entities/subscription/{types.ts,service.ts}`,
+  `src/features/billing/services/{create-checkout-session,sync-subscription}.service.ts`,
+  `src/app/api/billing/checkout/route.ts`, `src/app/api/stripe/webhook/route.ts`.
+- `createAdminClient()` now has exactly one legitimate request-path caller;
+  TASK-062's planned `no-restricted-imports` lint rule enforces that this
+  stays true.
+- TASK-058's entitlement gate and TASK-059's usage quota read plan/status
+  from this table through `subscriptionService`, never by querying Stripe
+  directly.
+
+---
+
 ## ADR-016
 
 Date:

@@ -136,7 +136,12 @@ slice is isolated automatically).
 
 Real, shipped slice names (singular, canonical for all future slices):
 
-`job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`, `document`
+`job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`, `document`,
+`billing`
+
+`billing` (TASK-056) holds Stripe Checkout and the webhook-driven
+subscription sync; `src/entities/subscription` is its canonical entity and
+`src/shared/billing/stripe.ts` its lazily-constructed Stripe client.
 
 Cross-feature composition (e.g. the job-offer detail view triggering
 application creation) happens at the widget layer, not via direct
@@ -229,7 +234,7 @@ Rules:
 - All Supabase queries for one entity live in one service module, not scattered across route handlers.
 - Schema changes only via `supabase/migrations/*.sql` — never hand-edited in the database.
 - Every table carries `id`, `owner_id` (references `auth.users`, ADR-005/ADR-009), `created_at`, `updated_at`; RLS policies scope every row to `owner_id = auth.uid()`.
-- Supabase URL/keys and all secrets come from environment variables, never hardcoded; `SUPABASE_SERVICE_ROLE_KEY` is server-only and never used in request-handling code.
+- Supabase URL/keys and all secrets come from environment variables, never hardcoded; `SUPABASE_SERVICE_ROLE_KEY` is server-only and never used in request-handling code — the single sanctioned exception is the Stripe webhook's `sync-subscription.service.ts` (ADR-015), which has no user session and therefore no `auth.uid()` for RLS to match.
 - Entity types are canonical: each top-level entity has one `src/entities/{entity}/types.ts` with a hand-written type mirroring the Supabase schema and a Zod schema for that same shape (e.g. `applicationSchema`, `jobOfferSchema`). Route handlers and feature `types.ts` files never redeclare an entity's own fields as a new Zod schema — they import and compose (`.pick`/`.extend`) the entity schema, or import the entity type for request/response DTOs.
 
 This keeps each entity's data-access logic AI-discoverable in one file, and

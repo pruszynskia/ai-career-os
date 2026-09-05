@@ -1,0 +1,33 @@
+-- Local projection of Stripe subscription state (TASK-056). Stripe is the
+-- source of truth; the Stripe webhook is the only writer, using the
+-- service-role client because a signature-verified webhook has no user
+-- session and therefore no auth.uid() for RLS to match (see ADR-015). The
+-- service-role client bypasses RLS entirely, so unlike every other table's
+-- owner_all policy, the request client (anon key + user session) only ever
+-- needs read access here — an insert/update policy would let a signed-in
+-- user self-grant status='active'/plan='pro' from the browser.
+
+create table subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users (id),
+
+  stripe_customer_id text not null,
+  stripe_subscription_id text unique,
+  status text not null,
+  plan text not null,
+  current_period_end timestamptz,
+  -- Stripe's event.created for the last webhook event actually applied to
+  -- this row (not our own write clock — see sync-subscription.service.ts's
+  -- out-of-order guard).
+  last_stripe_event_at timestamptz,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index subscriptions_owner_id_idx on subscriptions (owner_id);
+create index subscriptions_stripe_customer_id_idx on subscriptions (stripe_customer_id);
+
+alter table subscriptions enable row level security;
+
+create policy "owner_read" on subscriptions for select using (owner_id = auth.uid());
