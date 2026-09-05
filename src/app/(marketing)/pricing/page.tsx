@@ -5,6 +5,9 @@ import { PricingTable } from '@/features/marketing/components/pricing-table';
 import { Button } from '@/shared/ui/button';
 import { HStack, Heading, Text, VStack } from '@/shared/ui/primitives';
 
+// PricingTable reads the signed-in user's subscription per request.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Pricing — AI Career OS',
   description:

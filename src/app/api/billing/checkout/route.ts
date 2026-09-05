@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
+  AlreadySubscribedError,
   createCheckoutSession,
   MissingPriceIdError,
 } from '@/features/billing/services/create-checkout-session.service';
@@ -27,6 +28,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof MissingPriceIdError) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+    if (error instanceof AlreadySubscribedError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
     }
 
     console.error('Failed to create the Checkout session', error);

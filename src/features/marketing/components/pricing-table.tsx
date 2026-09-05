@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 
 import { CheckoutButton } from '@/features/marketing/components/checkout-button';
+import { subscriptionService } from '@/entities/subscription/service';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
@@ -66,6 +67,10 @@ export async function PricingTable() {
     data: { user },
   } = await supabase.auth.getUser();
   const isSignedIn = Boolean(user);
+  const subscription = user ? await subscriptionService.findByOwnerId(user.id) : null;
+  const isPro = subscription
+    ? ['active', 'trialing'].includes(subscription.status)
+    : false;
 
   return (
     <Grid cols={1} colsMd={2} gap={6}>
@@ -98,13 +103,21 @@ export async function PricingTable() {
                 ))}
               </VStack>
               {isSignedIn ? (
-                plan.id === 'pro' ? (
+                plan.id === (isPro ? 'pro' : 'free') ? (
+                  <Button variant="outline" className="w-full" disabled>
+                    Current plan
+                  </Button>
+                ) : isPro ? (
+                  <Button variant="outline" className="w-full" disabled>
+                    Included
+                  </Button>
+                ) : (
                   <CheckoutButton
-                    plan={plan.id}
+                    plan="pro"
                     label={plan.cta}
                     featured={plan.featured}
                   />
-                ) : null
+                )
               ) : (
                 <Button
                   asChild

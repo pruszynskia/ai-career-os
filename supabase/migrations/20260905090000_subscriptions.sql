@@ -2,8 +2,10 @@
 -- source of truth; the Stripe webhook is the only writer, using the
 -- service-role client because a signature-verified webhook has no user
 -- session and therefore no auth.uid() for RLS to match (see ADR-015). The
--- owner_all policy still applies so the owner can read their own row through
--- the normal request client.
+-- service-role client bypasses RLS entirely, so unlike every other table's
+-- owner_all policy, the request client (anon key + user session) only ever
+-- needs read access here — an insert/update policy would let a signed-in
+-- user self-grant status='active'/plan='pro' from the browser.
 
 create table subscriptions (
   id uuid primary key default gen_random_uuid(),
@@ -24,4 +26,4 @@ create index subscriptions_stripe_customer_id_idx on subscriptions (stripe_custo
 
 alter table subscriptions enable row level security;
 
-create policy "owner_all" on subscriptions for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "owner_read" on subscriptions for select using (owner_id = auth.uid());

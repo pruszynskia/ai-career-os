@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-
+import { useCreateCheckoutSession } from '@/features/marketing/hooks/use-create-checkout-session';
 import { Button } from '@/shared/ui/button';
 import { Text, VStack } from '@/shared/ui/primitives';
 
@@ -14,31 +13,7 @@ export function CheckoutButton({
   label: string;
   featured: boolean;
 }) {
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleClick() {
-    setIsPending(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await response.json();
-
-      if (!response.ok || typeof data.url !== 'string') {
-        throw new Error(data.message ?? 'Failed to start checkout.');
-      }
-
-      window.location.href = data.url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start checkout.');
-      setIsPending(false);
-    }
-  }
+  const { mutate, isPending, error } = useCreateCheckoutSession();
 
   return (
     <VStack gap={2}>
@@ -46,12 +21,12 @@ export function CheckoutButton({
         type="button"
         variant={featured ? 'default' : 'outline'}
         className="w-full"
-        onClick={handleClick}
+        onClick={() => mutate(plan)}
         disabled={isPending}
       >
         {isPending ? 'Redirecting…' : label}
       </Button>
-      {error ? <Text color="destructive">{error}</Text> : null}
+      {error ? <Text color="destructive">{error.message}</Text> : null}
     </VStack>
   );
 }

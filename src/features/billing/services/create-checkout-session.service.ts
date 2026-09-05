@@ -17,6 +17,13 @@ export class MissingPriceIdError extends Error {
   }
 }
 
+export class AlreadySubscribedError extends Error {
+  constructor() {
+    super('This account already has an active subscription.');
+    this.name = 'AlreadySubscribedError';
+  }
+}
+
 // Mirrors the private siteOrigin() in src/shared/auth/actions.ts — that
 // helper isn't exported and this task's scope doesn't touch src/shared/auth/**.
 async function siteOrigin(): Promise<string> {
@@ -40,6 +47,13 @@ export async function createCheckoutSession(
   const stripe = getStripeClient();
   const existingSubscription = await subscriptionService.findByOwnerId(ownerId);
 
+  if (
+    existingSubscription &&
+    ['active', 'trialing'].includes(existingSubscription.status)
+  ) {
+    throw new AlreadySubscribedError();
+  }
+
   let customerId = existingSubscription?.stripeCustomerId;
   if (!customerId) {
     const supabase = await createClient();
@@ -47,11 +61,21 @@ export async function createCheckoutSession(
       data: { user },
     } = await supabase.auth.getUser();
 
-    const customer = await stripe.customers.create({
-      email: user?.email,
-      metadata: { owner_id: ownerId },
-    });
-    customerId = customer.id;
+    // An abandoned checkout never reaches a webhook that would save the
+    // customer id, so check Stripe for one we already created before
+    // minting another for the same owner.
+    const existingByEmail = user?.email
+      ? await stripe.customers.list({ email: user.email, limit: 1 })
+      : null;
+
+    customerId =
+      existingByEmail?.data[0]?.id ??
+      (
+        await stripe.customers.create({
+          email: user?.email,
+          metadata: { owner_id: ownerId },
+        })
+      ).id;
   }
 
   const origin = await siteOrigin();

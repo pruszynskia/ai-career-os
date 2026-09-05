@@ -26,8 +26,13 @@ function toSubscription(row: Record<string, unknown>): Subscription {
 }
 
 export const subscriptionService = {
-  async findByOwnerId(ownerId: string): Promise<Subscription | null> {
-    const supabase = await createClient();
+  // `client` lets the Stripe webhook (no user session, hence no auth.uid()
+  // for RLS to match — see ADR-015) pass in createAdminClient().
+  async findByOwnerId(
+    ownerId: string,
+    client?: SupabaseClient,
+  ): Promise<Subscription | null> {
+    const supabase = client ?? (await createClient());
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -40,8 +45,9 @@ export const subscriptionService = {
 
   async findByStripeCustomerId(
     stripeCustomerId: string,
+    client?: SupabaseClient,
   ): Promise<Subscription | null> {
-    const supabase = await createClient();
+    const supabase = client ?? (await createClient());
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -52,9 +58,9 @@ export const subscriptionService = {
     return data ? toSubscription(data) : null;
   },
 
-  // `client` lets the Stripe webhook (the one path with no user session,
-  // hence no auth.uid() for RLS to match — see ADR-015) pass in
-  // createAdminClient() instead of the default request-scoped client.
+  // The subscriptions RLS policy is select-only (see the migration): only
+  // the webhook writes, using createAdminClient(). There is no request-client
+  // fallback because the request client can never satisfy this write.
   async upsertFromStripe(
     values: {
       ownerId: string;
@@ -64,9 +70,9 @@ export const subscriptionService = {
       plan: string;
       currentPeriodEnd: Date | null;
     },
-    client?: SupabaseClient,
+    client: SupabaseClient,
   ): Promise<Subscription> {
-    const supabase = client ?? (await createClient());
+    const supabase = client;
     const { data, error } = await supabase
       .from('subscriptions')
       .upsert(
