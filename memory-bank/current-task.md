@@ -2,6 +2,82 @@
 
 ## Current Sprint
 
+### Feature: TASK-060 — New-user onboarding flow
+
+Status: **done** — green on typecheck/lint/test/build. Playwright
+design-review loop not run (non-interactive session, no Playwright MCP
+server available here) — needs a visual pass on `/onboarding` during review.
+
+Review-round fixes (5 blocking findings from the deploy-loop):
+
+- **Major — stale onboarding gate bounced the user back.** `completeOnboarding`
+  now calls `revalidatePath('/', 'layout')` before `redirect('/dashboard')`
+  so the shared `(app)` layout re-computes `needsOnboarding` instead of
+  serving a cached `true` from the Router Cache.
+- **Placeholder sentinel (findings 2 + 3).** `isPlaceholder` no longer
+  overloads `summary === ''` (collided with a genuine CV parsing to an empty
+  summary). The migration drops `NOT NULL` on `profiles.summary` and adds DB
+  defaults for `skills`/`experience`; a pre-CV row now has `summary IS NULL`
+  and `isPlaceholder` keys on that. `completeOnboarding` collapses to a single
+  race-safe upsert (no more insert-then-update). The migration's placeholder
+  insert only names `owner_id, onboarded_at` — no TS sentinel encoded in SQL.
+- `updatePreferences` now applies the same `isPlaceholder` filter as
+  `findUnique` (was returning a non-null `Profile` with an empty summary).
+- **A11y.** `OnboardingStepper` gained `role="list"`/`role="listitem"`,
+  `aria-current="step"` on the active item, and an `sr-only` state label so
+  step state is not colour-only.
+- `OnboardingGate` keeps its client `useEffect` redirect (server-side needs
+  `proxy.ts`, out of scope) with a `ponytail:` comment naming the trade-off.
+
+What shipped:
+
+- `supabase/migrations/20260905110000_profile_onboarded_at.sql` — nullable
+  `profiles.onboarded_at timestamptz`, backfilled to `created_at` for every
+  existing row so current accounts never see onboarding.
+- `src/entities/profile/types.ts` / `service.ts` — `onboardedAt` added to
+  `Profile`/`profileSchema` and the row mapper. New
+  `profileService.completeOnboarding(ownerId)`: additive, doesn't touch
+  `upsert()`'s signature. Selects first — `update`s `onboarded_at` if a
+  profile row exists, otherwise `insert`s a placeholder row (empty
+  summary/skills/experience, all NOT NULL with no default) so skipping
+  before any CV upload still persists `onboarded_at` instead of silently
+  no-op'ing an UPDATE against zero rows.
+- `src/features/onboarding/services/complete-onboarding.service.ts` — `'use
+  server'` action (same pattern as `src/shared/auth/actions.ts`): calls
+  `completeOnboarding` then `redirect('/dashboard')`. Used directly as a
+  `<form action>` on both Skip and Finish.
+- `src/features/onboarding/components/onboarding-stepper.tsx` —
+  presentational progress indicator, no cross-feature imports.
+- `src/features/onboarding/components/onboarding-gate.tsx` (new, not in the
+  original scope list but required to make the layout redirect work) —
+  client component; Next.js Server Components/layouts have no built-in way
+  to read the current pathname (only middleware/`proxy.ts` does, which is
+  out of this task's scope), so the `/onboarding` + `/settings` exemption is
+  checked client-side via `usePathname()` and redirects with
+  `router.replace()`. Returns `null` while redirecting, so there's no flash
+  of gated content.
+- `src/widgets/onboarding-panel/onboarding-panel.tsx` — cross-feature
+  composition (`marketing`'s `PricingTable`, `cv`'s `CvUploadForm`,
+  `job-offer`'s `AddOfferForm`) per ADR-008, driven by a `?step=` query
+  param on `/onboarding` (Back/Next are plain `Link`s, no client state).
+  Skip/Finish both submit the same server action.
+- `src/app/(app)/onboarding/page.tsx` — reads/clamps `?step=`, renders
+  `OnboardingPanel` inside `AppPageLayout`.
+- `src/app/(app)/layout.tsx` — now also fetches the profile and wraps
+  `children` in `OnboardingGate`.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 42 passed (no new tests — this is routing/composition
+  over already-tested services, no existing precedent for testing a page or
+  a `usePathname` gate in this codebase)
+- `npm run build` — pass; `/onboarding` compiles as a dynamic route
+
+Not verified in this session: a live browser walk-through of a fresh signup
+through all three steps (no Playwright MCP server in this environment).
+
 ### Feature: TASK-058 — Plan model and entitlement gate
 
 Status: **done** — green on typecheck/lint/test/build. Backend-only, no

@@ -3,6 +3,14 @@ import 'server-only';
 import { createClient } from '@/shared/db/client';
 import type { JobPreferences, Profile } from '@/entities/profile/types';
 
+// A row that exists only to record onboarding completion / preferences
+// before any CV has been parsed. NULL summary is the DB's own "no CV yet";
+// a parsed CV always writes a string, even an empty one, so a real profile
+// and a pre-CV row can never be confused. Exported for direct unit testing.
+export function isPlaceholder(row: Record<string, unknown>): boolean {
+  return row.summary === null;
+}
+
 function toProfile(row: Record<string, unknown>): Profile {
   return {
     id: row.id as string,
@@ -14,6 +22,7 @@ function toProfile(row: Record<string, unknown>): Profile {
     score: row.score,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
+    onboardedAt: row.onboarded_at ? new Date(row.onboarded_at as string) : null,
     workMode: row.work_mode as Profile['workMode'],
     salaryMin: row.salary_min as number | null,
     salaryMax: row.salary_max as number | null,
@@ -59,7 +68,9 @@ export const profileService = {
       .maybeSingle();
 
     if (error) throw error;
-    return data ? toProfile(data) : null;
+    // A placeholder onboarding row is not a real profile: the CV-dependent
+    // features guarding on `if (!profile)` must still see null.
+    return data && !isPlaceholder(data) ? toProfile(data) : null;
   },
 
   async upsert(
@@ -94,6 +105,21 @@ export const profileService = {
     return toProfile(data);
   },
 
+  // Used by the (app) layout on every navigation to decide whether to
+  // gate into onboarding. Selects only the one column it needs instead of
+  // the full row findUnique() returns.
+  async getOnboardedAt(ownerId: string): Promise<Date | null> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('onboarded_at')
+      .eq('owner_id', ownerId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.onboarded_at ? new Date(data.onboarded_at as string) : null;
+  },
+
   async updatePreferences(
     ownerId: string,
     preferences: Partial<JobPreferences>,
@@ -106,10 +132,31 @@ export const profileService = {
         updated_at: new Date().toISOString(),
       })
       .eq('owner_id', ownerId)
+      // Scope the write to a real profile: a placeholder onboarding row has a
+      // NULL summary, so this never persists preferences to it before the
+      // result is checked.
+      .not('summary', 'is', null)
       .select()
       .maybeSingle();
 
     if (error) throw error;
     return data ? toProfile(data) : null;
+  },
+
+  // Additive: sets onboarded_at without touching the CV-parsed fields
+  // upsert() owns. The row may not exist yet (skip before any CV upload);
+  // skills/experience take their DB defaults and summary stays NULL, which
+  // findUnique() reads as "no profile yet". A single upsert is race-safe by
+  // construction. On an existing real profile, onConflict updates only
+  // onboarded_at and leaves the CV data intact.
+  async completeOnboarding(ownerId: string): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(
+        { owner_id: ownerId, onboarded_at: new Date().toISOString() },
+        { onConflict: 'owner_id' },
+      );
+    if (error) throw error;
   },
 };
