@@ -3,7 +3,8 @@ import { OnboardingPanel } from '@/widgets/onboarding-panel/onboarding-panel';
 
 export const dynamic = 'force-dynamic';
 
-function clampStep(value: number): number {
+// Exported for direct unit testing.
+export function clampStep(value: number): number {
   if (!Number.isFinite(value) || value < 1) return 1;
   if (value > 3) return 3;
   return Math.trunc(value);

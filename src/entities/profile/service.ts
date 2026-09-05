@@ -6,8 +6,8 @@ import type { JobPreferences, Profile } from '@/entities/profile/types';
 // A row that exists only to record onboarding completion / preferences
 // before any CV has been parsed. NULL summary is the DB's own "no CV yet";
 // a parsed CV always writes a string, even an empty one, so a real profile
-// and a pre-CV row can never be confused.
-function isPlaceholder(row: Record<string, unknown>): boolean {
+// and a pre-CV row can never be confused. Exported for direct unit testing.
+export function isPlaceholder(row: Record<string, unknown>): boolean {
   return row.summary === null;
 }
 
@@ -132,11 +132,15 @@ export const profileService = {
         updated_at: new Date().toISOString(),
       })
       .eq('owner_id', ownerId)
+      // Scope the write to a real profile: a placeholder onboarding row has a
+      // NULL summary, so this never persists preferences to it before the
+      // result is checked.
+      .not('summary', 'is', null)
       .select()
       .maybeSingle();
 
     if (error) throw error;
-    return data && !isPlaceholder(data) ? toProfile(data) : null;
+    return data ? toProfile(data) : null;
   },
 
   // Additive: sets onboarded_at without touching the CV-parsed fields

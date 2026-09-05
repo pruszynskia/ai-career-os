@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 // onboarding is incomplete; every other (app) route bounces to /onboarding.
 const EXEMPT_PATHS = ['/onboarding', '/settings'];
 
-function isExemptPath(pathname: string): boolean {
+export function isExemptPath(pathname: string): boolean {
   return EXEMPT_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
@@ -35,7 +35,16 @@ export function OnboardingGate({
     if (shouldRedirect) router.replace('/onboarding');
   }, [shouldRedirect, router]);
 
-  if (shouldRedirect) return null;
+  if (shouldRedirect) {
+    return (
+      <p className="p-8 text-center text-sm text-muted-foreground">
+        Redirecting to onboarding&hellip;{' '}
+        <a href="/onboarding" className="underline">
+          continue
+        </a>
+      </p>
+    );
+  }
 
   return <>{children}</>;
 }
