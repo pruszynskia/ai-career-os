@@ -7,7 +7,7 @@ import {
   buildParseOfferUserMessage,
   parseOfferSystemPrompt,
 } from '@/shared/ai/prompts/parse-offer';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 import {
   computeOfferFingerprint,
@@ -32,7 +32,8 @@ export async function addOffer({ url, rawText }: AddOfferInput) {
   const rawContent = url ? await fetchAndStripUrl(url) : (rawText as string);
   const source = url ? 'URL' : 'RAW_TEXT';
 
-  const parsed = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('add_offer');
+  const parsed = await aiService.generateStructured({
     messages: [
       { role: 'system', content: parseOfferSystemPrompt },
       { role: 'user', content: buildParseOfferUserMessage(rawContent) },

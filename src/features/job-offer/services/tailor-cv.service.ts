@@ -8,7 +8,7 @@ import {
   buildTailorCvUserMessage,
   tailorCvSystemPrompt,
 } from '@/shared/ai/prompts/tailor-cv';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 const tailoredCvSchema = z.object({
@@ -23,7 +23,8 @@ export async function tailorCv(id: string) {
     'Upload a CV before using it for this offer.',
   );
 
-  const { content } = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('tailor_cv');
+  const { content } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: tailorCvSystemPrompt },
       {

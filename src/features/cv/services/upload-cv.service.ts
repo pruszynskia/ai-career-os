@@ -7,12 +7,13 @@ import {
   buildParseCvUserMessage,
   parseCvSystemPrompt,
 } from '@/shared/ai/prompts/parse-cv';
-import { getAiService } from '@/shared/ai/service';
+import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
 export async function uploadCv(text: string) {
   const ownerId = await getOwnerId();
-  const parsed = await getAiService().generateStructured({
+  const aiService = await getMeteredAiService('upload_cv');
+  const parsed = await aiService.generateStructured({
     messages: [
       { role: 'system', content: parseCvSystemPrompt },
       { role: 'user', content: buildParseCvUserMessage(text) },
