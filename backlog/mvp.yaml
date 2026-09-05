@@ -4247,7 +4247,7 @@ tasks:
   ###############################################################################
   - id: TASK-060
     github:
-      issue: null
+      issue: "123"
       project_item: null
     status: todo
     priority: P2
