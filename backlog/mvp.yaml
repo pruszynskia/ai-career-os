@@ -4412,46 +4412,38 @@ tasks:
       project_item: null
     status: todo
     priority: P1
-    estimate: L
+    estimate: M
     milestone: "Monetization Milestone"
     depends_on:
       - TASK-056
       - TASK-061
-    title: Launch hardening - rate limiting, security headers, admin-client guard and account deletion
+    title: Launch hardening - rate limiting, security headers and admin-client guard
     goal: >
-      Close the gaps that only matter once strangers can sign up and pay. There is no rate limiting of our own anywhere - the auth pages and every AI endpoint accept unlimited attempts - next.config.ts sets no security headers, the rule that createAdminClient() must never reach request code is only a comment in src/shared/db/admin.ts with nothing enforcing it, and a customer who wants to leave has no way to delete their account or take their data.
+      Close the request-surface gaps that only matter once strangers can sign up and pay. There is no rate limiting of our own anywhere - the auth pages and every AI endpoint accept unlimited attempts - next.config.ts sets no security headers, and the rule that createAdminClient() must never reach request code is only a comment in src/shared/db/admin.ts with nothing enforcing it. Account deletion and data export were split out to TASK-065 because they carry a live-DB migration and a destructive flow that need their own PR.
 
     scope:
       - src/shared/rate-limit/**
       - src/proxy.ts
       - next.config.ts
       - eslint.config.mjs
-      - src/app/api/account/route.ts
-      - src/app/api/account/export/route.ts
-      - src/features/account/services/delete-account.service.ts
-      - src/features/account/components/danger-zone.tsx
-      - src/app/(app)/settings/page.tsx
+      - .env.example
       - docs/TESTING.md
     deliverables:
       - Rate limiting on the authentication pages and the AI endpoints, with the Stripe webhook exempt
       - Security headers and a content security policy in next.config.ts
       - A lint rule failing the build if src/shared/db/admin.ts is imported outside the paths allowed to use it
-      - Account deletion that cancels the subscription and removes the owner's data, and a data export
     tasks:
-      - Add src/shared/rate-limit with a single limiter helper and apply it to sign-in, sign-up and forgot-password, and to the AI endpoints, keyed per owner where there is a session and per IP where there is not - exempting /api/stripe/webhook, which Stripe retries on its own schedule
+      - Add src/shared/rate-limit with a single limiter helper built on @upstash/ratelimit + @upstash/redis (Upstash's free tier, REST client so it runs in the src/proxy.ts edge runtime), reading UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN from env and documenting both in .env.example; apply it to sign-in, sign-up and forgot-password and to the AI endpoints, keyed per owner where there is a session and per IP where there is not - exempting /api/stripe/webhook, which Stripe retries on its own schedule
       - Add security headers and a content security policy to next.config.ts, verifying the Stripe Checkout and portal redirects and the Supabase endpoints still work under it
       - Add a no-restricted-imports rule to eslint.config.mjs forbidding src/shared/db/admin.ts outside scripts/ and the Stripe webhook's service path, so the comment in that file becomes enforced
-      - Add src/features/account/services/delete-account.service.ts cancelling any active Stripe subscription, deleting the owner's rows and then the auth.users row, and src/app/api/account/route.ts (DELETE) delegating to it behind an explicit confirmation
-      - Add src/app/api/account/export/route.ts returning the signed-in owner's profile, offers, documents, applications, posts and status events as JSON
-      - Add a danger-zone section to the settings page with export and delete, and document the auth, RLS-isolation and subscription-flow journeys in docs/TESTING.md
+      - Document the auth, RLS-isolation and subscription-flow journeys in docs/TESTING.md
     acceptance:
       - Repeated rapid sign-in attempts are rejected with 429 while a normal sign-in is unaffected, and the Stripe webhook is never rate limited
       - The security headers are present on a response and the app, Stripe redirects and Supabase calls all still work under the content security policy
       - npm run lint fails when src/shared/db/admin.ts is imported from src/app or src/features outside the allowed webhook path
-      - Deleting an account cancels its Stripe subscription and leaves no rows for that owner in any table, and the export returns that owner's data and nobody else's
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
-      - Rate limiting, headers, the import guard and account lifecycle verified
+      - Rate limiting, headers and the import guard verified
       - Feature committed
     labels:
       - quality
@@ -4470,14 +4462,18 @@ tasks:
     prompt: |
       Implement ONLY this task.
 
-      Account deletion is destructive and irreversible - require an explicit
-      typed confirmation, cancel the subscription before deleting, and rely
-      on the owner_id foreign keys for the cascade rather than hand-deleting
-      each table in an order that can drift.
-
       The import guard is the point of the lint rule: the comment in
       src/shared/db/admin.ts has never been enforced, and after TASK-056 the
       service-role client is genuinely reachable from request code.
+
+      Rate-limit storage is Upstash Redis on its free tier via
+      @upstash/ratelimit - the REST client, so the limiter works in the
+      src/proxy.ts edge runtime. Do not build an in-memory limiter and do not
+      add a self-hosted Redis.
+
+      Account deletion, data export and the danger-zone UI are NOT in this
+      task - they are TASK-065. Do not add src/features/account or any
+      supabase/migrations change here.
 
       Stop immediately after acceptance criteria are met.
     do_not:
@@ -4485,7 +4481,98 @@ tasks:
       - Build an admin or support dashboard
       - Change any RLS policy or the owner_id model
       - Rate limit the Stripe webhook
+      - Build an in-memory rate limiter or add a self-hosted Redis instead of Upstash
+      - Add account deletion, data export, src/features/account or a supabase/migrations change - that is TASK-065
+  ###############################################################################
+  # TASK-065
+  ###############################################################################
+  - id: TASK-065
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-056
+      - TASK-061
+      - TASK-062
+    title: Account deletion and data export
+    goal: >
+      A customer who wants to leave has no way to delete their account or take their data. Add both: a JSON export of everything the signed-in owner owns, and an account deletion that cancels any active Stripe subscription and then removes every row that owner has, including their auth.users row. Deletion runs inside one SECURITY DEFINER Postgres function called with the ordinary request client, so it adds no second service-role caller and keeps ADR-015's "exactly one request-path createAdminClient() caller" intact. This was split from TASK-062 because it carries a migration applied to the live linked Supabase project and a destructive flow that need their own review and PR.
+
+    scope:
+      - supabase/migrations/*.sql
+      - src/app/api/account/route.ts
+      - src/app/api/account/export/route.ts
+      - src/features/account/services/delete-account.service.ts
+      - src/features/account/components/danger-zone.tsx
+      - src/app/(app)/settings/page.tsx
+      - memory-bank/decisions.md
+      - docs/TESTING.md
+    deliverables:
+      - A supabase/migrations migration creating public.delete_own_account() as a SECURITY DEFINER function
+      - Account deletion that cancels the Stripe subscription and removes all of the owner's data including their auth.users row
+      - A JSON data export of the signed-in owner's data
+      - A danger-zone section on the settings page with export and delete
+    tasks:
+      - Add a supabase/migrations migration creating public.delete_own_account() returns void, language plpgsql, security definer, set search_path = '', that raises if auth.uid() is null and then deletes the caller's rows from every owner_id-scoped table (profiles, job_offers, cv_documents, applications, posts, post_campaigns, application_status_events, ai_usage, subscriptions) in FK-safe order and finally deletes from auth.users where id = auth.uid(), all in one transaction; revoke execute from public and anon and grant execute to authenticated only; apply it with npm run db:push only, never the Supabase MCP apply_migration or the dashboard SQL editor (see memory-bank/ai-notes.md), and confirm npm run db:status shows no drift
+      - Add src/features/account/services/delete-account.service.ts that resolves the signed-in owner with getUser(), cancels any active Stripe subscription via the existing billing service, then calls supabase.rpc('delete_own_account') with the ordinary request client from src/shared/db/client.ts, then signs the user out - never createAdminClient(), never a client-supplied id
+      - Add src/app/api/account/route.ts (DELETE) delegating to the service behind an explicit typed confirmation in the request body, rate-limited via src/shared/rate-limit from TASK-062
+      - Add src/app/api/account/export/route.ts returning the signed-in owner's profile, offers, documents, applications, posts, status events and subscription as JSON, through the request client and RLS
+      - Add a danger-zone section to the settings page with export and delete, and document the deletion and export journeys in docs/TESTING.md
+      - Amend ADR-015 in memory-bank/decisions.md recording that account deletion uses delete_own_account() and adds no second service-role caller
+    acceptance:
+      - Deleting an account cancels its Stripe subscription and leaves no rows for that owner in any table including auth.users, and a second account's data is untouched
+      - The account-deletion path goes through the delete_own_account() RPC on the request client and reaches no service-role client, and npm run lint still permits createAdminClient() only under scripts/ and the Stripe webhook service path
+      - The export returns the signed-in owner's data and nobody else's
+      - npm run db:status shows no drift after the migration is applied
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Account deletion and export verified end to end, migration applied with no drift
+      - Feature committed
+    labels:
+      - quality
+      - backend
+      - auth
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - docs/TESTING.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      Account deletion is destructive and irreversible - require an explicit
+      typed confirmation and cancel the subscription before deleting.
+
+      Deletion removes the owner's data plus their auth.users row inside one
+      SECURITY DEFINER function, public.delete_own_account(), keyed on
+      auth.uid() and called with the ordinary request client via
+      supabase.rpc(). The owner_id foreign keys have no on delete cascade, so
+      auth.admin.deleteUser() would fail - and routing deletion through
+      createAdminClient() would add a second service-role request-path caller,
+      which ADR-015 forbids. Keep exactly one such caller (the Stripe webhook).
+
+      Apply the migration with npm run db:push. Never use the Supabase MCP
+      apply_migration or the dashboard SQL editor - they stamp their own
+      version and desynchronise the migration ledger (see
+      memory-bank/ai-notes.md).
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a second createAdminClient() caller or widen the admin-client lint allow-list beyond scripts/ and the Stripe webhook service path
+      - Add on delete cascade to the owner_id foreign keys or make any schema change beyond the delete_own_account() function
+      - Change any RLS policy or the owner_id model
       - Delete an account without cancelling its subscription first
+      - Apply the migration through the Supabase MCP or the dashboard SQL editor
+      - Build an admin or support dashboard
   ###############################################################################
   # TASK-064
   ###############################################################################
