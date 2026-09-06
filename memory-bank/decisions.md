@@ -655,6 +655,26 @@ Consequences:
   from this table through `subscriptionService`, never by querying Stripe
   directly.
 
+Amended 2026-09-06 (TASK-065):
+
+Account deletion does **not** add a second service-role request-path caller.
+`auth.users` rows are removed by `public.delete_own_account()` — a
+`SECURITY DEFINER` Postgres function (`set search_path = ''`, `execute`
+revoked from `public`/`anon` and granted to `authenticated` only) that
+deletes the caller's rows across every `owner_id`-scoped table and then their
+`auth.users` row in one transaction, keyed on `auth.uid()` and never on a
+client-supplied id. It is invoked with the ordinary request client via
+`supabase.rpc('delete_own_account')` from
+`src/features/account/services/delete-account.service.ts` (after the Stripe
+subscription is cancelled). The Stripe webhook
+(`sync-subscription.service.ts`) therefore remains the **only** legitimate
+request-path caller of `createAdminClient()`, enforced by
+`no-restricted-imports` in `eslint.config.mjs` (added in TASK-062). The
+`owner_id` foreign keys are deliberately left without `on delete cascade` —
+the function deletes explicitly instead — so `auth.admin.deleteUser()` (which
+would need the service-role client) is not used and the "exactly one caller"
+rule holds unchanged.
+
 ---
 
 ## ADR-016
