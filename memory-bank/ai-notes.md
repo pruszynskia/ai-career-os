@@ -103,7 +103,7 @@ features/
 
 Reusable UI:
 
-shared/components/
+src/shared/ui/
 
 Server state:
 

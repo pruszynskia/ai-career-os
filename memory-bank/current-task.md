@@ -2,6 +2,53 @@
 
 ## Current Sprint
 
+### Feature: TASK-061 — Error monitoring and env var validation
+
+Status: **done** — green on typecheck/lint/test/build (build run with CI's
+two placeholder Supabase vars). Backend-only, no Playwright loop.
+
+What shipped:
+
+- `src/shared/env.ts` (new) — Zod-validated env. `clientSchema` (the two
+  `NEXT_PUBLIC_` Supabase vars) + `serverSchema` (service-role key, AI keys,
+  Stripe keys). `parseEnv(schema, source)` is a pure exported helper that
+  throws one readable message naming every missing/invalid variable.
+  `getClientEnv()` / `getServerEnv()` are memoized lazy accessors — nothing
+  parses at import, so `next build` and the CI placeholder env keep working.
+- `src/shared/db/client.ts`, `src/shared/db/admin.ts`, `src/proxy.ts` — the
+  `process.env.X!` assertions replaced with `getClientEnv()` /
+  `getServerEnv()`. No bare non-null assertion left in those three.
+- `instrumentation.ts` (new) — `register()` calls `getClientEnv()` so a
+  missing public var refuses to start with a message naming it (this hook
+  does not run during `next build`). `onRequestError` POSTs unhandled server
+  errors (name, message, stack, path, method) as JSON to
+  `ERROR_MONITORING_WEBHOOK_URL`; no-op when unset; never throws into the
+  request; 3s timeout. `console.error` diagnostics untouched. Reporter kept
+  inline (no new file/folder) to stay within the task's scope list.
+- `.env.example` — added `ERROR_MONITORING_WEBHOOK_URL` (server-only,
+  optional) + a header note pointing at `src/shared/env.ts`.
+- `docs/TECH_STACK.md` — "Environment Variables" and "Error Monitoring"
+  subsections under "# Development Environment".
+- `memory-bank/project-context.md` — "Current Stage" no longer says
+  pre-implementation / no code shipped; points at ROADMAP "Where We Are".
+- `memory-bank/ai-notes.md` — `shared/components/` → `src/shared/ui/`.
+- `tests/smoke/unit/env.test.ts` (new) — `parseEnv` valid parse, missing-var
+  message names each var, invalid value throws.
+
+Server-side error hook only: capturing client errors would need an
+`instrumentation-client.ts` or an `app/global-error.tsx`, neither in scope.
+Error monitoring is a webhook POST, not an SDK — adding a vendor SDK is a
+new dependency and out of scope. `next.config.ts` needed no change
+(instrumentation is on by default in Next 16).
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 48 passed (3 new)
+- `npm run build` — pass with `NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL` /
+  `_ANON_KEY` placeholders only (matches `.github/workflows/ci.yml`)
+
 ### Feature: TASK-060 — New-user onboarding flow
 
 Status: **done** — green on typecheck/lint/test/build. Playwright
