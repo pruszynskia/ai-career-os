@@ -6,8 +6,10 @@ AI Career OS
 
 ## Current Stage
 
-MVP — pre-implementation. Backlog scoped (`backlog/mvp.yaml`, TASK-001..015,
-synced to GitHub Issues #1-15). No code shipped yet.
+Monetization Milestone (`backlog/mvp.yaml` TASK-053–063). The MVP, Stage 0,
+Stage 1 and Stage 2 have all shipped — see `docs/ROADMAP.md` "Where We Are".
+The `status:` field in `backlog/mvp.yaml` lags reality; judge what is done
+from the code and git history.
 
 ## Main Goal
 

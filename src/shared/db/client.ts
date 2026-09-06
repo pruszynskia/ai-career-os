@@ -2,14 +2,17 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import WebSocket from 'ws';
 
+import { getClientEnv } from '@/shared/env';
+
 // Created per-request (not a singleton) so it carries the current request's
 // cookies — see @supabase/ssr's Next.js App Router pattern.
 export async function createClient() {
   const cookieStore = await cookies();
+  const env = getClientEnv();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL,
+    env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY,
     {
       // Node 20 (the Node.js runtime this code executes under, not Edge) has
       // no native WebSocket; supabase-js always constructs a RealtimeClient

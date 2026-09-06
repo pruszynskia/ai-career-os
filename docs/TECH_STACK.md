@@ -650,6 +650,28 @@ Deploy
 
 # Development Environment
 
+## Environment Variables
+
+`.env.example` is the canonical list of every variable the app reads, each
+with a placeholder and a note on whether it is server-only. Copy it to
+`.env.local` for local work.
+
+`src/shared/env.ts` validates the environment with Zod. The public
+`NEXT_PUBLIC_` Supabase pair is checked on server startup (via
+`instrumentation.ts`'s `register` hook), so a missing value refuses to start
+with a message naming the variable instead of failing later inside a request.
+Server-only variables (service-role key, AI keys, Stripe keys) are validated
+lazily on first use. `db/client.ts`, `db/admin.ts` and `proxy.ts` read the
+environment only through this module.
+
+## Error Monitoring
+
+`instrumentation.ts`'s `onRequestError` hook forwards unhandled server errors
+(name, message, stack, route) to `ERROR_MONITORING_WEBHOOK_URL` as JSON, or
+does nothing when that variable is unset. Request bodies, prompt text and CV
+content are never sent. `console.error` diagnostics are unchanged. Tracing,
+profiling, session replay and log shipping are out of scope.
+
 ## Package Manager
 
 Recommended:

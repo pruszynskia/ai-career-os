@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { getClientEnv } from '@/shared/env';
+
 // Reachable without a session; every other path redirects to /sign-in.
 const PUBLIC_PATHS = [
   '/',
@@ -15,10 +17,11 @@ const PUBLIC_PATHS = [
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const env = getClientEnv();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL,
+    env.NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
