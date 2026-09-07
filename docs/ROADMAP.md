@@ -31,7 +31,9 @@ pay for."
 - **Stage 0** (`backlog/mvp.yaml` TASK-016–028): shipped.
 - **Stage 1** (`backlog/mvp.yaml` TASK-032–048): shipped.
 - **Stage 2** (`backlog/mvp.yaml` TASK-029–031, TASK-049–052): shipped.
-- **Monetization Milestone** (`backlog/mvp.yaml` TASK-053–063): defined, not yet
+- **Monetization Milestone** (`backlog/mvp.yaml` TASK-053–065): defined, largely
+  implemented — TASK-053–062 have landed on `main`; TASK-063/064/065 remain.
+- **Design System Overhaul** (`backlog/mvp.yaml` TASK-066–077): defined, not yet
   implemented.
 
 Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
@@ -190,6 +192,95 @@ and the single sanctioned use of the service-role client in a request path (a
 signature-verified webhook has no session, so there is no `auth.uid()` for RLS to
 match). TASK-062 then adds the lint rule that keeps that exception to exactly one
 call site.
+
+---
+
+# Design System Overhaul
+
+`backlog/mvp.yaml` TASK-066–077.
+
+Once strangers can sign up and pay, the product has to look worth paying for.
+It does not yet: the interface reads as generated rather than designed. The
+diagnosis is structural, not chromatic — `Surface` is
+`rounded-xl bg-card ring-1 ring-foreground/10` and is the base of `Card`, so
+**35 `<Card>` instances across 26 of ~40 component files** render every list,
+every panel and every form inside an identical rounded, ring-bordered box. A
+uniform border on every container is the strongest single tell that a UI was
+generated. Separately, the app is **light-mode only in practice**: `globals.css`
+carries a complete `.dark` token block and many components carry `dark:`
+utilities, but nothing ever adds the `.dark` class, so the entire dark palette
+is dead code.
+
+**Goal:** replace ADR-010's identity with a dark-first, near-monochrome system
+whose structure is carried by hairline rules and density rather than by boxes,
+and roll it across every surface — without changing a single query, mutation,
+auth flow or entitlement check.
+
+The direction, in the terms the tasks encode:
+
+- **Primary action is the neutral inverse of the canvas**, not a brand hue —
+  near-white on dark, near-black on light (the Vercel/Attio move). It
+  structurally cannot collide with status colour.
+- **One amber signal accent** (OKLCH hue 55) confined to focus rings, the active
+  nav indicator, selected state, link hover and AI affordances — a ~2% budget
+  against ~90% neutral and ~8% high-contrast ink.
+- **Three typefaces, strictly zoned**: Geist Sans for UI/body, Geist Mono for
+  data meant to be scanned, and Archivo for display at ≥24px only — with a
+  deliberate gap in the scale between 16px and 24px. Inter and Roboto stay
+  banned, including in fallback stacks.
+- **Three-tier elevation**: flat by default, ruled for collections, raised only
+  for true overlays. The rule the screen tasks all turn on is **a `Card` must
+  earn its box** — a collection of things is ruled rows; a single stat, a form
+  panel or a Kanban card is a card.
+
+| Task | Title |
+|---|---|
+| TASK-066 | Design token foundation — warm-neutral ramp, neutral-inverse primary and amber signal accent |
+| TASK-067 | Dark mode as the default theme with a light and system toggle |
+| TASK-068 | Typography system — Archivo display face and the dense product type scale |
+| TASK-069 | Elevation model and control refit — flat, ruled and raised |
+| TASK-070 | Shared row, async-button, confirm-dialog and field patterns |
+| TASK-071 | App shell, navigation and settings information architecture |
+| TASK-072 | Dashboard redesign — activation-focused home |
+| TASK-073 | Offers and applications workspace redesign |
+| TASK-074 | Documents, posts and profile screen pass |
+| TASK-075 | Auth, onboarding and billing screen pass |
+| TASK-076 | Marketing landing and pricing redesign, and remove the duplicate root route |
+| TASK-077 | Motion pass and design-system audit gate |
+
+Row order matches the task blocks' order in `backlog/mvp.yaml`. The sequence is
+foundation first (TASK-066–068: tokens, the dark-mode class, type), then the
+shared layer those screens all consume (TASK-069/070), then the shell
+(TASK-071), then the four screen passes and the marketing surface in parallel
+behind it (TASK-072–076), and finally the audit that proves the system held
+(TASK-077).
+
+TASK-066 records the **ADR superseding ADR-010** — the neutral-inverse primary,
+the amber signal accent, the three-tier elevation model and the colour budget.
+TASK-069 is where that model becomes code, and it is deliberately the one task
+that changes how `Card` *looks* without changing who uses it; converting the 35
+call sites is spread across TASK-072–076 so each lands as a reviewable PR under
+`scripts/merge-gate.sh`'s ≤15-file, ≤400-line cap.
+
+Three IA decisions are settled inside the milestone rather than left implicit.
+Job preferences move from `/profile` to a sectioned `/settings` (preferences are
+settings; CV content is workspace data). `SplitLayout` is **deleted** rather than
+finally given a job — its only plausible consumer, offers-list-beside-detail, was
+evaluated and rejected because the offer detail page carries six sections and two
+document editors. And `OnboardingGate`'s client-side redirect becomes a
+server-side one in `(app)/layout.tsx`, closing the blank first frame that its own
+`ponytail:` comment records — deliberately *not* the `src/proxy.ts` move that
+comment names as the alternative, which would add a Supabase call to every
+matched request.
+
+Two things were considered and cut. A **command palette** (⌘K) is a genuinely
+good fit for this app's shape, but it is a new feature rather than a redesign and
+`CLAUDE.md` forbids expanding scope — TASK-071 only keeps the nav items in one
+data structure so a later task can consume them. An **autoplay video hero** is a
+current landing-page trend with a real bandwidth and accessibility cost and no
+asset behind it; TASK-076 bans it explicitly, along with swapping the
+equal-weight three-column grid for a bento grid, which is the same default in a
+newer costume.
 
 ---
 

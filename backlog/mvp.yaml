@@ -25,6 +25,7 @@ project:
     - "Stage 1 - Product Refinement"
     - "Stage 2 - Core Value"
     - "Monetization Milestone"
+    - "Design System Overhaul"
   statuses:
     - backlog
     - todo
@@ -4724,3 +4725,1136 @@ tasks:
       - Put a secret in a NEXT_PUBLIC_ variable
       - Change the owner_id, RLS or auth model
       - Rotate the Supabase project URL or database host, which are not secrets
+
+  ###############################################################################
+  # TASK-066
+  ###############################################################################
+  - id: TASK-066
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on: []
+    title: Design token foundation - warm-neutral ramp, neutral-inverse primary and amber signal accent
+    goal: >
+      ADR-010's Deep Navy / Electric Blue / Emerald identity reads as a generic template and is being replaced. Rebuild the token layer in src/app/globals.css around a warm-shifted neutral ramp (OKLCH hue 75, very low chroma, never pure black or white), a primary action that is the high-contrast inverse of the canvas rather than a brand hue (the Vercel/Attio move, which structurally cannot collide with status colour), and a single amber signal accent (hue 55) restricted to interaction states. Keep the shadcn semantic token names as the layer components consume, so every existing component and every dark: utility keeps working - this is a token-value swap plus two new tokens, not a token-system rewrite. Record the new identity as an ADR superseding ADR-010.
+
+    scope:
+      - src/app/globals.css
+      - docs/design-system/colors.md
+      - memory-bank/decisions.md
+      - ARCHITECTURE.md
+    deliverables:
+      - A Tier-1 primitive ramp in globals.css that the shadcn semantic tokens alias, for both the :root and .dark blocks
+      - --primary set to the neutral inverse of the canvas in both themes, replacing Deep Navy
+      - --accent set to the amber signal in both themes, replacing Electric Blue, with a dark --accent-foreground in both themes
+      - New --warning and --info semantic tokens wired into the @theme inline block so bg-warning / text-info resolve
+      - Radius scale capped at 8px, with --radius-xl through --radius-4xl remapped down so existing rounded-xl usages degrade correctly
+      - Motion tokens (--dur-fast, --dur, --dur-slow, --ease) defined once in globals.css
+      - An ADR superseding ADR-010, recording the neutral-inverse primary, the amber signal accent and the ~90/8/2 colour budget
+    tasks:
+      - Replace the :root and .dark colour blocks in src/app/globals.css with the warm-neutral ramp - canvas, sunken, raised, raised-hover, hairline border, strong border, muted/secondary/primary text - keeping every existing shadcn semantic custom-property name so no component import changes
+      - Set --primary to near-white on dark and near-black on light, with --primary-foreground as its opposite, and set --accent to the amber signal (hue 55) with --accent-foreground as dark ink in BOTH themes because amber is a light colour and white text on it fails AA
+      - Add --warning (hue 95) and --info (hue 240) custom properties in both themes and expose them in @theme inline as --color-warning / --color-warning-foreground / --color-info / --color-info-foreground, following the existing --color-success pattern
+      - Set --radius to 0.375rem and remap --radius-xl, --radius-2xl, --radius-3xl and --radius-4xl so none resolve above 8px, so the four existing rounded-xl call sites stop rendering as pill-soft boxes before they are individually cleaned up in TASK-069
+      - Add --dur-fast (100ms), --dur (160ms), --dur-slow (240ms) and --ease (cubic-bezier(0.2, 0, 0, 1)) to globals.css for TASK-077 to consume
+      - Rewrite docs/design-system/colors.md for the new ramp - including the measured WCAG AA contrast table for both themes and the ~90% neutral / ~8% ink / ~2% accent budget rule
+      - Record the ADR in memory-bank/decisions.md superseding ADR-010, and update ARCHITECTURE.md's design-system section to match
+    acceptance:
+      - Every colour custom property in src/app/globals.css resolves through the Tier-1 ramp - no semantic token is assigned a literal oklch() value directly except the ramp itself
+      - bg-warning, text-warning-foreground, bg-info and text-info-foreground all resolve to real colours in a rendered page in both themes
+      - No utility class in src/ resolves to a border radius greater than 8px - verified by grepping for rounded-xl, rounded-2xl, rounded-3xl and rounded-4xl and confirming the remapped scale caps at 8px
+      - docs/design-system/colors.md contains a contrast table showing every text-on-surface pairing at AA or better for BOTH the light and dark themes, measured against the final token values rather than assumed
+      - memory-bank/decisions.md contains a new ADR that explicitly names ADR-010 as superseded
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Token layer replaced and contrast verified in both themes
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - architecture
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/colors.md
+      - memory-bank/decisions.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Keep the shadcn semantic token NAMES exactly as they are. Components must
+      not change their imports or their utility classes in this task - the whole
+      point is that re-pointing the token values re-skins the app without
+      touching component code. Component cleanup is TASK-069.
+
+      --primary is deliberately NOT a brand hue. It is the high-contrast inverse
+      of the canvas: near-white on dark, near-black on light. Do not reintroduce
+      a coloured primary button.
+
+      --accent-foreground must be dark ink in BOTH themes. Amber is a light
+      colour; white text on it fails WCAG AA. This mirrors the existing rule in
+      docs/design-system/colors.md for the old accent.
+
+      Measure the contrast ratios against the final rendered token values before
+      writing the table. Do not assume them.
+
+      Dark mode is not activated in this task - that is TASK-067. The .dark block
+      is still inert here; you are rewriting its values, not wiring the class.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Rename or remove any existing shadcn semantic token
+      - Change any component file - token values only in this task
+      - Introduce a colour utility that bypasses the semantic tokens
+      - Add a gradient anywhere
+      - Wire up the dark-mode class or a theme toggle - that is TASK-067
+      - Add a CSS-in-JS library or a new styling dependency
+
+  ###############################################################################
+  # TASK-067
+  ###############################################################################
+  - id: TASK-067
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-066
+    title: Dark mode as the default theme with a light and system toggle
+    goal: >
+      src/app/globals.css already declares @custom-variant dark and a complete .dark token block, and many components already carry dark: utilities - but nothing ever adds the .dark class, so the whole dark palette is dead code and the app is light-only in practice. Wire the class with next-themes, defaulting to dark, and add a theme control in settings offering Dark, Light and System. The app has a Content-Security-Policy from TASK-062, so the anti-flash inline script next-themes injects needs a nonce or an explicit hash - getting that wrong either breaks the CSP or reintroduces the flash, so it is part of the acceptance here.
+
+    scope:
+      - package.json
+      - package-lock.json
+      - src/app/layout.tsx
+      - src/app/providers.tsx
+      - src/shared/ui/theme-toggle.tsx
+      - src/shared/ui/index.ts
+      - src/app/(app)/settings/page.tsx
+      - next.config.ts
+      - docs/design-system/colors.md
+    deliverables:
+      - next-themes wired with attribute="class" and defaultTheme="dark", so a first-time visitor gets dark
+      - A ThemeToggle component in src/shared/ui offering Dark, Light and System, rendered on the settings page
+      - No theme flash on first paint and no hydration mismatch warning, with the CSP from TASK-062 still enforced
+      - The chosen theme persisted across reloads and across route navigations
+    tasks:
+      - Add next-themes to package.json and run npm install so package-lock.json updates - it is pre-approved for this task
+      - Wrap the existing providers in src/app/providers.tsx with ThemeProvider using attribute="class", defaultTheme="dark" and enableSystem, so the existing @custom-variant dark (&:is(.dark *)) selector and every existing dark: utility work unchanged
+      - Add suppressHydrationWarning to the html element in src/app/layout.tsx, which next-themes requires because it mutates the class before React hydrates
+      - Reconcile next-themes' injected inline script with the Content-Security-Policy added in TASK-062 - use the nonce already available to the app (see the CSP nonce comment in src/app/not-found.tsx) or add the script's hash to next.config.ts, and verify no CSP violation appears in the browser console
+      - Build a ThemeToggle in src/shared/ui exposing Dark, Light and System, export it from the shared/ui barrel, and render it in a new Appearance section on the settings page
+      - Guard against the hydration mismatch by not rendering resolved-theme-dependent markup until mounted
+      - Note in docs/design-system/colors.md that dark is the default and light is a designed inversion, not an auto-invert
+    acceptance:
+      - A fresh browser profile with no stored preference loads the app in dark mode
+      - Switching to Light in settings changes the theme immediately, survives a full page reload, and survives navigating between routes
+      - Selecting System follows the OS preference and changes live when the OS preference changes
+      - No theme flash of the wrong colours on first paint, verified on a hard reload with the cache disabled
+      - The browser console shows no CSP violation and no React hydration mismatch warning on any route
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Dark default, toggle and CSP compatibility verified
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - state
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/colors.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use next-themes with attribute="class". Do NOT switch the app to a
+      data-theme attribute strategy - src/app/globals.css already declares
+      @custom-variant dark (&:is(.dark *)) and dozens of components already carry
+      dark: utilities that depend on the class selector. Changing the strategy
+      would be a much larger diff for no benefit.
+
+      The CSP is real. TASK-062 added security headers and a content security
+      policy to next.config.ts. next-themes injects an inline script to set the
+      class before first paint - that is what prevents the flash. Verify in a
+      browser that the script actually runs under the CSP; if it is blocked, the
+      flash comes back silently and the acceptance criterion fails even though
+      the app looks fine on a warm load.
+
+      Do not restyle anything. The token values already landed in TASK-066; this
+      task only activates the class that selects between them.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change any token value - those landed in TASK-066
+      - Switch to a data-theme attribute strategy or rewrite the dark variant selector
+      - Hand-roll a theme provider instead of using next-themes
+      - Weaken or remove the Content-Security-Policy to make the inline script work
+      - Restyle any component
+      - Add a theme toggle to the marketing pages in this task
+
+  ###############################################################################
+  # TASK-068
+  ###############################################################################
+  - id: TASK-068
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-066
+    title: Typography system - Archivo display face and the dense product type scale
+    goal: >
+      The app renders every size in Geist Sans, with --font-heading aliased straight back to --font-sans, so headings are just a bigger body font and the interface has no display voice. Add Archivo as a display face for sizes at or above 24px, keep Geist Sans for UI and body and Geist Mono for data, and replace the smooth default scale with a deliberately gapped one - nothing between 16px and 24px - so display type reads as a considered choice rather than the h1 variant of the body font. Body sizes come down to a 13px dense default because this is a product workspace, not an editorial page.
+
+    scope:
+      - src/app/layout.tsx
+      - src/app/globals.css
+      - src/shared/ui/primitives/typography/text/Text.tsx
+      - src/shared/ui/primitives/typography/heading/Heading.tsx
+      - src/shared/ui/primitives/typography/label/Label.tsx
+      - src/shared/ui/card.tsx
+      - src/shared/ui/dialog.tsx
+      - docs/design-system/typography.md
+    deliverables:
+      - Archivo loaded via next/font/google alongside the existing Geist loaders, exposed as --font-display
+      - --font-heading re-pointed from --font-sans to --font-display
+      - A gapped type scale in globals.css with no step between the 16px body-lg and the 24px h3
+      - Text, Heading and Label primitives updated to the new scale, with Geist Mono applied to the label role
+      - docs/design-system/typography.md rewritten for the three-face, three-zone system
+    tasks:
+      - Load Archivo in src/app/layout.tsx via next/font/google next to the existing Geist and Geist_Mono loaders, expose it as a CSS variable, and add that variable to the html className - no self-hosting and no new npm dependency
+      - Define --font-display in the @theme inline block and re-point --font-heading from var(--font-sans) to the display face, so Heading, CardTitle and DialogTitle pick it up without individual edits
+      - Add the gapped scale to globals.css - label 11px uppercase mono with +0.08em tracking, body-sm 13px, body 14px, body-lg 16px, then h3 clamp(20px, 1.4vw + .8rem, 24px), h2 clamp(26px, 2.2vw + .8rem, 32px), h1 clamp(32px, 3.2vw + 1rem, 44px) and display clamp(44px, 6vw + 1rem, 72px), with negative tracking rising through the display sizes
+      - Update the Text primitive so its default size is the 13px dense step, and update Heading so each level maps to the new scale rather than to Tailwind's text-2xl / text-xl defaults
+      - Update the Label primitive's meta variant to use Geist Mono, uppercase, with the +0.08em tracking - uppercase without tracking looks cramped
+      - Check that CardTitle in src/shared/ui/card.tsx and DialogTitle in src/shared/ui/dialog.tsx render in the display face at the correct step, adjusting their classes only if font-heading does not already carry them
+      - Rewrite docs/design-system/typography.md - the three faces, the zone rule (display only at or above 24px, mono only for data), the scale table, the 68ch measure cap, and the standing ban on Inter and Roboto including in fallback stacks
+    acceptance:
+      - Archivo is loaded through next/font/google in src/app/layout.tsx and no font file is committed to the repository
+      - A rendered page heading computes to the Archivo family and a rendered body paragraph computes to Geist Sans, verified in the browser rather than assumed from the CSS
+      - No type step exists between 16px and 24px anywhere in the scale defined in globals.css
+      - The Label primitive's meta variant renders in Geist Mono, uppercase, with letter-spacing applied
+      - docs/design-system/typography.md documents all three faces with their zones and states that Inter and Roboto are banned including in fallback stacks
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Display face loaded and the gapped scale applied through the primitives
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/typography.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Use next/font/google for Archivo. Do not self-host font files, do not add
+      a font npm package, and do not commit any woff2 to the repository - the
+      existing Geist loaders are the pattern to follow.
+
+      The gap in the scale is the point. Do not "fill in" a 20px step between
+      body-lg and h3 because it looks uneven in the table - that smooth ladder is
+      exactly what makes an interface read as templated.
+
+      Archivo is for 24px and above only. Do not apply the display face to body
+      copy, buttons, inputs, table cells or badges.
+
+      Geist Mono is for data that is meant to be scanned or compared - numerals,
+      dates, counts, IDs, tags. Numerals inside a prose sentence stay in Geist
+      Sans.
+
+      Change the scale through the primitives and the token layer. Do not go
+      through feature components adding font utilities by hand.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Self-host font files or commit any font binary
+      - Add Inter or Roboto anywhere, including as a fallback
+      - Apply the display face below 24px
+      - Add a fourth typeface
+      - Edit feature components to patch typography - fix it at the primitive or token layer
+      - Change any colour token - those landed in TASK-066
+
+  ###############################################################################
+  # TASK-069
+  ###############################################################################
+  - id: TASK-069
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-066
+      - TASK-068
+    title: Elevation model and control refit - flat, ruled and raised
+    goal: >
+      Surface.tsx is rounded-xl bg-card ring-1 ring-foreground/10 and is the base of Card, so every piece of content in the app renders inside an identical rounded ring-bordered box - 35 Card instances across 26 of roughly 40 component files. A uniform border on every container is the single strongest structural tell that a UI was generated rather than designed. Replace it with a three-tier model: flat by default with no border and no shadow, ruled with a hairline divider for rows and sections, and raised with a shadow reserved for true overlays only. Refit the control layer to match - 6px radius, denser 28px default control height, no glassmorphism, no pill shapes.
+
+    scope:
+      - src/shared/ui/primitives/surface/surface/Surface.tsx
+      - src/shared/ui/card.tsx
+      - src/shared/ui/button.tsx
+      - src/shared/ui/input.tsx
+      - src/shared/ui/textarea.tsx
+      - src/shared/ui/dialog.tsx
+      - src/shared/ui/primitives/interaction/select/Select.tsx
+      - src/shared/ui/primitives/interaction/popover/Popover.tsx
+      - src/shared/ui/primitives/feedback/badge/Badge.tsx
+      - src/shared/ui/primitives/layout/divider/Divider.tsx
+      - docs/design-system/ui-principles.md
+    deliverables:
+      - Surface gains an explicit elevation contract - flat, ruled and raised - with flat as the default and shadow only on the raised tier
+      - Card built on the raised tier, no longer the default container for arbitrary content
+      - A ruled row treatment available as a primitive so collections can be rendered as hairline-divided rows instead of stacked cards
+      - The four rounded-xl call sites and the dialog's backdrop-blur overlay removed
+      - Controls at 28px dense default height with a 32px comfortable variant, 6px radius, and the amber accent as the focus ring
+    tasks:
+      - Rewrite surfaceVariants in Surface.tsx to expose an elevation contract of flat (no border, no shadow, no background), ruled (hairline bottom border only) and raised (bg-card plus hairline border), defaulting to flat, and drop the unconditional rounded-xl and ring-1 ring-foreground/10 base
+      - Rebuild Card on the raised tier at 6px radius, keeping its existing CardHeader / CardTitle / CardDescription / CardAction / CardContent / CardFooter sub-component API unchanged so no consumer breaks in this task
+      - Replace rounded-xl with the capped radius on dialog.tsx, Select.tsx and Popover.tsx, and remove the supports-backdrop-filter:backdrop-blur-xs from the dialog overlay, leaving a plain neutral scrim
+      - Restrict shadow to the overlay components only - dialog, popover, select content and the sonner toaster - and confirm no shadow utility is tinted with a colour
+      - Add a dense 28px size to the button, input, textarea and select trigger variants and make it the default for in-app use, keeping the existing 32px as the comfortable variant used for primary actions
+      - Point every focus ring at the amber accent token from TASK-066 and verify the focus ring is visible against both the flat canvas and a raised surface in both themes
+      - Rebuild Badge at 2px radius as a mono uppercase label rather than a pill, with variants mapping onto the success, warning, info and destructive tokens
+      - Rewrite docs/design-system/ui-principles.md around the three-tier elevation model and the rule that a Card must earn its box - a collection of things is ruled rows, a single stat or form panel is a card
+    acceptance:
+      - grep for rounded-xl, rounded-2xl, rounded-3xl and rounded-4xl across src returns no matches
+      - grep for backdrop-blur across src returns no matches
+      - grep for rounded-full across src returns matches only in the Avatar primitive and the notification count indicator
+      - No shadow utility appears in src outside dialog.tsx, Popover.tsx, Select.tsx and the toaster, and no shadow is tinted with a colour token
+      - Surface renders with no border and no background at its default elevation, and its ruled elevation renders a single hairline bottom border
+      - A keyboard-focused button, input, select and link each show a visible amber focus ring on both the flat canvas and a raised surface, in both themes
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Three-tier elevation shipped and the control layer refitted
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/design-system/components.md
+    prompt: |
+      Implement ONLY this task.
+
+      Surface's default elevation becomes flat - no border, no background, no
+      shadow. This is the change that does the most work in the whole milestone.
+      Do not keep a "subtle" default border because bare content looks unfinished
+      in isolation; separation is the job of spacing and type hierarchy, and the
+      screens get restructured in TASK-072 through TASK-076.
+
+      Keep Card's sub-component API exactly as it is - CardHeader, CardTitle,
+      CardDescription, CardAction, CardContent, CardFooter. 26 files import them.
+      Converting individual screens away from Card is the screen tasks' job, not
+      this one. This task changes how Card looks, not who uses it.
+
+      Shadow is for overlays only: dialog, popover, select content, toaster. An
+      inline card does not get a shadow. No shadow is ever tinted with a colour.
+
+      The dialog overlay loses its backdrop blur. Glassmorphism is banned.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change Card's sub-component API or remove any of its exports
+      - Convert feature screens away from Card - that is TASK-072 through TASK-076
+      - Keep a default border or shadow on the flat elevation
+      - Add a coloured, glowing or tinted shadow
+      - Reintroduce backdrop blur or any glass effect
+      - Use rounded-full on a rectangular control
+      - Add an animation library
+
+  ###############################################################################
+  # TASK-070
+  ###############################################################################
+  - id: TASK-070
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-069
+    title: Shared row, async-button, confirm-dialog and field patterns
+    goal: >
+      Four patterns are hand-rolled repeatedly across the app: a Card wrapping a ul of Link rows appears four times in the dashboard alone, the {isPending && Spinner}{isPending ? '...' : label} submit button appears in roughly twelve places, a "delete this, it cannot be undone" dialog is implemented twice, and the Label-plus-Input field wrapper is copied across the offer edit dialog, the job preferences form and all four auth pages, which use a raw label element instead of the Label primitive. Extract the four, and convert enough real consumers in this task that none of them ships without one.
+
+    scope:
+      - src/shared/ui/list-row.tsx
+      - src/shared/ui/async-button.tsx
+      - src/shared/ui/confirm-dialog.tsx
+      - src/shared/ui/field.tsx
+      - src/shared/ui/index.ts
+      - src/features/job-offer/components/delete-offer-button.tsx
+      - src/features/linkedin-posts/components/post-list.tsx
+      - src/features/profile/components/job-preferences-form.tsx
+      - docs/design-system/components.md
+    deliverables:
+      - A ListRow component rendering a hairline-ruled, full-width, optionally linked row with leading content, a title, supporting text and trailing meta
+      - An AsyncButton wrapping the pending-spinner-and-label pattern behind a single pending prop
+      - A ConfirmDialog taking a trigger, a title, a description and a destructive confirm action
+      - A Field composing the Label primitive with its control, its help text and its error text, with the label above the control rather than a placeholder standing in for it
+      - Both existing delete dialogs and the job preferences form converted onto the new components
+    tasks:
+      - Build ListRow in src/shared/ui on the ruled elevation from TASK-069, supporting an optional href so it renders as a Link, with slots for leading content, a title, supporting text and trailing meta, and mono styling on the trailing meta
+      - Build AsyncButton wrapping Button with a pending prop that swaps in the Spinner and an optional pending label, so the repeated inline conditional disappears
+      - Build ConfirmDialog on the existing Dialog primitives, taking trigger, title, description, confirm label and an onConfirm handler, with the confirm action styled destructive
+      - Build Field composing the Label primitive with a control, optional help text and optional error text, wired for aria-describedby and aria-invalid so the error is announced
+      - Export all four from the src/shared/ui barrel
+      - Convert delete-offer-button.tsx and the inline delete dialog inside post-list.tsx onto ConfirmDialog, removing the two duplicate implementations
+      - Convert job-preferences-form.tsx's repeated label-and-control blocks onto Field
+      - Document all four in docs/design-system/components.md with prop tables, matching the existing entries for EmptyState, PageHeader, StatCard and AppPageLayout
+    acceptance:
+      - ListRow, AsyncButton, ConfirmDialog and Field are exported from the src/shared/ui barrel and each has at least one real consumer in src after this task
+      - delete-offer-button.tsx and post-list.tsx both render their delete confirmation through ConfirmDialog, and no second delete-dialog implementation remains in src
+      - job-preferences-form.tsx renders its inputs through Field, and every control in it has a visible label above it rather than only a placeholder
+      - A Field rendered in an error state sets aria-invalid on its control and links the error text with aria-describedby
+      - docs/design-system/components.md documents all four with prop tables
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Four shared patterns extracted and their duplicate implementations removed
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/components.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Every component you create here must have a real consumer before this task
+      is done. The conversions listed in tasks are not optional polish - a shared
+      component with no caller is a speculative abstraction and this project's
+      standards reject it. The remaining consumers get converted by the screen
+      tasks that follow.
+
+      ListRow is the replacement for "wrap each item in a Card". It renders as a
+      hairline-ruled row, not a box. This is the component the dashboard, the
+      documents list, the offers list and the posts list all converge on later.
+
+      Field puts the label above the control. A placeholder is not a label.
+
+      These live in src/shared/ui and must not import from features, entities,
+      widgets or app - the Feature-Sliced dependency rule is lint-enforced.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Create a component without converting at least one real consumer to it
+      - Convert screens beyond the three files named in scope - later tasks own those
+      - Import from a feature, entity, widget or app layer inside src/shared/ui
+      - Add a form library - the project already uses React Hook Form with Zod
+      - Build a generic table or data-grid abstraction
+      - Change Card's API
+
+  ###############################################################################
+  # TASK-071
+  ###############################################################################
+  - id: TASK-071
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-069
+      - TASK-070
+    title: App shell, navigation and settings information architecture
+    goal: >
+      The shell is a flat six-item sidebar with no grouping, a page header that is only a title row, and an onboarding gate that redirects on the client - its own ponytail comment in onboarding-gate.tsx records that the gated page renders and is discarded, leaving one blank frame before hydration on a new account's first visit. Restructure the shell for the new system, group the navigation, and fix the settings boundary: job preferences are settings and belong under Settings, while the CV and profile content stay a workspace. Replace the client redirect with a server-side one so the first impression is not a flash.
+
+    scope:
+      - src/widgets/nav/sidebar.tsx
+      - src/app/(app)/layout.tsx
+      - src/features/onboarding/components/onboarding-gate.tsx
+      - src/shared/ui/page-header.tsx
+      - src/shared/layouts/app-page-layout/AppPageLayout.tsx
+      - src/shared/layouts/split-layout/SplitLayout.tsx
+      - src/shared/layouts/index.ts
+      - src/app/(app)/settings/page.tsx
+      - src/app/(app)/profile/page.tsx
+      - src/features/profile/components/job-preferences-form.tsx
+      - ARCHITECTURE.md
+    deliverables:
+      - A sidebar restyled to the new system with its items grouped into labelled sections rather than one flat list
+      - A page header carrying a mono eyebrow label, a display-face title and a trailing action slot
+      - The client-side OnboardingGate replaced by a server-side redirect, removing the blank frame on first visit
+      - Job preferences moved from the profile page to a sectioned settings page
+      - The unused SplitLayout deleted
+    tasks:
+      - Restyle sidebar.tsx to the new tokens - hairline right border rather than a filled rail, mono uppercase section labels, the amber accent as the active indicator rather than a filled background pill - and group NAV_ITEMS into labelled sections instead of one flat list of six
+      - Keep the nav items in a single exported data structure rather than inlining them in JSX, so the grouping is data the shell renders
+      - Move the onboarding redirect out of the client component and into the server component in src/app/(app)/layout.tsx, which already awaits onboardedAt, so a new account never renders a discarded page or the "Redirecting..." paragraph; delete onboarding-gate.tsx and its isExemptPath export once nothing imports them, preserving the existing exemption for /onboarding and /settings
+      - Rebuild page-header.tsx with an optional mono eyebrow label above the title, the title in the display face, and the existing subtitle and action slots retained
+      - Move JobPreferencesForm from the profile page to the settings page, and restructure settings into labelled sections - Appearance (the TASK-067 theme toggle), Job preferences, Billing and AI usage
+      - Delete src/shared/layouts/split-layout entirely and remove it from the layouts barrel and from docs - it has had no consumer since it was built, and the offer detail page is too dense to be its consumer
+      - Update ARCHITECTURE.md's slice list, which currently omits the marketing, notification, onboarding and profile feature slices
+    acceptance:
+      - The sidebar renders its items in labelled groups and the active item is indicated with the accent token rather than a filled background pill
+      - A new account whose onboarding is incomplete is redirected to /onboarding by the server with no intermediate render and no "Redirecting..." text, verified by checking that the gated page's markup never appears in the initial HTML response
+      - onboarding-gate.tsx no longer exists and nothing in src imports isExemptPath
+      - /settings renders labelled Appearance, Job preferences, Billing and AI usage sections, and job preferences can be saved from there
+      - /profile no longer renders the job preferences form and still renders the CV, cover letter, score and summary content
+      - src/shared/layouts/split-layout no longer exists and nothing imports SplitLayout
+      - ARCHITECTURE.md lists every feature slice that exists under src/features
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Shell, navigation and settings IA restructured
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - architecture
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/design-system/ui-principles.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      The onboarding redirect moves to the server component at
+      src/app/(app)/layout.tsx, which already awaits onboardedAt - so it costs no
+      extra query. This is deliberately NOT the src/proxy.ts move that
+      onboarding-gate.tsx's ponytail comment names as the alternative: proxy.ts
+      is path-guarded by scripts/merge-gate.sh and would add a Supabase call to
+      every matched request. Do the layout-level redirect and preserve the
+      existing exemptions for /onboarding and /settings exactly.
+
+      Deleting SplitLayout is intended. It has never had a consumer. The obvious
+      candidate - offers list beside offer detail - was evaluated and rejected
+      because the offer detail page carries six sections including two document
+      editors and does not fit a detail pane. Delete it rather than finding it a
+      job.
+
+      Job preferences are settings; CV and profile content is workspace data.
+      Move only the preferences form, not the CV or score content.
+
+      Do not build a command palette. It is a genuinely good fit for this app but
+      it is a new feature, not a redesign, and it is out of scope for this
+      milestone. Keeping the nav items in one data structure is enough to leave
+      the door open.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Build a command palette or a global keyboard-shortcut system
+      - Move the onboarding redirect into src/proxy.ts
+      - Change the onboarding step flow or its exemption paths
+      - Keep SplitLayout "in case it is useful later"
+      - Move CV, cover letter, score or summary content out of the profile page
+      - Add a new navigation route or remove an existing one
+      - Change any authentication or authorization behaviour
+
+  ###############################################################################
+  # TASK-072
+  ###############################################################################
+  - id: TASK-072
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-071
+    title: Dashboard redesign - activation-focused home
+    goal: >
+      The dashboard is six equal-weight cards in a two-column grid, four of which - favorite offers, recent offers, recent activity and upcoming interviews - are the same Card-wrapping-a-list-of-links markup copied four times. Equal-weight card grids are the default generated-layout pattern, and they give a new account six empty boxes on first login. Rebuild it around what proves the product works: a compact metric strip, a primary work queue, and the supporting lists rendered as ruled rows through the shared ListRow rather than four near-identical cards.
+
+    scope:
+      - src/app/(app)/dashboard/page.tsx
+      - src/app/(app)/dashboard/loading.tsx
+      - src/features/dashboard/components/application-status-breakdown-card.tsx
+      - src/features/dashboard/components/favorite-offers-card.tsx
+      - src/features/dashboard/components/next-post-card.tsx
+      - src/features/dashboard/components/recent-activity-card.tsx
+      - src/features/dashboard/components/recent-offers-card.tsx
+      - src/features/dashboard/components/upcoming-interviews-card.tsx
+      - src/shared/ui/stat-card.tsx
+    deliverables:
+      - A dashboard with a deliberate visual hierarchy rather than six equal cards
+      - The four duplicated list-card components converted onto the shared ListRow from TASK-070
+      - A metric strip using mono numerals with the status breakdown read at a glance
+      - A genuine first-run state that tells a new account what to do next instead of showing six empty boxes
+      - A loading skeleton whose shape matches the new layout
+    tasks:
+      - Restructure the dashboard page away from the uniform Grid cols=1 colsMd=2 into an asymmetric layout - a full-width metric strip, then a primary column carrying the work queue and a narrower secondary column carrying supporting lists
+      - Convert favorite-offers-card, recent-offers-card, recent-activity-card and upcoming-interviews-card to render their items through ListRow, keeping each one's own data fetching and Link targets unchanged
+      - Give recent-offers-card's rows a Link target - it currently renders plain text rows while the other three link, which is an inconsistency rather than a decision
+      - Rework application-status-breakdown-card into the metric strip using StatCard with the counts set in Geist Mono so they can be scanned and compared
+      - Replace the per-card empty states with a single first-run panel shown when the account has no offers at all, naming the next action, and keep a per-list EmptyState only where a list can legitimately be empty on an otherwise active account
+      - Update dashboard/loading.tsx so the skeleton matches the new layout rather than the old six-card grid
+      - Restyle stat-card.tsx for the new type scale with mono numerals
+    acceptance:
+      - The dashboard no longer renders six equal-weight cards in a uniform grid
+      - favorite-offers-card, recent-offers-card, recent-activity-card and upcoming-interviews-card all render through ListRow and none of them wraps its items in individual Cards
+      - Every row in all four lists navigates somewhere, including recent offers
+      - An account with no offers sees one first-run panel naming the next action, not six empty boxes
+      - Numeric values in the metric strip render in Geist Mono
+      - The loading skeleton visually matches the shape of the loaded dashboard
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Dashboard restructured and the four duplicate list cards consolidated
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/design-system/components.md
+    prompt: |
+      Implement ONLY this task.
+
+      The four list cards are the clearest duplication in the codebase. Convert
+      all four onto ListRow from TASK-070 - do not leave one behind because its
+      data shape is slightly different.
+
+      Do not replace the equal card grid with a bento grid. A mixed-size tile
+      pattern is the same mistake in a newer costume. The hierarchy should come
+      from what the content is worth, not from a decorative tile arrangement.
+
+      Do not add charts. There is no charting dependency in this project and the
+      dashboard does not need one - counts in mono are enough.
+
+      Keep every existing data fetch and every existing Link target. This is a
+      presentation change; the dashboard's queries are not in scope.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a charting or data-visualisation dependency
+      - Use a bento grid or a mixed-size decorative tile layout
+      - Change any dashboard data query or add a new one
+      - Leave any of the four list cards unconverted
+      - Add a new dashboard widget or metric that has no existing data source
+      - Wrap individual list items in Card
+
+  ###############################################################################
+  # TASK-073
+  ###############################################################################
+  - id: TASK-073
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-071
+    title: Offers and applications workspace redesign
+    goal: >
+      The offers workspace is the product's core surface and its densest. The list renders one Card per offer, the offer detail page stacks six full-width Cards including two document editors, the filter bar mixes a styled raw select with the Select primitive, and the duplicate-detection banner uses a raw text-amber-600 with no token behind it. Convert the list to ruled rows, restructure the detail page from a six-card stack into a two-column layout with a sticky summary, unify the two select idioms, and put the duplicate warning on the warning token added in TASK-066.
+
+    scope:
+      - src/widgets/unified-offer-list/unified-offer-list.tsx
+      - src/widgets/application-board/application-board.tsx
+      - src/features/job-offer/components/offer-detail.tsx
+      - src/features/job-offer/components/offer-filters.tsx
+      - src/features/job-offer/components/add-offer-form.tsx
+      - src/features/application/components/application-status-select.tsx
+      - src/features/application/components/application-timeline.tsx
+      - src/features/application/components/application-notes.tsx
+      - src/app/(app)/offers/page.tsx
+      - src/app/(app)/offers/loading.tsx
+    deliverables:
+      - The offers list rendered as ruled rows rather than one Card per offer
+      - The offer detail page restructured into a sticky summary column and a sectioned content column
+      - One select idiom across the workspace, on the Select primitive
+      - The duplicate-detection banner on the warning token instead of a raw palette colour
+      - Kanban cards kept as cards, because a Kanban card is genuinely card-shaped
+    tasks:
+      - Convert unified-offer-list.tsx from one Card per offer to ruled rows built on ListRow, keeping the favorite toggle, delete action, match percentage, expiry badge, source, status select and recruiter-message excerpt available on each row
+      - Restructure offer-detail.tsx from six stacked full-width Cards into two columns - a sticky summary column carrying the offer facts, match percentage and primary actions, and a content column carrying the generated artefacts - so the page can be scanned without scrolling past a wall of identical boxes
+      - Keep the two DocumentEditor instances and every existing generation action working unchanged; this is a layout and surface change, not a behaviour change
+      - Replace the raw styled select in application-status-select.tsx and in offer-filters.tsx with the Select primitive, deleting the duplicated class string so one select idiom remains in the workspace
+      - Replace the text-amber-600 in add-offer-form.tsx's duplicate-detection banner with the warning token from TASK-066
+      - Restyle the Kanban columns and cards in application-board.tsx to the new tokens, keeping BoardCard as an actual Card and keeping the native HTML5 drag and drop behaviour exactly as it is
+      - Restyle application-timeline.tsx and application-notes.tsx to the new surfaces, with the timeline dates in Geist Mono
+      - Update offers/loading.tsx so the skeleton matches the ruled-row list rather than a card stack
+    acceptance:
+      - The offers list renders as ruled rows with no Card wrapping an individual offer, and every action available on a row before this task is still available
+      - The offer detail page renders in two columns on desktop with the summary column sticky, and collapses to one column on mobile
+      - grep for the raw select element across src/features/job-offer and src/features/application returns no matches - both use the Select primitive
+      - grep for text-amber across src returns no matches
+      - Dragging a card between Kanban columns still updates the application status, and dropping an untracked offer still creates an application
+      - Match, tailor CV, recruiter message and cover letter generation all still work from the offer detail page, and both document editors still save
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Offers workspace converted to ruled rows and the detail page restructured
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/design-system/components.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is the app's core surface and the highest-risk file in the milestone
+      is offer-detail.tsx. It is a layout restructure, not a rewrite: every hook,
+      every mutation, every render-prop slot for the injected applicationNotes
+      and applicationTimeline nodes stays exactly as it is. The widget seam that
+      exists because job-offer cannot import application (ADR-008) must survive
+      unchanged.
+
+      Kanban cards stay Cards. A card on a board is genuinely card-shaped - the
+      "a Card must earn its box" rule is satisfied there. Do not convert the
+      board to ruled rows.
+
+      Keep the native HTML5 drag and drop. Do not add a drag-and-drop library.
+
+      The offers list keeps every affordance it has today. If a row cannot fit an
+      action inline, put it behind a trailing menu - do not silently drop it.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a drag-and-drop library or replace the native HTML5 implementation
+      - Change any mutation, hook or data query
+      - Break the widget seam between the job-offer and application slices
+      - Convert the Kanban board to ruled rows
+      - Remove any action currently available on an offer row or the detail page
+      - Add a virtualised list or table library
+      - Change duplicate-detection logic - only its presentation
+
+  ###############################################################################
+  # TASK-074
+  ###############################################################################
+  - id: TASK-074
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-071
+    title: Documents, posts and profile screen pass
+    goal: >
+      The three content screens all render collections as card stacks and all carry leftover template markup: document-list and post-list wrap every item in a Card, profile-summary hand-rolls rounded-full chips instead of using Badge and stacks four full-width Cards, and campaign-list renders a raw h3 as its campaign heading. Convert the collections to ruled rows, put the chips on Badge, and give each screen a real hierarchy instead of a uniform stack.
+
+    scope:
+      - src/features/document/components/document-list.tsx
+      - src/features/linkedin-posts/components/post-list.tsx
+      - src/features/linkedin-posts/components/campaign-list.tsx
+      - src/features/linkedin-posts/components/generate-post-form.tsx
+      - src/features/linkedin-posts/components/generate-campaign-form.tsx
+      - src/features/cv/components/profile-summary.tsx
+      - src/features/cv/components/profile-score-card.tsx
+      - src/features/cv/components/optimize-document-panel.tsx
+      - src/app/(app)/posts/page.tsx
+      - src/app/(app)/profile/page.tsx
+      - src/app/(app)/documents/page.tsx
+    deliverables:
+      - Documents and posts rendered as ruled rows rather than card stacks
+      - Profile chips rendered with the Badge primitive instead of hand-rolled rounded-full spans
+      - Campaign groupings using a real heading rather than a raw h3
+      - The generation forms on AsyncButton so the pending-spinner pattern disappears from these files
+      - A loading state for the documents screen, which currently has none
+    tasks:
+      - Convert document-list.tsx from a Card per document to ruled rows, keeping the master and previous badge logic and the inline DocumentEditor toggle, and add a loading.tsx for the documents route which currently has none
+      - Convert PostCard in post-list.tsx from a Card per post to a ruled row, keeping the status select, copy, edit, delete, schedule and mark-sent actions, moving less-used actions behind a trailing menu if the row cannot carry them all
+      - Update campaign-list.tsx to render its campaign heading through the Heading primitive rather than a raw h3, and to group its rows under a ruled section header
+      - Replace both hand-rolled rounded-full chip spans in profile-summary.tsx with the Badge primitive, and restructure its four stacked Cards so summary, skills, experience and projects have a hierarchy rather than four identical boxes
+      - Restyle profile-score-card.tsx to the new type scale with the score in Geist Mono
+      - Convert the repeated pending-spinner submit buttons in generate-post-form.tsx, generate-campaign-form.tsx and optimize-document-panel.tsx onto AsyncButton from TASK-070
+      - Restyle the improvements list inside optimize-document-panel.tsx so each improvement is a ruled row rather than a nested Card inside a Card
+    acceptance:
+      - Documents and posts render as ruled rows with no Card wrapping an individual document or post
+      - Every action available on a post before this task is still reachable, whether inline on the row or in a trailing menu
+      - grep for rounded-full across src/features returns no matches
+      - The documents route has a loading.tsx whose skeleton matches its list
+      - generate-post-form, generate-campaign-form and optimize-document-panel all submit through AsyncButton and contain no inline isPending spinner conditional
+      - No Card is nested directly inside another Card anywhere in these files
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Content screens converted to ruled rows and shared patterns adopted
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/design-system/components.md
+    prompt: |
+      Implement ONLY this task.
+
+      PostCard is exported from post-list.tsx and reused by campaign-list.tsx.
+      Convert it once and both consumers get the new treatment - do not fork a
+      second version for campaigns.
+
+      Every post action must remain reachable. A ruled row has less horizontal
+      room than a card, so put secondary actions behind a trailing menu rather
+      than dropping them.
+
+      Do not change any mutation, hook or query in these files. This is
+      presentation only.
+
+      DocumentEditor stays in src/shared/ui and its API does not change - it is
+      already correctly shared across four call sites.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change any mutation, hook or data query
+      - Fork a second PostCard for campaigns
+      - Drop any existing post, document or profile action
+      - Change the DocumentEditor API or move it out of src/shared/ui
+      - Nest a Card inside a Card
+      - Add a rich-text editor or a markdown dependency
+
+  ###############################################################################
+  # TASK-075
+  ###############################################################################
+  - id: TASK-075
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-071
+    title: Auth, onboarding and billing screen pass
+    goal: >
+      The account surfaces are the first and last thing a paying stranger sees and they are the most templated screens in the app: all four auth pages are a centred Card with raw label elements instead of the Label primitive, the onboarding stepper hand-rolls rounded-full numbered circles, and the billing panel and usage meter are generic Cards with a native progress element. Bring them onto the new system, put the auth forms on Field, and give the app the error boundary it has never had.
+
+    scope:
+      - src/app/sign-in/page.tsx
+      - src/app/sign-up/page.tsx
+      - src/app/forgot-password/page.tsx
+      - src/app/reset-password/page.tsx
+      - src/features/onboarding/components/onboarding-stepper.tsx
+      - src/widgets/onboarding-panel/onboarding-panel.tsx
+      - src/features/billing/components/billing-panel.tsx
+      - src/features/billing/components/usage-meter.tsx
+      - src/features/billing/components/plan-badge.tsx
+      - src/features/notification/components/notification-list.tsx
+      - src/app/error.tsx
+      - src/app/not-found.tsx
+    deliverables:
+      - All four auth pages on the Field component with labels above their controls
+      - An onboarding stepper without hand-rolled pill circles
+      - Billing and usage restyled to the new surfaces with the usage meter on tokens rather than a native progress element
+      - The notification list's hand-rolled empty paragraph replaced with EmptyState
+      - A root error.tsx, which the app currently does not have on any route
+    tasks:
+      - Convert the email, password and confirm-password inputs on all four auth pages onto Field, replacing the raw label elements that bypass the Label primitive, and restyle the centred Card shell to the new surfaces
+      - Rework onboarding-stepper.tsx so step indicators use mono numerals and the accent token for the active step rather than hand-rolled rounded-full circles
+      - Restyle onboarding-panel.tsx to the new surfaces, keeping the three-step flow, the Back and Next links and the completeOnboarding form exactly as they are
+      - Restyle billing-panel.tsx and plan-badge.tsx to the new tokens, and rebuild usage-meter.tsx's bar on the token layer instead of the native progress element so it can be styled consistently in both themes, keeping the used-of-limit text in Geist Mono
+      - Replace the hand-rolled muted paragraph in notification-list.tsx with the EmptyState component
+      - Add a root src/app/error.tsx error boundary styled to the new system, since no route in the app currently has one, and restyle not-found.tsx to match it
+    acceptance:
+      - All four auth pages render their inputs through Field, and grep for a raw label element across src/app/sign-in, sign-up, forgot-password and reset-password returns no matches
+      - Sign-in, sign-up, password reset request and password reset all still complete successfully end to end
+      - grep for rounded-full across src/features/onboarding returns no matches
+      - The usage meter renders its bar from design tokens, not a native progress element, and is legible in both themes
+      - notification-list.tsx renders EmptyState when there are no notifications
+      - src/app/error.tsx exists, is styled to the new system, and renders when a route throws
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Account surfaces restyled and an error boundary added
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - auth
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/design-system/components.md
+    prompt: |
+      Implement ONLY this task.
+
+      Do not change any authentication behaviour. The server actions, the error
+      query-parameter switches, the rate-limit redirect from TASK-062 and the
+      account-existence non-disclosure on forgot-password all stay exactly as
+      they are. This is presentation only, on pages where a behavioural mistake
+      is a security mistake.
+
+      not-found.tsx carries a CSP nonce comment explaining why it is written the
+      way it is. Preserve that constraint when restyling it.
+
+      The onboarding flow's steps, exemptions and completion action do not
+      change. TASK-071 already moved the redirect; do not touch it again here.
+
+      Keep the auth pages centred. A centred single-column form is correct for a
+      focused credential entry task - the ban on centred layouts applies to
+      marketing hero sections, not to auth forms.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change any server action, auth flow, redirect or error-handling behaviour
+      - Change the onboarding step sequence, its exemptions or its completion action
+      - Remove the account-existence non-disclosure behaviour on forgot-password
+      - Break the CSP nonce handling in not-found.tsx
+      - Add an OAuth provider or change the existing Google sign-in
+      - Add a toast library - the project already uses sonner
+
+  ###############################################################################
+  # TASK-076
+  ###############################################################################
+  - id: TASK-076
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-066
+      - TASK-068
+    title: Marketing landing and pricing redesign, and remove the duplicate root route
+    goal: >
+      src/app/page.tsx and src/app/(marketing)/page.tsx both resolve to / and differ only in their exported function name, so one is dead and whichever Next.js resolves may be rendering the landing page outside the (marketing) layout and therefore without its top navigation. Delete the duplicate, then rebuild the landing and pricing pages on the new system: the landing is currently a centred hero over an equal-weight three-column highlight grid, which is the default generated marketing skeleton. This is the page that has to convince a stranger to pay.
+
+    scope:
+      - src/app/page.tsx
+      - src/app/(marketing)/page.tsx
+      - src/app/(marketing)/pricing/page.tsx
+      - src/app/(marketing)/layout.tsx
+      - src/features/marketing/components/pricing-table.tsx
+      - docs/PRODUCT.md
+    deliverables:
+      - The duplicate root route removed so exactly one file resolves to /, inside the (marketing) layout
+      - An asymmetric landing hero rather than a centred logo-headline-subhead-two-buttons stack
+      - The three-column equal-weight highlight grid replaced with a layout whose weighting follows the content
+      - A pricing table that reads as a considered comparison rather than a ring-highlighted featured card
+      - The marketing top bar restyled to a hairline rule
+    tasks:
+      - Delete src/app/page.tsx and keep src/app/(marketing)/page.tsx, then verify by request that / renders inside the (marketing) layout with the top navigation present
+      - Rebuild the landing hero asymmetrically on the display type scale from TASK-068, with the headline offset rather than centred and a single restrained accent mark, and no gradient, pill badge or availability dot
+      - Replace the equal-weight three-highlight Grid with a layout that varies block weight according to what each highlight is worth, or converts them to a ruled index list - not a bento grid
+      - Rebuild pricing-table.tsx on the new surfaces, distinguishing the recommended plan through type weight and hierarchy rather than the current ring-2 ring-primary outline, keeping it driven by the exported PLANS constant and keeping every existing checkout, current-plan and sign-up call-to-action path working
+      - Restyle the (marketing) layout's top bar to a hairline bottom rule with no background blur, and set prices and allowances in Geist Mono
+      - Confirm the rendered tiers, prices and AI-action allowances still match the Pricing and Packaging section of docs/PRODUCT.md, and update that document only if this task changes what is displayed
+    acceptance:
+      - Exactly one file in src/app resolves to the / route, and a request to / returns HTML containing the marketing top navigation
+      - The landing hero is not centred and contains no gradient, no pill badge, no availability dot and no emoji
+      - The highlights section is not an equal-weight three-column grid and not a bento grid
+      - The pricing table indicates the recommended plan without a coloured ring outline, and the checkout, current-plan and sign-up paths all still work for a signed-out visitor, a Free account and a Pro account
+      - Prices and AI-action allowances rendered on the pricing page match docs/PRODUCT.md exactly
+      - The marketing top bar uses a hairline rule and no backdrop blur
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Duplicate root route removed and the marketing surface rebuilt
+      - Feature committed
+    labels:
+      - ui
+      - frontend
+      - quality
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/design-system/ui-principles.md
+    prompt: |
+      Implement ONLY this task.
+
+      Delete src/app/page.tsx, not the (marketing) one. The (marketing) copy is
+      the one that gets the top navigation from its layout; keeping the root copy
+      would keep the bug.
+
+      docs/PRODUCT.md is the source of truth for tier names, prices and
+      allowances - TASK-056's Stripe prices, TASK-058's entitlement gate and
+      TASK-059's quota all encode what is written there. Do not change a price or
+      an allowance in this task. Read them and render them.
+
+      The centred-hero ban applies here specifically. So does the ban on
+      gradients, pill badges with pulsing dots, glassmorphism, and the
+      equal-weight three-column feature grid. Do not swap the three-column grid
+      for a bento grid - that is the same default in a newer costume.
+
+      No autoplay video hero. It is a current trend, it is a real bandwidth and
+      accessibility cost, and there is no asset for it.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Change any price, tier name or AI-action allowance
+      - Delete src/app/(marketing)/page.tsx instead of the root duplicate
+      - Add a gradient, pill badge, availability dot, glass panel or bento grid
+      - Add an autoplay video, a 3D render dependency or a WebGL hero
+      - Add testimonials, logos or metrics that are not real
+      - Change the checkout, subscription or entitlement logic
+      - Add an animation or scroll library
+
+  ###############################################################################
+  # TASK-077
+  ###############################################################################
+  - id: TASK-077
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Design System Overhaul"
+    depends_on:
+      - TASK-072
+      - TASK-073
+      - TASK-074
+      - TASK-075
+      - TASK-076
+    title: Motion pass and design-system audit gate
+    goal: >
+      With every screen converted, apply the motion budget the token layer defined in TASK-066 and then audit the whole app against the guardrails this milestone was built on, so the result is verified rather than assumed. The audit is the point of this task: a design system that is not checked at the end drifts back to the defaults within a few features. Close the milestone by running the guardrail greps across src, sweeping every route with the existing /design-review command, and signing the documentation off.
+
+    scope:
+      - src/app/globals.css
+      - src/shared/ui/primitives/feedback/skeleton/Skeleton.tsx
+      - docs/design-system/motion.md
+      - docs/design-system/ui-principles.md
+      - docs/TESTING.md
+      - ARCHITECTURE.md
+    deliverables:
+      - Interaction transitions using the TASK-066 duration and easing tokens, within a stated transform budget
+      - A prefers-reduced-motion rule that drops transform-based transitions to opacity only
+      - docs/design-system/motion.md documenting the tokens, the budget and the banned patterns
+      - A guardrail checklist in docs/design-system/ui-principles.md with the grep command for each rule
+      - A recorded /design-review pass over every route in both themes
+    tasks:
+      - Apply the --dur-fast, --dur, --dur-slow and --ease tokens from TASK-066 to hover, focus and overlay transitions, replacing any hardcoded duration or easing left in components
+      - Enforce the transform budget - opacity and translate of at most 4px per interaction, no scale on hover, no rotation, no spring or bounce - and remove anything exceeding it
+      - Add a prefers-reduced-motion reduce block to globals.css that drops transform-based transitions to opacity only at --dur-fast, and confirm the Skeleton's pulse is a genuine loading indicator rather than decoration
+      - Write docs/design-system/motion.md covering the tokens, the transform budget, the reduced-motion rule and the banned patterns - fade-up on every element, parallax, looping or idle animation, and decorative shimmer
+      - Add the guardrail checklist to docs/design-system/ui-principles.md as a table of rule, rationale and the exact grep that proves it, so it is runnable rather than aspirational
+      - Run /design-review across every route in both light and dark themes, fix the stragglers it finds within the existing scope of this milestone, and record anything deliberately deferred as a ponytail comment naming the ceiling
+      - Document the theme-switching and visual-regression journeys in docs/TESTING.md, and update ARCHITECTURE.md's design-system section to point at the finished docs
+    acceptance:
+      - Every guardrail grep in the ui-principles.md checklist returns the expected result - no gradients, no backdrop-blur, no rounded-xl or larger, no rounded-full outside Avatar and the notification indicator, no raw palette colour classes, and no shadow outside the overlay components
+      - No Card wraps an individual item in any list, board column excepted, across src
+      - grep for a hardcoded transition duration or easing value in src returns no matches outside globals.css
+      - With prefers-reduced-motion set to reduce, no transform-based transition runs anywhere in the app
+      - Every route renders correctly in both light and dark themes with no unreadable text, verified by a /design-review pass and recorded in the task's notes
+      - docs/design-system/motion.md exists and docs/design-system/ui-principles.md contains the runnable guardrail checklist
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Motion budget applied and the full guardrail audit passed in both themes
+      - Milestone documentation signed off and committed
+    labels:
+      - ui
+      - frontend
+      - quality
+      - testing
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/TESTING.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      The audit is the deliverable, not the motion. Run every grep in the
+      checklist and report its actual output. If a guardrail fails, either fix it
+      inside this milestone's existing scope or record it as a ponytail comment
+      naming the ceiling and the upgrade path - do not quietly relax the rule to
+      make the check pass.
+
+      Motion here is restraint, not addition. You are applying tokens to
+      transitions that already exist and deleting anything over budget. Do not
+      add scroll-triggered reveals, page transitions or entrance animations to
+      screens that do not have them.
+
+      Do not add an animation library. Tailwind and tw-animate-css are already
+      present and sufficient.
+
+      Run /design-review in both themes. A screen that reads well in dark and has
+      unreadable muted text in light has failed, and light is a first-class theme
+      in this system.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add an animation or scroll library
+      - Add scroll-triggered or entrance animation to any screen
+      - Relax a guardrail to make its check pass
+      - Add parallax, looping animation or decorative shimmer
+      - Redesign a screen - the screen tasks are complete by this point
+      - Skip the light theme in the review pass
