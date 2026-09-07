@@ -53,6 +53,19 @@ describe('clientIp', () => {
   });
 });
 
+describe('warnRateLimitSkipped', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('warns only once however many times it is called', async () => {
+    vi.resetModules();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { warnRateLimitSkipped } = await import('./index');
+    warnRateLimitSkipped('auth action');
+    warnRateLimitSkipped('AI endpoint');
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+});
+
 const { limitMock } = vi.hoisted(() => ({ limitMock: vi.fn() }));
 
 vi.mock('@upstash/redis', () => ({

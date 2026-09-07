@@ -6,7 +6,9 @@ import {
   classifyRateLimit,
   clientIp,
   enforceRateLimit,
+  warnRateLimitSkipped,
 } from '@/shared/rate-limit';
+import { SECURITY_HEADERS } from '@/shared/security-headers';
 
 /**
  * Per-request Content-Security-Policy. Built here rather than in next.config.ts
@@ -71,13 +73,15 @@ export async function proxy(request: NextRequest) {
     return headers;
   };
 
-  // Every response leaving the proxy carries the CSP — not just the
-  // pass-through one, but also the /sign-in gate redirect and the 429s — and
+  // Every response leaving the proxy carries the CSP and the static security
+  // headers — not just the pass-through one, but also the /sign-in gate
+  // redirect and the 429s, which next.config.ts `headers()` never reaches — and
   // any `sb-*` cookies Supabase's session refresh wrote onto `response`.
   // Dropping those on a redirect/429 would desync the browser session and
   // silently sign the user out on the next request.
   const finalize = (res: NextResponse): NextResponse => {
     res.headers.set('content-security-policy', csp);
+    for (const [key, value] of SECURITY_HEADERS) res.headers.set(key, value);
     if (res !== response) {
       response.cookies.getAll().forEach((cookie) => res.cookies.set(cookie));
     }
@@ -124,8 +128,10 @@ export async function proxy(request: NextRequest) {
   );
   if (rateLimitKind) {
     // Key per owner when there is a session, per client IP otherwise. A null
-    // identifier means there is no safe bucket to charge — see clientIp().
+    // identifier means there is no safe bucket to charge — see clientIp() —
+    // so the check is skipped, loudly in production where it should not happen.
     const identifier = user?.id ?? clientIp(request.headers);
+    if (!identifier) warnRateLimitSkipped('AI endpoint');
     const { ok, retryAfter } = identifier
       ? await enforceRateLimit(rateLimitKind, identifier)
       : { ok: true, retryAfter: 0 };

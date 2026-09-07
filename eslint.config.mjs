@@ -70,7 +70,18 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ['@/shared/db/admin', '**/shared/db/admin'],
+              // Alias, deep-relative (`../../shared/db/admin`), and the
+              // short relative forms only files inside src/shared/db can use
+              // (`./admin`, `./db/admin`, `../db/admin`).
+              group: [
+                '@/shared/db/admin',
+                '**/shared/db/admin',
+                '**/db/admin',
+                './admin',
+                './db/admin',
+                '../admin',
+                '../db/admin',
+              ],
               message:
                 'createAdminClient() bypasses RLS. Only scripts/ and the Stripe webhook sync service (src/features/billing/services/sync-subscription.service.ts) may import it — see ADR-015.',
             },

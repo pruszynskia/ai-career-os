@@ -113,6 +113,27 @@ export function clientIp(headers: Headers): string | null {
   return forwarded || null;
 }
 
+let warnedSkipped = false;
+
+/**
+ * One-time warning for when a limiter check is skipped because the request
+ * carried no usable client IP. Expected locally; in production it means the
+ * platform is not forwarding `x-real-ip` / `x-forwarded-for` and the limit is
+ * effectively off, so this must not pass silently. Paired with getRedis()'s
+ * "not configured" warning, these are the only two ways limiting silently
+ * no-ops.
+ */
+export function warnRateLimitSkipped(context: string): void {
+  if (warnedSkipped) return;
+  warnedSkipped = true;
+  const message =
+    `[rate-limit] ${context}: request has no client IP, so the check was ` +
+    'skipped. Expected without a proxy in front; in production it means ' +
+    'x-real-ip / x-forwarded-for are not being forwarded.';
+  if (process.env.NODE_ENV === 'production') console.error(message);
+  else console.warn(message);
+}
+
 const limiters = new Map<RateLimitKind, Ratelimit>();
 
 function limiterFor(kind: RateLimitKind): Ratelimit | null {

@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { clientIp, enforceRateLimit } from './index';
+import { clientIp, enforceRateLimit, warnRateLimitSkipped } from './index';
 
 /**
  * Rate limit guard for the auth Server Functions (sign-in, sign-up,
@@ -22,7 +22,10 @@ export async function guardAuthRateLimit(redirectTo: string): Promise<void> {
   // No session here by definition, so the key is the caller's IP. Unknown IP
   // means no bucket to charge — see clientIp().
   const ip = clientIp(await headers());
-  if (!ip) return;
+  if (!ip) {
+    warnRateLimitSkipped('auth action');
+    return;
+  }
   const { ok } = await enforceRateLimit('auth', ip);
   if (!ok) redirect(`${redirectTo}?error=rate_limit`);
 }

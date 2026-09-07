@@ -1,23 +1,14 @@
 import type { NextConfig } from 'next';
 
+import { SECURITY_HEADERS } from './src/shared/security-headers';
+
 // The Content-Security-Policy is set per-request in src/proxy.ts so production
 // can bind scripts to a fresh nonce instead of `'unsafe-inline'`. The static
-// headers below apply to every response, including the asset paths the
-// middleware matcher skips.
-const securityHeaders = [
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'X-DNS-Prefetch-Control', value: 'off' },
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=()',
-  },
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
-  },
-];
+// headers below apply to every response Next renders, including the asset paths
+// the proxy matcher skips; src/proxy.ts applies the same set to the responses
+// it returns itself (the 429 and the /sign-in redirect), which `headers()`
+// does not reach.
+const securityHeaders = SECURITY_HEADERS.map(([key, value]) => ({ key, value }));
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
