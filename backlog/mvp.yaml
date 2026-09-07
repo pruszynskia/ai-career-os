@@ -3690,7 +3690,7 @@ tasks:
   ###############################################################################
   - id: TASK-053
     github:
-      issue: null
+      issue: "145"
       project_item: null
     status: todo
     priority: P1
@@ -4493,7 +4493,7 @@ tasks:
   ###############################################################################
   - id: TASK-065
     github:
-      issue: null
+      issue: "146"
       project_item: null
     status: todo
     priority: P1
@@ -4583,7 +4583,7 @@ tasks:
   ###############################################################################
   - id: TASK-064
     github:
-      issue: null
+      issue: "147"
       project_item: null
     status: todo
     priority: P2
@@ -4659,7 +4659,7 @@ tasks:
   ###############################################################################
   - id: TASK-063
     github:
-      issue: null
+      issue: "148"
       project_item: null
     status: todo
     priority: P1
@@ -4725,13 +4725,12 @@ tasks:
       - Put a secret in a NEXT_PUBLIC_ variable
       - Change the owner_id, RLS or auth model
       - Rotate the Supabase project URL or database host, which are not secrets
-
   ###############################################################################
   # TASK-066
   ###############################################################################
   - id: TASK-066
     github:
-      issue: null
+      issue: "149"
       project_item: null
     status: todo
     priority: P1
@@ -4817,13 +4816,12 @@ tasks:
       - Add a gradient anywhere
       - Wire up the dark-mode class or a theme toggle - that is TASK-067
       - Add a CSS-in-JS library or a new styling dependency
-
   ###############################################################################
   # TASK-067
   ###############################################################################
   - id: TASK-067
     github:
-      issue: null
+      issue: "150"
       project_item: null
     status: todo
     priority: P1
@@ -4852,7 +4850,7 @@ tasks:
       - The chosen theme persisted across reloads and across route navigations
     tasks:
       - Add next-themes to package.json and run npm install so package-lock.json updates - it is pre-approved for this task
-      - Wrap the existing providers in src/app/providers.tsx with ThemeProvider using attribute="class", defaultTheme="dark" and enableSystem, so the existing @custom-variant dark (&:is(.dark *)) selector and every existing dark: utility work unchanged
+      - Wrap the existing providers in src/app/providers.tsx with ThemeProvider using attribute="class", defaultTheme="dark" and enableSystem, so the existing @custom-variant dark (&:is(.dark *)) selector and every existing dark-variant utility keep working unchanged
       - Add suppressHydrationWarning to the html element in src/app/layout.tsx, which next-themes requires because it mutates the class before React hydrates
       - Reconcile next-themes' injected inline script with the Content-Security-Policy added in TASK-062 - use the nonce already available to the app (see the CSP nonce comment in src/app/not-found.tsx) or add the script's hash to next.config.ts, and verify no CSP violation appears in the browser console
       - Build a ThemeToggle in src/shared/ui exposing Dark, Light and System, export it from the shared/ui barrel, and render it in a new Appearance section on the settings page
@@ -4908,13 +4906,12 @@ tasks:
       - Weaken or remove the Content-Security-Policy to make the inline script work
       - Restyle any component
       - Add a theme toggle to the marketing pages in this task
-
   ###############################################################################
   # TASK-068
   ###############################################################################
   - id: TASK-068
     github:
-      issue: null
+      issue: "151"
       project_item: null
     status: todo
     priority: P1
@@ -5000,13 +4997,12 @@ tasks:
       - Add a fourth typeface
       - Edit feature components to patch typography - fix it at the primitive or token layer
       - Change any colour token - those landed in TASK-066
-
   ###############################################################################
   # TASK-069
   ###############################################################################
   - id: TASK-069
     github:
-      issue: null
+      issue: "152"
       project_item: null
     status: todo
     priority: P1
@@ -5098,13 +5094,12 @@ tasks:
       - Reintroduce backdrop blur or any glass effect
       - Use rounded-full on a rectangular control
       - Add an animation library
-
   ###############################################################################
   # TASK-070
   ###############################################################################
   - id: TASK-070
     github:
-      issue: null
+      issue: "153"
       project_item: null
     status: todo
     priority: P2
@@ -5190,13 +5185,12 @@ tasks:
       - Add a form library - the project already uses React Hook Form with Zod
       - Build a generic table or data-grid abstraction
       - Change Card's API
-
   ###############################################################################
   # TASK-071
   ###############################################################################
   - id: TASK-071
     github:
-      issue: null
+      issue: "154"
       project_item: null
     status: todo
     priority: P1
@@ -5295,13 +5289,12 @@ tasks:
       - Move CV, cover letter, score or summary content out of the profile page
       - Add a new navigation route or remove an existing one
       - Change any authentication or authorization behaviour
-
   ###############################################################################
   # TASK-072
   ###############################################################################
   - id: TASK-072
     github:
-      issue: null
+      issue: "155"
       project_item: null
     status: todo
     priority: P2
@@ -5385,13 +5378,12 @@ tasks:
       - Leave any of the four list cards unconverted
       - Add a new dashboard widget or metric that has no existing data source
       - Wrap individual list items in Card
-
   ###############################################################################
   # TASK-073
   ###############################################################################
   - id: TASK-073
     github:
-      issue: null
+      issue: "156"
       project_item: null
     status: todo
     priority: P1
@@ -5481,13 +5473,12 @@ tasks:
       - Remove any action currently available on an offer row or the detail page
       - Add a virtualised list or table library
       - Change duplicate-detection logic - only its presentation
-
   ###############################################################################
   # TASK-074
   ###############################################################################
   - id: TASK-074
     github:
-      issue: null
+      issue: "157"
       project_item: null
     status: todo
     priority: P2
@@ -5573,13 +5564,12 @@ tasks:
       - Change the DocumentEditor API or move it out of src/shared/ui
       - Nest a Card inside a Card
       - Add a rich-text editor or a markdown dependency
-
   ###############################################################################
   # TASK-075
   ###############################################################################
   - id: TASK-075
     github:
-      issue: null
+      issue: "158"
       project_item: null
     status: todo
     priority: P2
@@ -5668,13 +5658,12 @@ tasks:
       - Break the CSP nonce handling in not-found.tsx
       - Add an OAuth provider or change the existing Google sign-in
       - Add a toast library - the project already uses sonner
-
   ###############################################################################
   # TASK-076
   ###############################################################################
   - id: TASK-076
     github:
-      issue: null
+      issue: "159"
       project_item: null
     status: todo
     priority: P1
@@ -5760,13 +5749,12 @@ tasks:
       - Add testimonials, logos or metrics that are not real
       - Change the checkout, subscription or entitlement logic
       - Add an animation or scroll library
-
   ###############################################################################
   # TASK-077
   ###############################################################################
   - id: TASK-077
     github:
-      issue: null
+      issue: "160"
       project_item: null
     status: todo
     priority: P2
