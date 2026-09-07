@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/shared/db/client';
+import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 
 export async function signOut() {
   const supabase = await createClient();
@@ -25,6 +26,7 @@ async function siteOrigin() {
 }
 
 export async function signUp(formData: FormData) {
+  await guardAuthRateLimit('/sign-up');
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email: formData.get('email') as string,
@@ -40,6 +42,7 @@ export async function signUp(formData: FormData) {
 }
 
 export async function signInWithGoogle() {
+  await guardAuthRateLimit('/sign-in');
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -54,6 +57,7 @@ export async function signInWithGoogle() {
 }
 
 export async function requestPasswordReset(formData: FormData) {
+  await guardAuthRateLimit('/forgot-password');
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(formData.get('email') as string, {
     redirectTo: `${await siteOrigin()}/auth/callback`,

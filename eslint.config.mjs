@@ -57,6 +57,39 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Enforce the ADR-015 comment in src/shared/db/admin.ts: the service-role
+  // client bypasses RLS and must never be reachable from request code. Only
+  // scripts/ (outside this glob already) and the Stripe webhook's sync
+  // service may import it.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/features/billing/services/sync-subscription.service.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              // Alias, deep-relative (`../../shared/db/admin`), and the
+              // short relative forms only files inside src/shared/db can use
+              // (`./admin`, `./db/admin`, `../db/admin`).
+              group: [
+                '@/shared/db/admin',
+                '**/shared/db/admin',
+                '**/db/admin',
+                './admin',
+                './db/admin',
+                '../admin',
+                '../db/admin',
+              ],
+              message:
+                'createAdminClient() bypasses RLS. Only scripts/ and the Stripe webhook sync service (src/features/billing/services/sync-subscription.service.ts) may import it — see ADR-015.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

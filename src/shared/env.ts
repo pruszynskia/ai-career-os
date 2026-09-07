@@ -28,6 +28,12 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
   STRIPE_PRICE_ID_PRO: z.string().min(1).optional(),
+  // Upstash Redis — request rate limiting for the auth actions and AI
+  // endpoints. Optional: an unset pair means "not enforced" (local dev, CI).
+  // src/shared/rate-limit reads these directly for a lazy per-request read and
+  // logs loudly in production when they are missing.
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
 });
 
 export type ClientEnv = z.infer<typeof clientSchema>;

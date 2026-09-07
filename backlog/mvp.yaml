@@ -4408,7 +4408,7 @@ tasks:
   ###############################################################################
   - id: TASK-062
     github:
-      issue: null
+      issue: "125"
       project_item: null
     status: todo
     priority: P1
@@ -4427,19 +4427,23 @@ tasks:
       - next.config.ts
       - eslint.config.mjs
       - .env.example
+      - package.json
+      - package-lock.json
       - docs/TESTING.md
     deliverables:
       - Rate limiting on the authentication pages and the AI endpoints, with the Stripe webhook exempt
       - Security headers and a content security policy in next.config.ts
       - A lint rule failing the build if src/shared/db/admin.ts is imported outside the paths allowed to use it
     tasks:
+      - Add @upstash/ratelimit and @upstash/redis to package.json - both are pre-approved for this task; run npm install so package-lock.json updates
       - Add src/shared/rate-limit with a single limiter helper built on @upstash/ratelimit + @upstash/redis (Upstash's free tier, REST client so it runs in the src/proxy.ts edge runtime), reading UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN from env and documenting both in .env.example; apply it to sign-in, sign-up and forgot-password and to the AI endpoints, keyed per owner where there is a session and per IP where there is not - exempting /api/stripe/webhook, which Stripe retries on its own schedule
       - Add security headers and a content security policy to next.config.ts, verifying the Stripe Checkout and portal redirects and the Supabase endpoints still work under it
       - Add a no-restricted-imports rule to eslint.config.mjs forbidding src/shared/db/admin.ts outside scripts/ and the Stripe webhook's service path, so the comment in that file becomes enforced
       - Document the auth, RLS-isolation and subscription-flow journeys in docs/TESTING.md
     acceptance:
-      - Repeated rapid sign-in attempts are rejected with 429 while a normal sign-in is unaffected, and the Stripe webhook is never rate limited
-      - The security headers are present on a response and the app, Stripe redirects and Supabase calls all still work under the content security policy
+      - Repeated rapid sign-in attempts are rejected - the sign-in page shows a rate-limit message rather than authenticating (the submit is a Server Function, so the guard redirects with ?error=rate_limit instead of a raw 429 status) - while a single normal sign-in is unaffected
+      - Repeated rapid POSTs to an AI endpoint get a 429 with Retry-After, and the Stripe webhook is never rate limited
+      - The security headers (including HSTS, X-Frame-Options and X-Content-Type-Options) are present on a normal response and on the proxy-returned 429 and sign-in redirect, and the app, Stripe redirects and Supabase calls all still work under the content security policy
       - npm run lint fails when src/shared/db/admin.ts is imported from src/app or src/features outside the allowed webhook path
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:

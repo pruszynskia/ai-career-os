@@ -25,6 +25,11 @@ export default async function ForgotPasswordPage({
               below.
             </p>
           )}
+          {error === 'rate_limit' && (
+            <p role="alert" className="mb-4 text-sm text-destructive">
+              Too many attempts. Please wait a minute and try again.
+            </p>
+          )}
           <form action={requestPasswordReset} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium">
