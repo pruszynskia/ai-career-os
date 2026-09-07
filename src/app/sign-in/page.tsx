@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { signInWithGoogle } from '@/shared/auth/actions';
 import { createClient } from '@/shared/db/client';
+import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -17,6 +18,7 @@ export default async function SignInPage({
 
   async function authenticate(formData: FormData) {
     'use server';
+    await guardAuthRateLimit('/sign-in');
     const supabase = await createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: formData.get('email') as string,
@@ -82,7 +84,9 @@ export default async function SignInPage({
                 ? 'That link is invalid or has expired.'
                 : error === 'oauth'
                   ? 'Could not sign in with Google. Please try again.'
-                  : 'Invalid email or password.'}
+                  : error === 'rate_limit'
+                    ? 'Too many attempts. Please wait a minute and try again.'
+                    : 'Invalid email or password.'}
             </p>
           )}
           <div className="mt-4 flex flex-col gap-1 text-sm">

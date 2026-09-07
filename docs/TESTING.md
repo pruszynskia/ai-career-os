@@ -424,6 +424,60 @@ Do not generate tests only to increase coverage numbers.
 
 ---
 
+# Manual Verification Journeys
+
+Run these by hand before a release. They cover the security-sensitive paths
+that automated tests only touch in parts.
+
+## Auth
+
+1. Sign up with a new email → confirmation email arrives, link lands on
+   `/auth/callback` and then the app.
+2. Sign in with the wrong password several times fast → after 10 attempts in
+   a minute the page reloads showing "Too many attempts. Please wait a minute
+   and try again." instead of the usual credentials error, and no request
+   reaches Supabase. A single correct sign-in once the window resets still
+   works. The same applies to sign-up, forgot-password and `Continue with
+   Google`.
+
+   The auth limit is enforced inside the Server Functions
+   (`src/shared/rate-limit/auth-guard.ts`), not in `src/proxy.ts`: a Server
+   Function is a POST to the page's own path, and a redirect or `429` answered
+   from the proxy would break the action client instead of reaching the user
+   ([vercel/next.js#65394](https://github.com/vercel/next.js/issues/65394)).
+   The AI route handlers are limited in `src/proxy.ts` and do answer a real
+   `429` with `Retry-After` — check with 30+ rapid `POST /api/cv/optimize`
+   calls. Both share the limiter in `src/shared/rate-limit`, which no-ops
+   when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are unset, so
+   none of this is reproducible locally without an Upstash database.
+3. `Forgot password` → reset email arrives, the link sets a new password, and
+   the old password no longer works.
+4. Visit a protected route while signed out → redirected to `/sign-in`
+   (`src/proxy.ts`).
+
+## RLS isolation
+
+1. Sign in as owner A, create a job offer and a CV.
+2. Sign in as owner B → none of A's offers, CVs, applications, posts or usage
+   rows are visible anywhere in the UI or via the API routes.
+3. Call an API route such as `GET /api/offers/{A's id}` as B → `404`, not
+   A's data. No route uses the service-role client on the request path
+   (enforced by the `no-restricted-imports` lint rule on
+   `src/shared/db/admin.ts`).
+
+## Subscription flow
+
+1. As a free owner, start `Upgrade` → redirected to Stripe Checkout, all
+   assets load under the CSP in `next.config.ts`.
+2. Complete payment → Stripe fires the webhook to `/api/stripe/webhook`, the
+   `subscriptions` row is written, and Pro features unlock.
+3. Retry the webhook from the Stripe dashboard → handled idempotently and
+   never rate limited.
+4. Open `Manage billing` → redirected to the Stripe portal; cancelling there
+   downgrades the owner after the next webhook.
+
+---
+
 # Future Improvements
 
 Possible additions:

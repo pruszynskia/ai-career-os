@@ -67,7 +67,9 @@ export default async function SignUpPage({
           )}
           {error && (
             <p role="alert" className="mt-4 text-sm text-destructive">
-              Could not create account. Try a different email.
+              {error === 'rate_limit'
+                ? 'Too many attempts. Please wait a minute and try again.'
+                : 'Could not create account. Try a different email.'}
             </p>
           )}
           <p className="mt-4 text-sm text-muted-foreground">

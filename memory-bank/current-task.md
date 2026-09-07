@@ -2,6 +2,59 @@
 
 ## Current Sprint
 
+### Feature: TASK-062 — Launch hardening (rate limiting, security headers, admin-client guard)
+
+Status: **done** — green on typecheck/lint/test/build. Backend/config-only,
+no Playwright loop. Account deletion + data export were split to TASK-065 and
+are NOT in this change.
+
+What shipped:
+
+- `src/shared/rate-limit/index.ts` (new) — one helper on `@upstash/ratelimit`
+  + `@upstash/redis` (REST client, runs in the `src/proxy.ts` edge runtime).
+  `classifyRateLimit(method, pathname)` is a pure, unit-tested function that
+  maps a request to `'auth'` (POST `/sign-in` `/sign-up` `/forgot-password`),
+  `'ai'` (the 12 AI POST routes incl. the dynamic `/api/offers/{id}/...`
+  ones), or `null`. `/api/stripe/webhook` is explicitly never matched.
+  `enforceRateLimit(kind, id)` returns `true`/`false`; sliding window
+  10/60s for auth, 30/60s for ai. Reads `UPSTASH_REDIS_REST_URL` /
+  `UPSTASH_REDIS_REST_TOKEN` straight from `process.env` (env module not in
+  scope) — when either is unset the limiter is a no-op so local dev / CI /
+  previews are unaffected.
+- `src/proxy.ts` — after `getUser()`, calls `classifyRateLimit`; on a hit,
+  keys per `user.id` when signed in else first `x-forwarded-for` IP, and
+  returns `429` JSON when over the limit.
+- `next.config.ts` — `async headers()` adds CSP + `X-Content-Type-Options`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, HSTS,
+  `X-DNS-Prefetch-Control`. CSP keeps `'unsafe-inline'` for script/style (no
+  nonce plumbing in this app), `'unsafe-eval'` dev-only; `connect-src` allows
+  `*.supabase.co` + `wss://*.supabase.co`; `form-action` lists the Stripe
+  Checkout/portal domains (they are top-level navigations so not strictly
+  needed). `upgrade-insecure-requests` prod-only.
+- `eslint.config.mjs` — `no-restricted-imports` on `src/**` (with the Stripe
+  webhook sync service `ignore`d) forbidding `@/shared/db/admin` /
+  `**/shared/db/admin`, so the ADR-015 comment in `src/shared/db/admin.ts` is
+  now enforced. `scripts/` is outside the `files` glob so it stays allowed.
+  Verified: a probe import from `src/app` fails lint with the ADR-015 message.
+- `.env.example` — added the two `UPSTASH_REDIS_REST_*` vars (server-only,
+  optional, disable-when-unset).
+- `docs/TESTING.md` — new "Manual Verification Journeys" section: auth
+  (incl. the 429), RLS isolation, subscription flow.
+- `src/shared/rate-limit/index.test.ts` (new) — `classifyRateLimit` cases
+  incl. webhook-exempt and non-POST/unrelated paths.
+
+Deliberately not done: no per-route limiter wiring (centralised in the proxy,
+which is the scoped file), no in-memory limiter, no self-hosted Redis, no
+nonce-based strict CSP, no `src/shared/env.ts` change (out of scope — vars
+read from `process.env` directly).
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 52 passed (4 new)
+- `npm run build` — pass (`✓ Compiled successfully`)
+
 ### Feature: TASK-061 — Error monitoring and env var validation
 
 Status: **done** — green on typecheck/lint/test/build (build run with CI's
