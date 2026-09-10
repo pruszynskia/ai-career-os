@@ -16,6 +16,7 @@
 /test-results
 /blob-report
 /.playwright-mcp
+/playwright/.auth
 
 # next.js
 /.next/
