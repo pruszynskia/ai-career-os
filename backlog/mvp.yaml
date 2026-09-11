@@ -26,6 +26,7 @@ project:
     - "Stage 2 - Core Value"
     - "Monetization Milestone"
     - "Design System Overhaul"
+    - "Stage 3 - Evidence and Signal"
   statuses:
     - backlog
     - todo
@@ -5846,3 +5847,1037 @@ tasks:
       - Add parallax, looping animation or decorative shimmer
       - Redesign a screen - the screen tasks are complete by this point
       - Skip the light theme in the review pass
+  ###############################################################################
+  # TASK-078
+  ###############################################################################
+  - id: TASK-078
+    github:
+      issue: "162"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-006
+      - TASK-024
+    title: Evidence base - verified claims and generation rules on the profile
+    goal: >
+      Every generator in this app reads either the flat profiles.skills array or the raw master CV text, so nothing distinguishes a claim the owner could defend in an interview from one the CV overstated, and nothing records what must never be written at all. Add an evidence base on profiles - a list of claims each carrying a state, a risk level and an optional metric, plus neverInclude and alwaysIncludeWhenRelevant rules - and have CV parsing flag only the high-risk claims for a one-tap confirmation on the profile page. This is the data contract every later task in this milestone generates from, so it lands first and lands additively.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/profile/types.ts
+      - src/entities/profile/service.ts
+      - src/shared/ai/prompts/parse-cv.ts
+      - src/features/cv/services/upload-cv.service.ts
+      - src/features/profile/services/update-evidence.service.ts
+      - src/features/profile/components/evidence-review.tsx
+      - src/app/api/profile/evidence/route.ts
+      - ARCHITECTURE.md
+    deliverables:
+      - A profiles.evidence jsonb column added by an additive migration, leaving skills, experience, projects and score untouched
+      - evidenceSchema and claimSchema in src/entities/profile/types.ts, a claim being id, kind, text, sourceRef, state, riskLevel, note and metric
+      - Claim states TRUSTED, CONFIRMED, FLAGGED and EXCLUDED, with TRUSTED as the parse-time default
+      - Generation rules on the same jsonb - neverInclude and alwaysIncludeWhenRelevant string lists
+      - parse-cv emitting a riskLevel per claim so only genuinely risky claims ever need confirming
+      - An evidence review panel on the profile page confirming, flagging or excluding a claim in one action
+      - PATCH /api/profile/evidence persisting a single claim state change, owner-scoped
+      - An implementation matching ADR-017 exactly - the claim shape, the four states and the generation rules
+    tasks:
+      - Add a migration adding evidence jsonb to profiles with a default empty base, following the existing score jsonb column as the shape precedent, and change no existing column
+      - Define claimSchema and evidenceSchema in src/entities/profile/types.ts next to parsedProfileSchema, exporting Claim, ClaimState and EvidenceBase types
+      - Extend parseCvSystemPrompt so extraction also returns a claims array, marking riskLevel high for any claim carrying a number, a years-of-experience figure, a seniority label, or a leadership or ownership scope, and low for everything else
+      - Build the evidence base in upload-cv.service.ts from the parsed claims, defaulting each to TRUSTED, carrying riskLevel through, and persist it on the profile row in the same write as the parsed profile
+      - Add update-evidence.service.ts and PATCH /api/profile/evidence accepting one claim id and its new state, owner-scoped exactly like the existing profile preferences route
+      - Add evidence-review.tsx to the profile feature listing only riskLevel high claims still in TRUSTED, each with confirm, flag and exclude actions plus a remaining count, and render nothing when the list is empty
+      - Add a rules editor to the same panel writing neverInclude and alwaysIncludeWhenRelevant, seeded empty, so the owner can record a claim that must never appear
+      - Implement the claim shape, the four states and the generation rules exactly as ADR-017 already records them, and update the data-model section of ARCHITECTURE.md to name profiles.evidence
+    acceptance:
+      - profiles.evidence exists and a CV upload populates it with one claim per extracted skill, achievement and scope
+      - A claim carrying a number or a years figure is stored with riskLevel high, and one carrying neither is stored as low
+      - The profile page lists only unconfirmed high-risk claims, and confirming one removes it from that list and survives a refresh
+      - Flagging a claim persists FLAGGED and excluding one persists EXCLUDED, both visible after a reload
+      - The skills, experience, projects and score columns are unchanged and every existing profile screen renders exactly as before
+      - A profile row created before this migration loads without error and shows an empty evidence base rather than failing
+      - The persisted claim shape and state values match ADR-017, and ARCHITECTURE.md names profiles.evidence in its data-model section
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Evidence base populated from a real CV upload and the high-risk confirmation flow verified end to end
+      - Implementation verified against ADR-017 and the feature committed
+    labels:
+      - database
+      - backend
+      - ai
+      - frontend
+      - documentation
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is a data-contract task. The evidence base is what every later task in
+      this milestone generates from, so the schema matters far more than the
+      panel. Keep the migration additive - skills, experience, projects and score
+      must keep working exactly as they do, because every shipped feature reads
+      them.
+
+      Default every parsed claim to TRUSTED. Only claims the parser marks
+      riskLevel high are ever shown for confirmation. Asking a new user to
+      confirm their entire CV is signup friction this product cannot afford.
+
+      Reuse parsedProfileSchema and the existing score jsonb column as the shape
+      precedent. Do not introduce a new entity slice or a separate claims table.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Introduce a claims table or a new entity slice
+      - Change or drop the existing skills, experience, projects or score columns
+      - Require confirmation for low-risk claims
+      - Wire the evidence base into any generator - that is TASK-081
+      - Change scoring or matching here
+  ###############################################################################
+  # TASK-079
+  ###############################################################################
+  - id: TASK-079
+    github:
+      issue: "163"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-078
+      - TASK-033
+      - TASK-022
+    title: Fit assessment - nine weighted criteria, mechanical sub-scores and callback probability
+    goal: >
+      job_offers.match_score is a single integer produced by a five-line prompt, so it explains nothing and cannot be acted on, while the twelve job-preference columns TASK-033 added have a form, a PATCH route and no reader anywhere in the codebase. Replace the bare match with a full fit assessment - nine weighted criteria, a separately reasoned callback probability, a missing-skills list and a deterministic recommended-action band - where the four mechanical criteria are computed in TypeScript from those preferences and handed to the model as stated facts rather than re-derived, narrowing the AI call to the five criteria that genuinely need judgment.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/job-offer/types.ts
+      - src/entities/job-offer/service.ts
+      - src/shared/ai/prompts/match-offer.ts
+      - src/features/job-offer/services/match-offer.service.ts
+      - src/features/job-offer/services/mechanical-subscores.ts
+      - src/features/job-offer/services/mechanical-subscores.test.ts
+    deliverables:
+      - A job_offers.fit jsonb column holding the nine sub-scores, reasoning, missing skills, the absent-but-true list, the callback probability and the modifiers applied to it
+      - match_score kept as the headline integer so the shipped offer list, sort, filters and dashboard cards keep working unchanged
+      - mechanical-subscores.ts computing the core-stack, industry, work-mode and salary sub-scores in TypeScript from jobPreferencesSchema with no AI call
+      - A rewritten match-offer prompt scoring only the five judgment criteria and receiving the four mechanical scores as facts it is told not to recompute
+      - A deterministic recommendedAction band lookup in TypeScript rather than a model judgment
+      - hrCallbackProbability derived from match_score by named modifiers and clamped to the 0 to 100 range
+      - absentButTrue listing requirements the posting names that appear in an experience description but not in the skills list
+    tasks:
+      - Add a migration adding a nullable fit jsonb column to job_offers and leave match_score in place
+      - Define fitAssessmentSchema in src/entities/job-offer/types.ts with the nine sub-scores and their fixed weights of 20, 15, 15, 10, 10, 10, 10, 5 and 5, summing to 100
+      - Write mechanical-subscores.ts computing core-stack overlap, industry relevance, work-mode compatibility and salary match from the profile preferences, comparing a disclosed salary range against its top rather than its floor
+      - Rewrite matchOfferSystemPrompt to score only technical match, seniority match, architecture experience, company attractiveness and experience similarity, reading the four mechanical numbers as given
+      - Encode the seniority bands - a posting stating a flexible Mid to Senior band scores 90 to 100, a Mid-labelled posting or a Senior one using preferred rather than required language scores 70 to 89, and an explicit hard years gate scores 0 to 39 even when the stack matches well
+      - Compute hrCallbackProbability from match_score with named modifiers - a hard years gate costs 15 to 25 points and the full 25 when stacked with a domain gap, high applicant volume with no differentiator costs 10, an AI-engineering culture signal adds 10, a flexible band adds 8, stated urgency adds 5, and an undisclosed salary costs 10 - recording which modifiers fired
+      - Derive recommendedAction by band lookup - 90 and above apply immediately, 80 to 89 strong opportunity, 70 to 79 consider, below 70 ignore
+      - Compute absentButTrue by checking each extracted posting requirement against the experience descriptions and the skills list, returning those present in the former and missing from the latter
+      - Update match-offer.service.ts to load the profile with its preferences and evidence base, run the mechanical pass first, then the single AI call, and persist both fit and match_score
+      - Add mechanical-subscores.test.ts covering the salary range top rule, a missing preference, and each work-mode combination
+    acceptance:
+      - Scoring an offer writes a fit jsonb carrying all nine sub-scores, each 0 to 100, and a match_score equal to their weighted average rounded to an integer
+      - The four mechanical sub-scores are produced with no AI call, proven by mechanical-subscores.test.ts running with no AI service involved
+      - A posting advertising a range is scored against the top of that range, covered by a test case
+      - A posting stating a flexible Mid to Senior band scores higher on seniority than an otherwise identical posting stating a hard years requirement
+      - hrCallbackProbability can differ from match_score, and every modifier applied to it is listed in the fit jsonb
+      - recommendedAction matches the band lookup for its match_score in every case
+      - A profile with no job preferences set still scores without error, the affected mechanical criteria recorded as unknown rather than silently zero
+      - The existing offers list, sort, filters and dashboard cards still render from match_score unchanged
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Fit assessment persisted for a real offer with the two numbers diverging as designed
+      - Mechanical sub-scores unit tested and the feature committed
+    labels:
+      - database
+      - backend
+      - ai
+      - feature
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+      - docs/TESTING.md
+    prompt: |
+      Implement ONLY this task.
+
+      This is the scoring engine, not its UI - TASK-080 renders it. Persist the
+      assessment and keep match_score as the headline integer so nothing that
+      already reads it breaks.
+
+      The mechanical half is the point. Four criteria carrying 45 of the 100
+      weight must be computed in TypeScript from the job preferences this app
+      already collects and never reads, then passed into the prompt as facts the
+      model is explicitly told not to recompute. That makes the AI call cheaper
+      and the number auditable.
+
+      Compare salary against the top of a disclosed range, not the bottom.
+      Rejecting a posting on its floor rejects a number nobody has proposed to
+      pay.
+
+      Never round a criterion up to make the overall number look better. Nine
+      honest parts are the entire reason for splitting the score.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Drop or repurpose the match_score column
+      - Compute any mechanical criterion inside the AI prompt
+      - Build fit report UI - that is TASK-080
+      - Add job discovery, scraping or a new offer source
+      - Use criterion weights that do not sum to 100
+  ###############################################################################
+  # TASK-080
+  ###############################################################################
+  - id: TASK-080
+    github:
+      issue: "164"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-079
+      - TASK-073
+    title: Fit report UI on the offer detail and offers workspace
+    goal: >
+      TASK-079 produces a nine-part assessment and a callback probability that currently reach no screen, so the user still sees one unexplained percentage. Render the report where the decision is actually made - on the offer detail as a criteria breakdown, the reasoning, the missing skills, the absent-but-true prompt and the recommended-action band, and in the offers workspace as a sortable second number. The divergence between fit and callback probability is the product, not a rounding error, so it is surfaced and explained rather than averaged into one figure.
+
+    scope:
+      - src/features/job-offer/components/
+      - src/widgets/offer-detail-panel/
+      - src/widgets/unified-offer-list/
+      - src/features/job-offer/api/job-offer.api.ts
+      - src/features/profile/services/update-evidence.service.ts
+      - docs/design-system/components.md
+    deliverables:
+      - A fit report section on the offer detail showing both numbers, the nine criteria with their weights, the reasoning and the recommended-action band
+      - An explanation line whenever fit and callback probability diverge by more than 15 points, naming which modifiers caused it
+      - A missing-skills list rendered plainly, not softened into vague copy
+      - An absent-but-true prompt adding a named skill to the profile in one action, reusing the TASK-078 evidence endpoint
+      - Sort and filter by callback probability in the offers workspace, alongside the existing match sort
+      - A recommended-action badge on each offer row using the existing badge primitive
+    tasks:
+      - Add a fit report section to the offer detail panel rendering the nine criteria as labelled rows with their weight and sub-score, using existing primitives rather than a new chart component
+      - Render both headline numbers side by side with the band label, and an explanation line when the two diverge by more than 15 points that names the modifiers recorded in the fit jsonb
+      - Render missingSkills as a plain list under its own heading, with no softening copy around it
+      - Render absentButTrue as a prompt offering to add each named skill to the profile, calling the existing PATCH /api/profile/evidence rather than a new endpoint
+      - Add a recommended-action badge to the unified offer list rows and a callback-probability column, both reading the fit jsonb with a graceful empty state for offers scored before this milestone
+      - Extend the existing offers sort and filter controls with callback probability, leaving the current match sort in place
+      - Follow the TASK-073 workspace layout and the elevation rules from docs/design-system/ui-principles.md, and do not wrap an individual list row in a Card
+    acceptance:
+      - The offer detail shows both numbers, all nine criteria with weights, the reasoning and the band for an offer scored by TASK-079
+      - An offer whose fit and callback probability differ by more than 15 points renders the explanation line naming the applied modifiers
+      - The missing-skills list is rendered verbatim from the fit jsonb with no added hedging copy
+      - Adding an absent-but-true skill updates the profile evidence base and the prompt disappears on refresh
+      - An offer scored before this milestone, with a null fit column, renders the legacy match percentage and no broken section
+      - Sorting the offers workspace by callback probability reorders the list, and the existing match sort still works
+      - Every new surface renders correctly in both light and dark themes
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Fit report rendered end to end from a real scored offer, both themes checked
+      - Feature committed
+    labels:
+      - frontend
+      - ui
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/design-system/ui-principles.md
+      - docs/COMPONENT_GUIDE.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Render what TASK-079 already computed. Do not recompute a score, do not
+      call the AI service, and do not add a second scoring path in the client.
+
+      The divergence between the two numbers is the feature. A strong fit with a
+      low callback probability means apply and pair it with a direct message; do
+      not hide that behind a single averaged percentage.
+
+      Offers scored before this milestone have a null fit column. That is the
+      normal case for existing data, not an error state - show the legacy
+      percentage and move on.
+
+      Reuse the existing primitives, badges and list rows from the design system.
+      Do not add a charting library for nine labelled bars.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a charting or visualisation library
+      - Recompute any score in the client
+      - Average the two numbers into one figure
+      - Wrap individual list rows in a Card
+      - Change the scoring logic from TASK-079
+  ###############################################################################
+  # TASK-081
+  ###############################################################################
+  - id: TASK-081
+    github:
+      issue: "165"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-078
+      - TASK-022
+    title: Evidence-grounded generation contract and claim validator
+    goal: >
+      Every generator prompt in src/shared/ai/prompts says some variation of do not invent experience, and nothing checks whether it complied. Replace that hope with a contract - each generator reads the evidence base with claim states rather than raw CV text, returns the claim ids it used, and has its output rejected in TypeScript if it cites an id outside the base or breaks a neverInclude rule. This is what makes the product promise defensible rather than decorative, and it is the shared layer TASK-082, TASK-083 and TASK-087 all build on.
+
+    scope:
+      - src/shared/ai/prompts/tailor-cv.ts
+      - src/shared/ai/prompts/cover-letter.ts
+      - src/shared/ai/prompts/recruiter-message.ts
+      - src/shared/ai/prompts/generation-contract.ts
+      - src/shared/ai/claim-validator.ts
+      - src/shared/ai/claim-validator.test.ts
+      - src/features/job-offer/services/tailor-cv.service.ts
+      - src/features/job-offer/services/cover-letter.service.ts
+      - src/features/job-offer/services/recruiter-message.service.ts
+    deliverables:
+      - generation-contract.ts exporting one shared prompt fragment every generator composes into its system prompt
+      - A tri-state rule in that fragment - a TRUSTED or CONFIRMED claim is usable and may be reordered, emphasised or rephrased, a FLAGGED claim is never presented as a strength, and an absent requirement is a gap stated plainly rather than written around
+      - Every generation returning claimsUsed as an array of claim ids
+      - claim-validator.ts rejecting output citing an unknown id, an EXCLUDED claim, or a neverInclude rule, in TypeScript rather than in the prompt
+      - An impact rule - a bullet leads with a metric only when that metric is already stored on the claim, never estimated or rounded
+      - A relevance rule - a claim whose only justification is that it is true, rather than relevant to this posting, is cut
+      - A verb rule - strengthen wording without changing the claim, so contributed is never upgraded to led
+      - A serialiser turning the evidence base into the prompt payload, replacing raw CV text as generator input
+    tasks:
+      - Write src/shared/ai/prompts/generation-contract.ts holding the tri-state rule, the impact rule, the relevance rule and the verb rule as one exported fragment, and compose it into tailor-cv, cover-letter and recruiter-message rather than duplicating the text
+      - Add a serialiser that renders the evidence base as claim id, text, state and metric for the prompt payload, and have it omit EXCLUDED claims entirely rather than listing them as forbidden
+      - Extend each generator output schema with claimsUsed as an array of strings
+      - Write claim-validator.ts taking the evidence base and a generation result, and returning the violations - unknown claim id, EXCLUDED claim cited, or a neverInclude phrase present in the output text
+      - Wire the validator into tailor-cv.service.ts, cover-letter.service.ts and recruiter-message.service.ts so a violating result is surfaced as a clear error rather than persisted
+      - Add claim-validator.test.ts covering an unknown id, an excluded claim, a neverInclude hit and a clean pass
+      - Record in the contract fragment that a stronger verb must never change the underlying claim, and that a request to inflate a fact is declined with the honest alternative offered instead
+    acceptance:
+      - tailor-cv, cover-letter and recruiter-message all compose the same exported contract fragment, provable by a grep showing the fragment imported in each and the rule text present in none of them directly
+      - Each of the three generators returns claimsUsed and its result is passed through claim-validator before being persisted or returned
+      - A generation citing a claim id absent from the evidence base is rejected, covered by a test
+      - A generation citing an EXCLUDED claim is rejected, covered by a test
+      - A generation whose text contains a neverInclude phrase is rejected, covered by a test
+      - A clean generation passes the validator and is returned unchanged, covered by a test
+      - Generators read the serialised evidence base and no longer take raw master CV text as their profile input
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - All three generators run through the contract and the validator, with the four validator cases tested
+      - Feature committed
+    labels:
+      - ai
+      - backend
+      - quality
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/TESTING.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      The validator is the deliverable. A rule that lives only in a prompt is a
+      suggestion; the same rule checked in TypeScript against the evidence base
+      is a guarantee. Write the check, and make a violation fail loudly rather
+      than persist quietly.
+
+      Optimisation means reorder, emphasise, rewrite and select from what is
+      already true. It never means adding a tool, a metric, a responsibility or a
+      scope of ownership that is not already a claim. If a posting wants
+      something the evidence base does not carry, that is a gap to state, not a
+      phrase to soften.
+
+      One fragment, composed into every generator. Do not copy the rules into
+      three prompt files where they will drift apart.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Duplicate the contract text across individual prompt files
+      - Enforce a rule in the prompt alone when it can be checked in code
+      - Build the tailoring report - that is TASK-082
+      - Change the outreach channel formats - that is TASK-083
+      - Feed raw master CV text to a generator once the serialiser exists
+  ###############################################################################
+  # TASK-082
+  ###############################################################################
+  - id: TASK-082
+    github:
+      issue: "166"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-081
+      - TASK-038
+    title: Tailoring report - posting keyword coverage and evidence trace
+    goal: >
+      A tailored CV is currently handed over with nothing to check it against, so the user either rereads the whole document or trusts it blindly. Attach a report to every tailored CV - the posting keywords extracted once and reused, each marked covered or missed by a literal string check run in TypeScript, a table mapping each covered keyword to the claim that evidences it, and the gaps written plainly. An ATS scan is a literal string match, so a skill that is true but phrased differently everywhere in the CV still counts as a miss, and only a mechanical check catches that.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/cv-document/types.ts
+      - src/entities/cv-document/service.ts
+      - src/features/job-offer/services/tailor-cv.service.ts
+      - src/features/document/services/keyword-coverage.ts
+      - src/features/document/services/keyword-coverage.test.ts
+      - src/features/document/components/tailoring-report.tsx
+    deliverables:
+      - A cv_documents.tailoring_report jsonb column holding the keyword list, the coverage verdict per keyword, the evidence trace and the gap list
+      - keyword-coverage.ts performing a case-insensitive literal and near-literal match of each posting keyword against the generated CV text, with no AI call
+      - A coverage headline of the form covered over total, computed from that check rather than claimed by the model
+      - An evidence trace mapping each covered keyword to the claim id that supports it, drawn from TASK-081 claimsUsed
+      - A gap list naming what the posting wants that the evidence base does not carry, stated plainly
+      - A tailoring report panel rendered beside the document in the existing document editor
+    tasks:
+      - Add a migration adding a nullable tailoring_report jsonb column to cv_documents
+      - Reuse the posting requirements already extracted by TASK-079 rather than re-extracting them, and fall back to a single extraction pass only when the offer has no fit assessment yet
+      - Write keyword-coverage.ts checking each keyword against the generated CV text case-insensitively, allowing a near-literal variant such as a plural or a hyphenation difference, and returning covered or missed per keyword with the matched span
+      - Build the evidence trace by joining each covered keyword to the claimsUsed ids returned by the tailor-cv generation
+      - Persist the report on the cv_documents row in the same write as the tailored content
+      - Render tailoring-report.tsx beside the document in the existing editor - the coverage headline, the keyword table with its verdicts, the evidence trace and the gap list
+      - Add keyword-coverage.test.ts covering an exact hit, a plural variant, a true-but-differently-phrased miss, and an empty keyword list
+    acceptance:
+      - Generating a tailored CV persists a tailoring_report alongside it
+      - The coverage headline is computed by keyword-coverage.ts and matches a manual count of the keyword verdicts
+      - A skill present in the evidence base but phrased differently throughout the CV is reported as missed, covered by a test
+      - Each covered keyword in the report names the claim id that evidences it
+      - The gap list contains only requirements absent from the evidence base, and is rendered without softening copy
+      - A tailored CV generated before this milestone renders with no report section and no error
+      - keyword-coverage.ts runs with no AI service involved, proven by its test file
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - A real tailored CV carries a coverage report whose verdicts match a manual read of the document
+      - Feature committed
+    labels:
+      - backend
+      - frontend
+      - database
+      - feature
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+      - docs/TESTING.md
+    prompt: |
+      Implement ONLY this task.
+
+      The coverage check runs in TypeScript, never in the model. Asking the model
+      whether it covered a keyword and believing the answer defeats the purpose -
+      the whole value here is an independent mechanical verdict on text the model
+      just produced.
+
+      Do not re-extract the posting requirements if TASK-079 already stored them
+      on the offer. One extraction per offer, reused.
+
+      State the gaps plainly. A gap softened into vague CV language is the exact
+      failure this report exists to catch.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Ask the model to self-report its own keyword coverage
+      - Re-extract posting requirements already stored on the offer
+      - Rewrite or regenerate the CV to improve its own coverage number
+      - Soften the gap list into hedged copy
+      - Add a new document editor - reuse the one from TASK-038
+  ###############################################################################
+  # TASK-083
+  ###############################################################################
+  - id: TASK-083
+    github:
+      issue: "167"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-081
+      - TASK-011
+    title: Outreach studio - channel formats, ban-list validator and variation check
+    goal: >
+      generateRecruiterMessage asks for one message under 150 words and does not even persist the result, so the product ships roughly 900 characters into a channel where length is the sharpest single predictor of being ignored. Replace it with three channel-specific drafts written to their own table, each held to a real character budget, and put the quality rules in code - a ban list of the phrases that mark a message as generated, a variation check against this owner's own recent messages, and a hard rule that no recipient name is ever invented.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/outreach-message/types.ts
+      - src/entities/outreach-message/service.ts
+      - src/shared/ai/prompts/outreach.ts
+      - src/shared/ai/outreach-validator.ts
+      - src/shared/ai/outreach-validator.test.ts
+      - src/features/job-offer/services/recruiter-message.service.ts
+      - src/features/job-offer/components/
+      - src/app/api/offers/[id]/outreach/route.ts
+    deliverables:
+      - An outreach_messages table owner-scoped by RLS, holding job_offer_id, channel, subject, body, contact fields, status and created_at
+      - Three channels with enforced budgets - a connection note at 300 characters hard and 120 to 180 target, a direct message at 400 characters with a 275 target, and an email with a short subject and body
+      - outreach-validator.ts rejecting a draft in TypeScript against the ban list, the character budget, the one-ask rule and the em-dash rule
+      - A variation check refusing a draft whose opening line, ask sentence or sign-off matches one this owner generated in the last 30 days
+      - A real-contact rule - with no contact on file the app says so and offers the posting URL rather than drafting to an invented recipient
+      - An outreach panel on the offer detail showing all three drafts with live character counts, ready to copy
+    tasks:
+      - Add a migration creating outreach_messages with owner_id, job_offer_id, channel, subject, body, contact_name, contact_url, status and created_at, plus the standard owner_all RLS policy every other table uses
+      - Add the outreach-message entity slice with its Zod schema and service, following the existing entity pattern
+      - Write src/shared/ai/prompts/outreach.ts composing the TASK-081 generation contract and adding the voice rules - short lines rather than paragraphs, the reason for writing in the first line, the raw posting URL pasted inline unformatted, one hedged line of overlap, one small ask, a first-name sign-off, and no contact block inside a message
+      - State in the prompt that a dropped comma or an unbalanced sentence is acceptable and flawless parallel structure reads as generated, and that typos must never be manufactured
+      - Write outreach-validator.ts checking the ban list - I hope this message finds you well, I came across your profile, Quick background, A bit about me, I would welcome the chance, leverage, passionate about, excited about the opportunity, strong fit, reach out - plus more than one em dash used as a connector, a tricolon, a bulleted skill stack inside a direct message, a full signature block, and two asks in one message
+      - Enforce the per-channel character budget in the validator, failing a connection note over 300 characters outright
+      - Implement the variation check by querying this owner's outreach_messages from the last 30 days and comparing the opening line, the ask sentence and the sign-off for a verbatim collision
+      - Rewrite recruiter-message.service.ts to generate all three channels in one call, validate each, persist them, and return them together
+      - Add POST /api/offers/[id]/outreach and an offer-detail panel rendering the three drafts with live character counts and a copy action
+      - Block the recruiter-addressed channels when no contact is on file, showing the posting URL and the reason instead of a draft with a placeholder name
+      - Add outreach-validator.test.ts covering a ban-list hit, an over-budget connection note, a two-ask draft, a 30-day collision and a clean pass
+    acceptance:
+      - Generating outreach for an offer persists three rows in outreach_messages, one per channel
+      - A connection note over 300 characters is rejected by the validator rather than saved, covered by a test
+      - A draft containing any ban-list phrase is rejected, covered by a test
+      - A draft whose opening line matches one generated for this owner within 30 days is rejected, covered by a test
+      - With no contact on file the recruiter-addressed channels are not drafted at all, and the panel shows the posting URL and the reason
+      - No generated message contains an invented recipient name, verified by the no-contact path producing no draft
+      - The offer detail shows each draft with a live character count against its budget
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Three channel drafts generated, validated and persisted for a real offer
+      - The no-contact path verified to produce no recruiter-addressed draft, and the feature committed
+    labels:
+      - database
+      - backend
+      - ai
+      - frontend
+      - feature
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+      - docs/TESTING.md
+    prompt: |
+      Implement ONLY this task.
+
+      Length is the product decision here, not a style preference. In the
+      reference data the messages that got ignored ran roughly three times longer
+      than the ones that got answered. Enforce the budgets in code and show the
+      count in the UI.
+
+      The ban list runs after generation, in TypeScript, over the produced text.
+      Putting the phrases in the prompt and trusting the model is not the same
+      check and does not satisfy this task.
+
+      Never invent a recipient. A guessed contact is not a lower-quality output,
+      it is a nonexistent one - there is no third option where a plausible name
+      fills the template. With no contact, say so and point at the posting URL.
+
+      Nothing is ever sent by this app. It drafts, the user sends.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Send, schedule or automate delivery of any message
+      - Invent a recipient name, a profile URL or an email address
+      - Enforce the ban list in the prompt alone
+      - Exceed a channel character budget for any reason
+      - Replace the applications recruiter_message column in this task
+  ###############################################################################
+  # TASK-084
+  ###############################################################################
+  - id: TASK-084
+    github:
+      issue: "168"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-083
+      - TASK-011
+    title: Warm contacts - LinkedIn connections import and the per-company interlock
+    goal: >
+      TASK-083 blocks recruiter-addressed drafts when no contact is on file, which is almost always, because the app has no contacts at all. Let the user import their own LinkedIn data export, classify each connection by job title with a deterministic matcher, and surface who they already know at the hiring company on the offer detail. A first-degree connection is both the highest-response and the lowest-risk channel, because the platform's spam machinery punishes requests to strangers rather than messages to people already connected. Add a per-company interlock so the app never suggests contacting two people at the same company inside 30 days.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/contact/types.ts
+      - src/entities/contact/service.ts
+      - src/features/contact/services/import-connections.service.ts
+      - src/features/contact/services/classify-title.ts
+      - src/features/contact/services/classify-title.test.ts
+      - src/features/contact/services/interlock.ts
+      - src/features/contact/components/
+      - src/app/api/contacts/import/route.ts
+      - docs/PRODUCT.md
+    deliverables:
+      - A contacts table owner-scoped by RLS holding name, company, title, profile_url, classification and first_degree
+      - A CSV import accepting the Connections file from the user's own LinkedIn data export, reusing the existing upload pattern
+      - classify-title.ts assigning each contact one of non-it, generalist, it-recruiter or decision-maker by keyword matching with no AI call
+      - A who-you-know panel on the offer detail listing contacts at the hiring company, ranked with first-degree specialists first
+      - interlock.ts warning when another contact at the same company was messaged within 30 days
+      - A manually added contact path, so the feature works without an import
+    tasks:
+      - Add a migration creating contacts with owner_id, name, company, title, profile_url, classification, first_degree and created_at, plus the standard owner_all RLS policy
+      - Add the contact entity slice with its Zod schema and service, following the existing entity pattern
+      - Write import-connections.service.ts parsing the Connections CSV from a LinkedIn data export, tolerating the note rows the export puts above the header, and skipping rows with no company
+      - Write classify-title.ts as a deterministic keyword matcher over the job title, returning non-it for HR business partner and people partner titles, it-recruiter for technical recruiting titles, decision-maker for engineering lead, manager, head, director and founder titles, and generalist otherwise
+      - Add POST /api/contacts/import accepting the CSV upload, reusing the file handling already used by CV upload, and reporting how many rows were imported, classified and skipped
+      - Add a who-you-know panel to the offer detail querying contacts by normalised company name, ranked first-degree specialists first, with a manual add-contact action beside it
+      - Write interlock.ts checking outreach_messages for another contact at the same company within 30 days, and surface it as a warning on the outreach panel rather than a hard block
+      - Wire a selected contact into TASK-083's outreach generation so the drafts are addressed to a real, named person
+      - Add classify-title.test.ts covering each classification branch and an unmatched title
+      - Document the import in docs/PRODUCT.md as the user's own exported data, not a scrape or a LinkedIn API integration
+    acceptance:
+      - Importing a real LinkedIn Connections CSV creates one contact row per valid data row and reports the counts imported, classified and skipped
+      - An HR business partner title classifies as non-it and an engineering manager title as decision-maker, both covered by tests
+      - Classification runs with no AI service involved, proven by classify-title.test.ts
+      - The offer detail lists contacts matching the hiring company, and shows nothing rather than a guess when there is no match
+      - Selecting a contact makes TASK-083's drafts address that named person
+      - A second contact at a company messaged within the last 30 days raises the interlock warning
+      - A contact added manually works identically to an imported one, with no import required
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - A real connections export imported and classified, and drafts addressed to a selected contact
+      - Interlock warning verified and the feature committed
+    labels:
+      - database
+      - backend
+      - frontend
+      - feature
+      - testing
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/API_GUIDE.md
+      - docs/PRODUCT.md
+    prompt: |
+      Implement ONLY this task.
+
+      This reads a file the user exports from their own account. It is not a
+      scrape, not an automation, and not a LinkedIn API integration - ADR-002
+      still holds and nothing here contacts LinkedIn.
+
+      Classification is keyword matching, not an AI call. Titles are short and
+      the categories are few; spending a model call per contact on a list of
+      several hundred would be waste.
+
+      The interlock is a warning, not a block. The user may have a good reason to
+      contact two people at one company, and this app advises rather than
+      forbids.
+
+      Never fabricate a contact to fill the panel. An empty result is the correct
+      answer when nobody matches.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Call the LinkedIn API or scrape any profile
+      - Use an AI call to classify a job title
+      - Invent a contact, a company match or a profile URL
+      - Hard block outreach on the interlock
+      - Require the import before the outreach feature works
+  ###############################################################################
+  # TASK-085
+  ###############################################################################
+  - id: TASK-085
+    github:
+      issue: "169"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-050
+      - TASK-079
+      - TASK-083
+    title: Application outcomes and the response-rate readout
+    goal: >
+      application_status runs APPLIED, HR, TECHNICAL, TEAM, CEO_OR_MANAGER - every value is a stage and none is an outcome, so an application that was rejected, offered, or simply never answered has nowhere to go and the product can never say what actually worked. Add the terminal outcomes, keep an expired listing distinct from a rejection because no decision was made either way, and build one readout of response rate by fit band, by callback band and by outreach channel. This is what makes the two headline numbers credible over time instead of permanently unvalidated.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/application/types.ts
+      - src/entities/application/service.ts
+      - src/features/application/services/update-status.service.ts
+      - src/features/dashboard/services/
+      - src/features/dashboard/components/
+      - src/widgets/application-board/
+    deliverables:
+      - application_status extended with OFFER, REJECTED, NO_RESPONSE and EXPIRED
+      - EXPIRED kept distinct from REJECTED, meaning the listing was withdrawn rather than the candidate turned down
+      - Terminal outcomes selectable from the Kanban board and the status control, and excluded from the active pipeline counts
+      - A response-rate readout grouping applications by fit band, by callback band and by outreach channel
+      - Median days from applied to first reply, computed from the existing append-only status events
+      - An honest empty state until there is enough data to report
+    tasks:
+      - Add a migration extending application_status with OFFER, REJECTED, NO_RESPONSE and EXPIRED using add value if not exists, matching the pattern used for the cv_document_kind enum
+      - Update the application entity schema and the status control to offer the four new values, and mark them terminal so the active pipeline counts exclude them
+      - Add the terminal outcomes to the Kanban board as a closed lane rather than four more columns, so the board stays readable
+      - Auto-suggest EXPIRED when an offer's expires_at has passed and its application is still open, leaving the transition to the user rather than writing it automatically
+      - Write a dashboard service computing response rate by fit band, by callback band and by outreach channel from applications joined to their offer fit and their outreach_messages rows
+      - Compute median days to first reply from the application_status_events log, treating the first event past APPLIED as the reply
+      - Render one readout card on the dashboard, showing an explicit not-enough-data state below a stated minimum rather than a misleading percentage
+    acceptance:
+      - An application can be moved to OFFER, REJECTED, NO_RESPONSE or EXPIRED and the change persists
+      - Terminal applications are excluded from the active pipeline counts on the dashboard
+      - EXPIRED and REJECTED are stored and displayed as distinct outcomes
+      - An offer past its expires_at with an open application surfaces the EXPIRED suggestion without changing the status by itself
+      - The readout groups by fit band, callback band and outreach channel, and each group's numbers match a manual query
+      - Median days to first reply is computed from application_status_events and matches a manual calculation on seeded data
+      - With fewer applications than the stated minimum the card shows the not-enough-data state rather than a percentage
+      - Existing applications on the five original statuses are unaffected
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Terminal outcomes selectable end to end and the readout matching a manual query
+      - Feature committed
+    labels:
+      - database
+      - backend
+      - frontend
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - memory-bank/decisions.md
+      - docs/API_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Keep EXPIRED distinct from REJECTED. A pulled listing means no decision was
+      made about the candidate either way, and collapsing the two corrupts every
+      response-rate number built on top of them.
+
+      Suggest the expired transition, never apply it automatically. The user owns
+      their own pipeline state.
+
+      Report honestly. Below the minimum sample size show the not-enough-data
+      state - a response rate computed from four applications is noise presented
+      as insight, and this readout exists to make the headline numbers credible.
+
+      Reuse the append-only application_status_events log from TASK-050 rather
+      than adding new timestamp columns.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Collapse EXPIRED into REJECTED
+      - Change a status automatically without the user acting
+      - Add timestamp columns that duplicate application_status_events
+      - Show a response rate below the stated minimum sample size
+      - Add four more columns to the Kanban board
+  ###############################################################################
+  # TASK-086
+  ###############################################################################
+  - id: TASK-086
+    github:
+      issue: "170"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-031
+      - TASK-085
+    title: Follow-up nudges in the notification center
+    goal: >
+      An application that gets no reply currently sits in the pipeline forever, and the one message that reliably converts a silent thread - a short follow-up after a week to ten days - is never prompted or drafted. Derive follow-up nudges in the existing notification center, which already computes notifications on the fly with no table of its own, and let each nudge produce a follow-up draft through the outreach studio in one action. Add a companion nudge to withdraw connection requests still pending after 14 days, since a growing pending queue is what actually triggers platform restrictions.
+
+    scope:
+      - src/features/notification/services/get-notifications.service.ts
+      - src/features/notification/types.ts
+      - src/features/notification/components/notification-list.tsx
+      - src/shared/ai/prompts/outreach.ts
+      - src/features/job-offer/services/recruiter-message.service.ts
+      - src/widgets/notification-center/
+    deliverables:
+      - A follow-up nudge derived for an application with no status change 7 to 10 days after APPLIED or the outreach send
+      - A pending-request nudge for a connection note marked sent more than 14 days ago with no reply
+      - A follow-up channel in the outreach prompt, shorter than the original and referencing the prior message without repeating it
+      - A one-action draft from the nudge straight into the outreach panel
+      - A dismiss action so a nudge the user has handled does not return
+    tasks:
+      - Extend get-notifications.service.ts with the two new derived notification kinds, following the existing on-the-fly derivation and adding no notification table
+      - Derive the follow-up nudge from the latest application_status_events entry rather than a stored timestamp, and suppress it once a terminal outcome from TASK-085 is set
+      - Derive the pending-request nudge from outreach_messages rows on the connection channel whose status is sent and whose created_at is more than 14 days old
+      - Add a follow-up channel to the outreach prompt - shorter than the original, one sentence of context referencing the earlier message, one ask, and the same ban list and variation checks applied
+      - Wire a draft-follow-up action from the notification into the offer's outreach panel, generating and persisting the follow-up as a new outreach_messages row linked to the original
+      - Add a dismiss action persisting per notification so a handled nudge does not reappear
+      - Render both nudge kinds in the notification list using the existing row pattern, with no new widget
+    acceptance:
+      - An application with no status change for more than 7 days after APPLIED produces a follow-up nudge
+      - Setting a terminal outcome on that application removes the nudge
+      - A connection-channel message sent more than 14 days ago with no reply produces the pending-request nudge
+      - Drafting a follow-up from a nudge creates a new outreach_messages row linked to the original message
+      - A follow-up draft passes the TASK-083 ban list and variation checks like any other channel
+      - A dismissed nudge does not reappear after a refresh
+      - No notification table is added - derivation stays on the fly
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Both nudge kinds derived correctly and a follow-up drafted from a nudge end to end
+      - Feature committed
+    labels:
+      - backend
+      - frontend
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - docs/COMPONENT_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      Keep notifications derived. The notification center already computes
+      everything on the fly with no table, and two more derived kinds do not
+      justify inventing persistence for the whole feature.
+
+      A follow-up is shorter than the message it follows, not a restatement of
+      it. It gets the same ban list and the same variation check as every other
+      channel - a follow-up that reads as generated is worse than none.
+
+      Nothing is sent automatically here either. The nudge drafts, the user
+      sends.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a notifications table
+      - Send or schedule any message automatically
+      - Skip the ban list or variation check for the follow-up channel
+      - Add a new notification widget - reuse the existing list rows
+      - Re-derive a nudge for an application with a terminal outcome
+  ###############################################################################
+  # TASK-087
+  ###############################################################################
+  - id: TASK-087
+    github:
+      issue: "171"
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-081
+      - TASK-029
+    title: LinkedIn posts grounded in the evidence base
+    goal: >
+      buildProfileText flattens the profile into a summary, a comma-separated skill list and role descriptions, so post generation draws on prose rather than on verified claims and the posts feature reads as a separate product bolted onto the tracker. Point all three post generators at the evidence base through the TASK-081 contract, record which claims each post was built on, and show that on the post list so the same story is not told four times. This is what makes the LinkedIn surface part of one system rather than a second generator with its own idea of the truth.
+
+    scope:
+      - supabase/migrations/
+      - src/entities/post/types.ts
+      - src/entities/post/service.ts
+      - src/shared/ai/prompts/generate-post.ts
+      - src/shared/ai/prompts/plan-posts.ts
+      - src/shared/ai/prompts/generate-campaign.ts
+      - src/features/linkedin-posts/services/generate-post.service.ts
+      - src/features/linkedin-posts/components/post-list.tsx
+    deliverables:
+      - A posts.claims_used text array recording the claim ids each post was built on
+      - All three post prompts composing the TASK-081 generation contract instead of taking flattened profile prose
+      - buildProfileText replaced by the TASK-081 evidence serialiser, so posts and documents read the same source
+      - Claim reuse shown on the post list, so a claim already used recently is visible before generating again
+      - plan-posts and generate-campaign avoiding claims used in the owner's recent posts rather than only avoiding repeated topics
+    tasks:
+      - Add a migration adding claims_used text array to posts with an empty default
+      - Replace buildProfileText in generate-post.service.ts with the evidence serialiser from TASK-081, and delete the flattening helper once nothing imports it
+      - Compose the generation contract into generate-post, plan-posts and generate-campaign so a post can only claim what the evidence base carries
+      - Extend all three output schemas with claimsUsed and run each result through the TASK-081 claim validator before persisting
+      - Pass the claim ids used by the owner's recent posts into plan-posts and generate-campaign so they choose unused material rather than only unused topics
+      - Show on each post-list row which claims it was built on, and mark a claim reused within the last 30 days
+      - Leave scheduling, editing, deleting and campaign management exactly as they are
+    acceptance:
+      - Generating a post persists claims_used with at least one claim id from the evidence base
+      - A post citing a claim id absent from the evidence base is rejected by the claim validator, as for every other generator
+      - The three post prompts compose the shared contract, provable by a grep showing the import in each
+      - buildProfileText is gone and no code path feeds flattened profile prose to a post prompt
+      - Planning posts after several sent posts proposes material drawn from claims not used in those posts
+      - The post list shows the claims behind each post and flags one reused within 30 days
+      - Existing posts with an empty claims_used render without error
+      - Scheduling, editing, deleting and campaigns behave exactly as before
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - All three post generators grounded in the evidence base with claim reuse visible
+      - Feature committed
+    labels:
+      - ai
+      - backend
+      - frontend
+      - database
+      - feature
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - ARCHITECTURE.md
+      - memory-bank/decisions.md
+      - docs/API_GUIDE.md
+    prompt: |
+      Implement ONLY this task.
+
+      One source of truth. After this task nothing in the app generates from
+      flattened profile prose - posts read the same serialised evidence base that
+      CVs and messages read, through the same contract and the same validator.
+
+      The honest material is the strong material. A claim with no metric attached
+      is generated without one, never with an invented figure to make the post
+      land harder.
+
+      This is a grounding change, not a redesign of the posts feature.
+      Scheduling, editing, deleting and campaigns are already built and stay as
+      they are.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Redesign the posts feature or its scheduling flow
+      - Keep buildProfileText alive alongside the serialiser
+      - Publish to LinkedIn or call the LinkedIn API - ADR-002 still holds
+      - Invent a metric to strengthen a post
+      - Skip the claim validator for post generation
+  ###############################################################################
+  # TASK-088
+  ###############################################################################
+  - id: TASK-088
+    github:
+      issue: "172"
+      project_item: null
+    status: todo
+    priority: P1
+    estimate: M
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on:
+      - TASK-058
+      - TASK-076
+      - TASK-080
+      - TASK-082
+      - TASK-083
+      - TASK-085
+    title: Pro capability gating and product positioning pass
+    goal: >
+      requirePlan in src/shared/billing/entitlements.ts has zero call sites, so the only thing the Pro plan buys today is 490 more AI actions, and the landing page sells three unconnected bullets rather than one product. Gate the capabilities this milestone built behind Pro, and rewrite the positioning around the single promise they share - one verified record of what the user has actually done, everything generated only from it, and effort spent only where a reply is likely. This is the task that turns the milestone into something sellable rather than a set of improvements.
+
+    scope:
+      - src/shared/billing/entitlements.ts
+      - src/shared/billing/plans.ts
+      - src/features/marketing/components/pricing-table.tsx
+      - src/app/(marketing)/page.tsx
+      - src/features/billing/components/
+      - docs/PRODUCT.md
+      - docs/ROADMAP.md
+    deliverables:
+      - requirePlan called for the first time, gating the fit report detail, the tailoring report, the outreach studio and the outcome readout
+      - Free keeping the full tracker, the headline match percentage and its existing AI-action allowance
+      - A 402 upgrade path on a gated capability, reusing the EntitlementError handling already built for the quota
+      - docs/PRODUCT.md's Pricing and Packaging section rewritten as the single source of truth for what each plan includes
+      - The three-bullet mission in docs/PRODUCT.md replaced by the single product promise
+      - Pricing table and landing copy rendering the capability split from the PLANS constant, not from hand-written duplicates
+    tasks:
+      - Add a capability list to the PLANS constant in src/shared/billing/plans.ts so entitlements and marketing copy read one definition
+      - Call requirePlan in the fit report detail read, the tailoring report read, the outreach generation route and the outcome readout service, letting EntitlementError surface as the existing 402 with its upgradePath
+      - Leave the headline match percentage, the whole application tracker, documents and posts on Free, so the free tier is a working product rather than a demo
+      - Render an inline upgrade prompt where a gated capability would appear, rather than hiding the surface entirely
+      - Rewrite docs/PRODUCT.md's Pricing and Packaging section to describe the capability split alongside the AI-action allowance, keeping it the stated single source of truth
+      - Replace the three-bullet product mission in docs/PRODUCT.md with the single promise, and update the user-problems section to match
+      - Update pricing-table.tsx and the marketing landing to render the capability split from PLANS, with no hand-written feature list that can drift
+      - Update the Where We Are section of docs/ROADMAP.md to record this milestone as shipped once the task lands
+    acceptance:
+      - requirePlan has call sites, provable by a grep returning at least four
+      - A Free account hitting a gated capability receives a 402 carrying the plan, the limit and the upgrade path, and sees the inline upgrade prompt rather than a blank screen
+      - A Pro account reaches every gated capability
+      - The whole application tracker, the headline match percentage, documents and posts remain available on Free
+      - The pricing table and landing render their feature lists from PLANS, with no duplicated hand-written list in either file
+      - docs/PRODUCT.md states the capability split and carries the single product promise in place of the three bullets
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Gating verified from both a Free and a Pro account
+      - Positioning updated across PRODUCT.md, the pricing table and the landing page, and the milestone committed
+    labels:
+      - backend
+      - frontend
+      - feature
+      - documentation
+      - quality
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/PRODUCT.md
+      - docs/ROADMAP.md
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      Free has to stay a genuinely useful product. Gate the capabilities this
+      milestone added, not the tracker - a free tier that cannot track an
+      application is a demo, and nobody upgrades from a demo they abandoned in
+      the first session.
+
+      One definition of what a plan includes. PLANS is the source; entitlements
+      and marketing copy both read it. A hand-written feature list on the landing
+      page drifts from the gate within one release.
+
+      Show the gated surface with an upgrade prompt rather than hiding it. A user
+      cannot want what they have never seen.
+
+      docs/PRODUCT.md is the stated single source of truth for pricing. Update it
+      first, then make the code match it.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Gate the application tracker, documents or posts behind Pro
+      - Change the plan prices or the AI-action allowances
+      - Duplicate the feature list outside the PLANS constant
+      - Hide a gated surface instead of prompting to upgrade
+      - Add a third plan or a time-limited trial

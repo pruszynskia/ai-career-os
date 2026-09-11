@@ -35,6 +35,8 @@ pay for."
   implemented — TASK-053–062 have landed on `main`; TASK-063/064/065 remain.
 - **Design System Overhaul** (`backlog/mvp.yaml` TASK-066–077): defined, not yet
   implemented.
+- **Stage 3 — Evidence and Signal** (`backlog/mvp.yaml` TASK-078–088): defined,
+  not yet implemented.
 
 Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
 still read `todo` after shipping. Judge what is done from the code and git
@@ -281,6 +283,60 @@ current landing-page trend with a real bandwidth and accessibility cost and no
 asset behind it; TASK-076 bans it explicitly, along with swapping the
 equal-weight three-column grid for a bento grid, which is the same default in a
 newer costume.
+
+---
+
+# Stage 3 — Evidence and Signal
+
+`backlog/mvp.yaml` TASK-078–088.
+
+**Goal:** stop shipping containers without judgment. Every screen in this app
+exists; what is missing is the reasoning behind what it shows. `match_score` is
+one opaque integer from a five-line prompt, the twelve job-preference columns
+TASK-033 added have a form and a route and no reader anywhere, and the recruiter
+message asks for "under 150 words" in a channel where length is the sharpest
+single predictor of being ignored. This stage ports the judgment layer from the
+`career-intelligence-system` the owner actually uses daily.
+
+It also gives the three-bullet mission one spine: **one verified record of what
+the user has actually done, every CV, message and post generated only from it
+with every claim traceable back to it, and effort spent only where a reply is
+actually likely.** Two promises fall out of that — it will not lie about you, and
+it tells you where you will actually get a reply — and both are things a €12 tier
+can be sold on, which the current volume-only Pro plan is not.
+
+| Task | Title |
+|---|---|
+| TASK-078 | Evidence base — verified claims, risk-flagged confirmation and generation rules on the profile |
+| TASK-079 | Fit assessment — nine weighted criteria, mechanical sub-scores and a separate callback probability |
+| TASK-080 | Fit report UI on the offer detail and the offers workspace |
+| TASK-081 | Evidence-grounded generation contract and the claim validator |
+| TASK-082 | Tailoring report — posting keyword coverage and evidence trace |
+| TASK-083 | Outreach studio — channel formats, ban-list validator and variation check |
+| TASK-084 | Warm contacts — LinkedIn connections import and the per-company interlock |
+| TASK-085 | Application outcomes and the response-rate readout |
+| TASK-086 | Follow-up nudges in the notification center |
+| TASK-087 | LinkedIn posts grounded in the evidence base |
+| TASK-088 | Pro capability gating and product positioning pass |
+
+Row order matches the task blocks' order in `backlog/mvp.yaml`. The sequence is
+the data contract first (TASK-078), then the two things built on it in parallel —
+scoring (TASK-079/080) and grounded generation (TASK-081/082/083/084) — then the
+outcome loop that validates both (TASK-085/086), the LinkedIn surface brought
+onto the same evidence base (TASK-087), and finally the gating and positioning
+pass that makes the milestone sellable (TASK-088).
+
+Placement after the Design System Overhaul is deliberate: TASK-080, TASK-082 and
+TASK-088 add new UI surfaces that would otherwise be built twice, so their
+`depends_on` name the specific design tasks (TASK-073, TASK-076) they land
+inside. The backend-only tasks — TASK-078, TASK-079, TASK-081, TASK-084,
+TASK-085 — name no design dependency and can run alongside the redesign.
+
+**Deliberately not ported** from `career-intelligence-system`: job scraping and
+discovery (already deferred, and this stage does not revive it), the Apify and
+email-alert pipeline with its cost machinery, the spreadsheet and dashboard
+layer, decision-maker discovery via web research, and the interview-coach system.
+None serve the two promises above, and all would widen scope.
 
 ---
 
