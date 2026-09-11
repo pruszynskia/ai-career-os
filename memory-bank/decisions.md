@@ -747,3 +747,64 @@ Consequences:
   and branch protection on `main` requiring `build`.
 - `start-task.sh`'s backlog commit subject deliberately omits `(TASK-NNN)` so
   `next-task.sh` does not read it as the task being done.
+
+---
+
+## ADR-017
+
+Date:
+
+2026-09-11
+
+Decision:
+
+Generated output may only draw on a verified evidence base stored on
+`profiles.evidence` (TASK-078), never on raw CV text. A claim is
+`{id, kind, text, sourceRef, state, riskLevel, note, metric}` with states
+`TRUSTED | CONFIRMED | FLAGGED | EXCLUDED`, alongside `neverInclude` and
+`alwaysIncludeWhenRelevant` rules. Every generator composes one shared contract
+fragment (TASK-081), returns the `claimsUsed` ids it drew on, and has its output
+checked in TypeScript: citing an unknown id, citing an `EXCLUDED` claim, or
+emitting a `neverInclude` phrase fails the generation rather than persisting it.
+Tailoring means reorder, emphasize, rewrite and select from what is already a
+claim — never adding a tool, a metric, a responsibility or a scope of ownership
+that the evidence base does not carry. A request to inflate a fact is declined
+with the honest alternative offered instead; this is a factual-honesty line, not
+a style preference, and a direct or repeated instruction does not change it.
+
+Only claims the parser marks `riskLevel: high` — a number, a years-of-experience
+figure, a seniority label, or a leadership/ownership scope — are surfaced for
+confirmation. Everything else defaults to `TRUSTED`.
+
+Reason:
+
+Every generator prompt in `src/shared/ai/prompts/` already says some variation of
+"do not invent experience", and nothing checks whether it complied. A rule that
+lives only in a prompt is a suggestion; the same rule checked against a typed
+evidence base is a guarantee, and that guarantee is the product's differentiator
+rather than a safety footnote — an invented claim is not a lower-quality output,
+it is one the user cannot defend in an interview. Requiring confirmation of every
+claim instead of only the risky ones was rejected as signup friction a
+self-serve product cannot absorb.
+
+Alternatives Considered:
+
+- Strengthen the prompts and trust the model — rejected: unverifiable, and it is
+  exactly what the codebase does today.
+- A separate `claims` table — rejected: a jsonb column on `profiles` follows the
+  existing `score jsonb` precedent, needs no join on every generation, and keeps
+  the evidence base owned by the profile it describes.
+- Replace `skills text[]` and `experience jsonb` outright — rejected: every
+  shipped feature reads them, so the evidence base lands additively beside them.
+
+Consequences:
+
+- `profiles.evidence` becomes the single input to CV tailoring, cover letters,
+  outreach and LinkedIn posts; `buildProfileText` is removed by TASK-087 so no
+  code path feeds flattened profile prose to a generator.
+- Every generation carries `claimsUsed`, which is what makes the TASK-082
+  tailoring report's evidence trace and TASK-087's claim-reuse view possible.
+- A generation that violates the contract fails loudly instead of persisting,
+  so a validator bug surfaces as an error rather than as silent fabrication.
+- Profiles created before TASK-078 load with an empty evidence base rather than
+  failing, and generation degrades to a stated gap rather than an invention.
