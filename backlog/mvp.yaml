@@ -4249,7 +4249,7 @@ tasks:
   ###############################################################################
   - id: TASK-089
     github:
-      issue: null
+      issue: "174"
       project_item: null
     status: todo
     priority: P2
@@ -4258,13 +4258,7 @@ tasks:
     depends_on: []
     title: AI provider fallback chain (free-tier first)
     goal: >
-      getAiService() in src/shared/ai/service.ts calls exactly one provider
-      (AI_PROVIDER) and gives up on any error - a rate-limited or down
-      provider fails every one of the eleven feature calls behind it. Add an
-      ordered, cross-provider fallback so a request only fails when every
-      applicable provider has failed, while making sure a free-plan owner's
-      call can never reach a paid provider (Anthropic and OpenAI have no
-      ongoing free API tier) and run up cost with no paying customers yet.
+      getAiService() in src/shared/ai/service.ts calls exactly one provider (AI_PROVIDER) and gives up on any error - a rate-limited or down provider fails every one of the eleven feature calls behind it. Add an ordered, cross-provider fallback so a request only fails when every applicable provider has failed, while making sure a free-plan owner's call can never reach a paid provider (Anthropic and OpenAI have no ongoing free API tier) and run up cost with no paying customers yet.
 
     scope:
       - src/shared/ai/service.ts
