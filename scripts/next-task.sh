@@ -26,13 +26,19 @@ if [ -n "${ON_MAIN_TASKS:-}" ]; then
 else
   git fetch origin --quiet 2>/dev/null || true
   SUBJECTS="$(git log origin/main --format='%s' 2>/dev/null || true)"
-  # TASK-001..015 (the original MVP) were merged before commit subjects carried
-  # "(TASK-NNN)". They are permanently done — hardcode them so downstream
-  # depends_on resolves. Every task since does carry the parenthesised form.
-  PRE_CONVENTION_DONE=" 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 "
+  # The "(TASK-NNN)" commit-subject suffix is the current convention, but the
+  # repo's history used two earlier ones before it settled: a "TASK-NNN: ..."
+  # prefix (roughly TASK-001..016), and before that only the PR merge commit's
+  # branch name carrying "task-0NN-" (present for nearly every task up to the
+  # low 060s). Checking only the current convention makes every task merged
+  # under an older one read as "not on main", which then phantom-blocks any
+  # later task whose depends_on names it. Recognize all three.
   on_main() {
-    case "$PRE_CONVENTION_DONE" in *" $1 "*) return 0 ;; esac
-    printf '%s\n' "$SUBJECTS" | grep -qF "(TASK-$1)"
+    local n="$1"
+    printf '%s\n' "$SUBJECTS" | grep -qF "(TASK-$n)" && return 0
+    printf '%s\n' "$SUBJECTS" | grep -qE "^TASK-$n:" && return 0
+    printf '%s\n' "$SUBJECTS" | grep -qiE "(^|[^0-9])task-0*$((10#$n))([^0-9]|\$)" && return 0
+    return 1
   }
 fi
 
