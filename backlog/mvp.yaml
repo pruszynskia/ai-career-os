@@ -1417,7 +1417,7 @@ tasks:
     status: done
     priority: P1
     estimate: M
-    milestone: "Stage 0 - MVP Stabilization"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-002
       - TASK-016
@@ -4245,6 +4245,98 @@ tasks:
       - Duplicate the allowance numbers outside src/shared/billing/plans.ts
       - Record prompt or completion text in ai_usage
   ###############################################################################
+  # TASK-089
+  ###############################################################################
+  - id: TASK-089
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: L
+    milestone: "Stage 3 - Evidence and Signal"
+    depends_on: []
+    title: AI provider fallback chain (free-tier first)
+    goal: >
+      getAiService() in src/shared/ai/service.ts calls exactly one provider
+      (AI_PROVIDER) and gives up on any error - a rate-limited or down
+      provider fails every one of the eleven feature calls behind it. Add an
+      ordered, cross-provider fallback so a request only fails when every
+      applicable provider has failed, while making sure a free-plan owner's
+      call can never reach a paid provider (Anthropic and OpenAI have no
+      ongoing free API tier) and run up cost with no paying customers yet.
+
+    scope:
+      - src/shared/ai/service.ts
+      - src/shared/ai/adapters/groq.ts
+      - src/shared/ai/errors.ts
+      - src/shared/ai/types.ts
+      - src/shared/rate-limit/index.ts
+      - src/entities/ai-usage/types.ts
+      - src/entities/ai-usage/service.ts
+      - supabase/migrations/*.sql
+      - .env.example
+    deliverables:
+      - A Groq adapter implementing the existing AiService interface, built by pointing the already-installed openai package at Groq's OpenAI-compatible base URL rather than adding a new SDK dependency
+      - A fallback engine in getAiService()/getMeteredAiService() that walks an ordered provider list, moving to the next provider only on a retryable error, and skips a provider currently in cooldown
+      - Two ordered provider lists instead of one flat list, one for free-plan owners (default Groq then Gemini, the only two adapters with a real ongoing free tier) and one for paid-plan owners (default Anthropic then OpenAI), so a free-plan request can never fall through to a paid provider
+      - Cooldown state kept in the existing Upstash Redis client from src/shared/rate-limit rather than a new datastore, so a provider that just failed is skipped by the next request without being called again
+      - An ai_usage.provider column recording which provider actually served each action, with exactly one ai_usage row written per logical action regardless of how many providers were tried internally
+    tasks:
+      - Add src/shared/ai/adapters/groq.ts using the openai package's client pointed at Groq's base URL, with GROQ_API_KEY and GROQ_MODEL env vars following the existing per-provider pattern in .env.example
+      - Extend src/shared/ai/errors.ts's retryable-error classification to cover 5xx and timeout/network errors alongside the existing 429 handling, so only a genuinely retryable failure triggers a fallback attempt
+      - Replace getAiService()'s single-provider pick with a fallback loop reading AI_FREE_PROVIDERS and AI_PAID_PROVIDERS (comma-separated, defaulting to "groq,gemini" and "anthropic,openai"), selecting the applicable list from the caller's plan (src/shared/billing/entitlements.ts) inside getMeteredAiService()
+      - Add a cooldown check/set around each provider attempt using the Upstash Redis client already wired in src/shared/rate-limit/index.ts, keyed per provider with a configurable TTL (default 60s)
+      - Add a migration giving ai_usage a nullable provider text column, and record it in aiUsageService.record from whichever adapter actually returned successfully
+      - When no AI_FREE_PROVIDERS/AI_PAID_PROVIDERS env vars are set, fall back to today's single-AI_PROVIDER behavior unchanged
+    acceptance:
+      - All eleven existing AI feature services keep working unmodified against the same generateStructured contract
+      - With AI_FREE_PROVIDERS and AI_PAID_PROVIDERS unset, behavior matches today exactly - a single AI_PROVIDER, no fallback
+      - A primary provider success never invokes a second provider
+      - A primary provider's 429, 5xx or timeout causes the next provider in the caller's applicable list to be tried; a validation or other 4xx error does not trigger fallback
+      - A free-plan owner's request only ever walks AI_FREE_PROVIDERS - it fails with the existing typed error rather than reaching AI_PAID_PROVIDERS even when every free provider has failed
+      - A provider on cooldown is skipped without being called, and becomes eligible again once its TTL expires
+      - A call that succeeds after one or more fallback attempts still writes exactly one ai_usage row, with provider set to whichever adapter actually served it
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Cross-provider fallback verified for both free and paid provider lists, including cooldown behavior
+      - Feature committed
+    labels:
+      - ai
+      - backend
+      - database
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - docs/ROADMAP.md
+      - memory-bank/decisions.md
+      - ARCHITECTURE.md
+    prompt: |
+      Implement ONLY this task.
+
+      getMeteredAiService() in src/shared/ai/service.ts is already the single
+      choke point every AI call passes through (TASK-059) - add the fallback
+      loop there, don't touch the eleven feature services.
+
+      Groq is added as an adapter, not a new dependency: point the existing
+      openai package at Groq's OpenAI-compatible endpoint the same way the
+      current openai adapter talks to OpenAI itself.
+
+      A free-plan owner must never reach AI_PAID_PROVIDERS, even as a last
+      resort - that guardrail is the point of this task, not an edge case.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add a third-party LLM gateway or proxy (LiteLLM, Portkey, OpenRouter) - build the chain in the existing src/shared/ai/service.ts layer
+      - Add a new npm dependency for Groq - reuse the installed openai client against Groq's OpenAI-compatible endpoint
+      - Let a free-plan owner's call ever reach a paid provider as a fallback
+      - Change TASK-059's per-owner action-counting model - still one action equals one ai_usage row, tokens are not counted
+      - Add OpenRouter or Mistral adapters
+      - Add same-provider retries or a queue/background worker - only cross-provider fallback, leave the SDK's own default retry behavior untouched
+  ###############################################################################
   # TASK-060
   ###############################################################################
   - id: TASK-060
@@ -4499,7 +4591,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
-    milestone: "Monetization Milestone"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-056
       - TASK-061
@@ -4917,7 +5009,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-066
     title: Typography system - Archivo display face and the dense product type scale
@@ -5008,7 +5100,7 @@ tasks:
     status: todo
     priority: P1
     estimate: L
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-066
       - TASK-068
@@ -5105,7 +5197,7 @@ tasks:
     status: todo
     priority: P2
     estimate: M
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-069
     title: Shared row, async-button, confirm-dialog and field patterns
@@ -5196,7 +5288,7 @@ tasks:
     status: todo
     priority: P1
     estimate: L
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-069
       - TASK-070
@@ -5389,7 +5481,7 @@ tasks:
     status: todo
     priority: P1
     estimate: L
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-071
     title: Offers and applications workspace redesign
@@ -5669,7 +5761,7 @@ tasks:
     status: todo
     priority: P1
     estimate: M
-    milestone: "Design System Overhaul"
+    milestone: "Stage 3 - Evidence and Signal"
     depends_on:
       - TASK-066
       - TASK-068
