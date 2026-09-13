@@ -55,6 +55,21 @@ export const applicationStatusEventService = {
     return (data ?? []).map(toApplicationStatusEvent);
   },
 
+  // Plain, unjoined rows for the signed-in owner — used by the account data
+  // export, which needs every event it owns rather than the dashboard's
+  // joined/limited view (see findRecent).
+  async findAllByOwnerId(ownerId: string): Promise<ApplicationStatusEvent[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('application_status_events')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(toApplicationStatusEvent);
+  },
+
   async findRecent(
     filter: { ownerId: string },
     opts?: { take?: number },

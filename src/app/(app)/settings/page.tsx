@@ -3,6 +3,7 @@ import {
   startOfCurrentMonth,
 } from '@/entities/ai-usage/service';
 import { subscriptionService } from '@/entities/subscription/service';
+import { DangerZone } from '@/features/account/components/danger-zone';
 import { BillingPanel } from '@/features/billing/components/billing-panel';
 import { UsageMeter } from '@/features/billing/components/usage-meter';
 import { getOwnerId } from '@/shared/auth/session';
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
     <AppPageLayout title="Settings">
       <BillingPanel subscription={subscription} />
       <UsageMeter used={used} limit={plan.aiActionsPerMonth} />
+      <DangerZone />
     </AppPageLayout>
   );
 }

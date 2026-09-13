@@ -476,6 +476,24 @@ that automated tests only touch in parts.
 4. Open `Manage billing` → redirected to the Stripe portal; cancelling there
    downgrades the owner after the next webhook.
 
+## Account deletion and data export
+
+1. On `/settings`, `Export data` under Danger zone downloads a JSON file
+   containing the signed-in owner's profile, offers, documents, applications,
+   posts, status events and subscription — and nothing belonging to any other
+   owner.
+2. With an active Stripe subscription, open `Delete account`, type `DELETE`
+   and confirm → the Stripe subscription is cancelled, every row for that
+   owner disappears from every table including `auth.users`, and the browser
+   is signed out to `/sign-in`.
+3. Sign in as a second owner afterwards (or check via the Supabase dashboard)
+   → their data is untouched.
+4. The delete confirm button stays disabled until the input exactly matches
+   `DELETE`.
+5. Repeating `DELETE /api/account` quickly is rate limited the same way a
+   sign-in burst is (`src/shared/rate-limit`) — after the limit, a `429` with
+   `Retry-After` is returned instead of reaching `delete_own_account()`.
+
 ---
 
 # Future Improvements
