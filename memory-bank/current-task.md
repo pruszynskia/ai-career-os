@@ -2,6 +2,48 @@
 
 ## Current Sprint
 
+### Feature: TASK-065 — Account deletion and data export
+
+Status: **done** — green on typecheck/lint/test/build. Backend + settings-page
+change, no Playwright loop (not a `ui`-labelled scope beyond one settings
+section).
+
+What shipped:
+
+- `supabase/migrations/20260913120000_delete_own_account.sql` (new) —
+  `public.delete_own_account()`, a `SECURITY DEFINER` plpgsql function
+  (`set search_path = ''`) keyed on `auth.uid()`. Deletes the caller's rows
+  from every `owner_id`-scoped table in FK-safe (children-before-parents)
+  order — `application_status_events`, `applications`, `cv_documents`,
+  `job_offers`, `posts`, `post_campaigns`, `ai_usage`, `subscriptions`,
+  `profiles` — then `auth.users` itself, all in one transaction. `execute`
+  revoked from `public`/`anon`, granted to `authenticated` only. Applied with
+  `npm run db:push`; `npm run db:status` shows no drift.
+- `src/features/account/services/delete-account.service.ts` (new) — resolves
+  the owner via `supabase.auth.getUser()`, cancels any non-ended Stripe
+  subscription via `getStripeClient()` + `subscriptionService.findByOwnerId`,
+  calls `supabase.rpc('delete_own_account')` on the ordinary request client,
+  then `supabase.auth.signOut()`. Never touches `createAdminClient()` — ADR-015's
+  "exactly one request-path service-role caller" (the Stripe webhook) is
+  unchanged.
+- `src/app/api/account/route.ts` (new, `DELETE`) — requires
+  `{ confirm: "DELETE" }` in the body, rate limited via the existing `'auth'`
+  bucket in `src/shared/rate-limit` keyed on `ownerId`.
+- `src/app/api/account/export/route.ts` (new, `GET`) — returns the signed-in
+  owner's profile, offers, documents, applications, posts, status events and
+  subscription as one JSON download, through the request client and RLS.
+- `src/features/account/components/danger-zone.tsx` (new) — export button
+  plus a destructive delete dialog requiring the literal text `DELETE` before
+  the confirm button enables; redirects to `/sign-in` on success.
+- `src/app/(app)/settings/page.tsx` — renders `<DangerZone />`.
+- `docs/TESTING.md` — added the "Account deletion and data export" manual
+  verification journey.
+- `memory-bank/decisions.md`'s ADR-015 amendment for this task already
+  existed (written during the TASK-062 split) and needed no changes — it
+  already matched what shipped.
+
+---
+
 ### Feature: TASK-062 — Launch hardening (rate limiting, security headers, admin-client guard)
 
 Status: **done** — green on typecheck/lint/test/build. Backend/config-only,
