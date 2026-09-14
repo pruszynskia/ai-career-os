@@ -5,17 +5,9 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog';
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
 import { Input } from '@/shared/ui/input';
-import { Label, Spinner, Text, VStack } from '@/shared/ui/primitives';
+import { Label, Text, VStack } from '@/shared/ui/primitives';
 
 const CONFIRM_WORD = 'DELETE';
 
@@ -109,50 +101,43 @@ export function DangerZone() {
               Cancels any active subscription and permanently removes this
               account and all of its data. This cannot be undone.
             </Text>
-            <Dialog
+            <ConfirmDialog
               open={isOpen}
               onOpenChange={(open) => {
                 setIsOpen(open);
                 if (!open) setConfirmText('');
               }}
-            >
-              <DialogTrigger asChild>
+              trigger={
                 <Button type="button" variant="destructive">
                   Delete account
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete your account?</DialogTitle>
-                  <DialogDescription>
-                    This permanently deletes your profile, offers, documents,
-                    applications, posts and subscription. Type {CONFIRM_WORD} to
-                    confirm.
-                  </DialogDescription>
-                </DialogHeader>
-                <VStack gap={2}>
-                  <Label htmlFor="delete-confirm">
-                    Type {CONFIRM_WORD} to confirm
-                  </Label>
-                  <Input
-                    id="delete-confirm"
-                    value={confirmText}
-                    onChange={(event) => setConfirmText(event.target.value)}
-                    autoComplete="off"
-                  />
-                </VStack>
-                <DialogFooter showCloseButton>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={confirmText !== CONFIRM_WORD || isDeleting}
-                  >
-                    {isDeleting && <Spinner size="sm" />}
-                    {isDeleting ? 'Deleting…' : 'Delete account'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              }
+              title="Delete your account?"
+              description={
+                <>
+                  This permanently deletes your profile, offers, documents,
+                  applications, posts and subscription. Type {CONFIRM_WORD} to
+                  confirm.
+                </>
+              }
+              confirmLabel="Delete account"
+              pendingLabel="Deleting…"
+              pending={isDeleting}
+              confirmDisabled={confirmText !== CONFIRM_WORD}
+              onConfirm={handleDelete}
+            >
+              <VStack gap={2}>
+                <Label htmlFor="delete-confirm">
+                  Type {CONFIRM_WORD} to confirm
+                </Label>
+                <Input
+                  id="delete-confirm"
+                  value={confirmText}
+                  onChange={(event) => setConfirmText(event.target.value)}
+                  autoComplete="off"
+                />
+              </VStack>
+            </ConfirmDialog>
           </VStack>
 
           {error ? <Text color="destructive">{error}</Text> : null}

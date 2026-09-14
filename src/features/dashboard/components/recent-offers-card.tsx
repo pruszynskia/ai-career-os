@@ -1,6 +1,8 @@
 import type { JobOffer } from '@/entities/job-offer/types';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { ListRow } from '@/shared/ui/list-row';
 
 export function RecentOffersCard({ offers }: { offers: JobOffer[] }) {
   return (
@@ -8,18 +10,18 @@ export function RecentOffersCard({ offers }: { offers: JobOffer[] }) {
       <CardHeader>
         <CardTitle>Recent offers</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {offers.length === 0 ? (
-          <EmptyState message="No offers added yet." />
+          <EmptyState message="No offers added yet." className="p-6" />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {offers.map((offer) => (
-              <li key={offer.id} className="text-sm">
-                <span className="font-medium">{offer.title}</span> ·{' '}
-                {offer.company}
-              </li>
-            ))}
-          </ul>
+          offers.map((offer) => (
+            <ListRow
+              key={offer.id}
+              href={`/offers/${offer.id}`}
+              title={offer.title}
+              supporting={offer.company}
+            />
+          ))
         )}
       </CardContent>
     </Card>

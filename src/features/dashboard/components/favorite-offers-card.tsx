@@ -1,8 +1,8 @@
 import type { JobOffer } from '@/entities/job-offer/types';
-import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { ListRow } from '@/shared/ui/list-row';
 
 export function FavoriteOffersCard({ offers }: { offers: JobOffer[] }) {
   return (
@@ -10,24 +10,21 @@ export function FavoriteOffersCard({ offers }: { offers: JobOffer[] }) {
       <CardHeader>
         <CardTitle>Favorite offers</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {offers.length === 0 ? (
-          <EmptyState message="No favorite offers yet." />
+          <EmptyState message="No favorite offers yet." className="p-6" />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {offers.map((offer) => (
-              <li key={offer.id}>
-                <Link
-                  href={`/offers/${offer.id}`}
-                  className="-mx-2 block rounded-md px-2 py-1 text-sm transition-colors hover:bg-muted"
-                >
-                  <span className="font-medium">{offer.title}</span> ·{' '}
-                  {offer.company}
-                  {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          offers.map((offer) => (
+            <ListRow
+              key={offer.id}
+              href={`/offers/${offer.id}`}
+              title={offer.title}
+              supporting={offer.company}
+              meta={
+                offer.matchScore !== null ? `${offer.matchScore}%` : undefined
+              }
+            />
+          ))
         )}
       </CardContent>
     </Card>
