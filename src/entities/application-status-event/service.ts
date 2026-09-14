@@ -89,12 +89,14 @@ export const applicationStatusEventService = {
     return (data ?? [])
       .map((row): RecentStatusEvent | null => {
         const record = row as Record<string, unknown>;
-        const application = record.application as
-          | Record<string, unknown>
-          | null;
-        const jobOfferRow = application?.job_offer as
-          | Record<string, unknown>
-          | null;
+        const application = record.application as Record<
+          string,
+          unknown
+        > | null;
+        const jobOfferRow = application?.job_offer as Record<
+          string,
+          unknown
+        > | null;
         if (!jobOfferRow) return null;
 
         return {

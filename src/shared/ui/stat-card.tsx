@@ -8,7 +8,7 @@ interface StatCardProps {
 
 function StatCard({ label, value }: StatCardProps) {
   return (
-    <Surface padding="sm" data-slot="stat-card">
+    <Surface padding="sm" elevation="raised" data-slot="stat-card">
       <Text size="xs" color="muted">
         {label}
       </Text>

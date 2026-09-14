@@ -27,7 +27,10 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const application = await updateApplicationNotes(id, parsedInput.data.notes);
+    const application = await updateApplicationNotes(
+      id,
+      parsedInput.data.notes,
+    );
     return NextResponse.json({ application });
   } catch (error) {
     if (error instanceof ApplicationNotFoundError) {

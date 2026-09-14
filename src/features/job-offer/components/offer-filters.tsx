@@ -60,7 +60,7 @@ export function OfferFilters({
         defaultValue={sort}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         aria-label="Sort offers"
-        className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-7 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         {offerSortOptions.map((option) => (
           <option key={option} value={option}>
@@ -77,7 +77,11 @@ export function OfferFilters({
         />
         Favorites only
       </label>
-      <div className="ml-auto flex items-center gap-1" role="group" aria-label="View">
+      <div
+        className="ml-auto flex items-center gap-1"
+        role="group"
+        aria-label="View"
+      >
         <Button
           type="button"
           size="sm"

@@ -108,8 +108,7 @@ export const postService = {
       patch.scheduled_at = values.scheduledAt?.toISOString() ?? null;
     if (values.sentAt !== undefined)
       patch.sent_at = values.sentAt?.toISOString() ?? null;
-    if (values.campaignId !== undefined)
-      patch.campaign_id = values.campaignId;
+    if (values.campaignId !== undefined) patch.campaign_id = values.campaignId;
 
     const { data, error } = await supabase
       .from('posts')

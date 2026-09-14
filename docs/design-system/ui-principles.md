@@ -2,36 +2,70 @@
 
 ## Brand direction
 
-The palette in [`colors.md`](./colors.md) encodes three attributes the
-product needs to project, since it manages a single owner's real job search:
-
-- **Trust** — Deep Navy as the dominant, anchoring color. Stable, low-chroma,
-  never flashy.
-- **Intelligence** — Electric Blue reserved for interactive/AI-driven
-  moments (tailoring a CV, generating a message) — it should read as "the
-  system is doing something smart," not as generic UI chrome.
-- **Progress** — Emerald reserved for positive status only (applied, offer
-  moved forward, task done) — it must stay rare enough to keep its meaning.
+See [`colors.md`](./colors.md) for the palette itself (warm-neutral ramp,
+neutral-inverse primary, single amber signal accent — ADR-018). The
+takeaway for layout/component decisions: colour is not how this product
+creates hierarchy or separation. Structure, spacing and the elevation model
+below do that job.
 
 ## Explicitly avoid
 
 - **No gradients** as a decorative device (hero backgrounds, card fills,
   button fills). Flat semantic-token fills only.
-- **No glow/blur "AI" effects** (soft box-shadows in brand colors, animated
-  glassmorphism, particle backgrounds). These read as generic AI-product
+- **No glassmorphism** (`backdrop-blur` on overlays, glow/blur "AI"
+  effects, animated particle backgrounds). These read as generic AI-product
   fluff, not as an enterprise tool.
-- **No decorative color** — every use of `accent` or `success` must map to
-  an actual interactive or status meaning, not just "make it pop."
+- **No decorative color** — every use of `accent` or a status token must
+  map to an actual interactive or status meaning, not just "make it pop."
+- **No pill shapes on rectangular controls** (`rounded-full` on a button,
+  input, badge, etc.). `rounded-full` is reserved for genuinely circular
+  elements — avatars, single-character step/notification dots.
 
-## Spacing & elevation
+## Elevation model
 
-- Use Tailwind's default spacing scale (`gap-2`, `p-4`, `space-y-6`, …); no
-  custom spacing tokens.
-- Elevation comes from `--card`/`--popover` background contrast and existing
-  `shadow-*` utilities, not from color. Don't invent new shadow tokens.
-- Corner radius follows the existing `--radius` scale already defined in
-  `globals.css` (`--radius-sm` … `--radius-4xl`, derived from
-  `--radius: 0.625rem`) — reuse it, don't hardcode `rounded-[Npx]`.
+A uniform bordered box around every piece of content is the single
+strongest tell that a UI was generated rather than designed. `Surface` (the
+base `Card` is built on) exposes three tiers instead, via
+`surfaceVariants({ elevation })` in
+[`Surface.tsx`](../../src/shared/ui/primitives/surface/surface/Surface.tsx):
+
+| Tier | Renders | Use for |
+|---|---|---|
+| `flat` (default) | No border, no background, no shadow | Most content. Separation comes from spacing and type hierarchy, not a box. |
+| `ruled` | A single hairline `border-b` | Rows in a list/section — a collection of things reads as ruled rows, not stacked cards. |
+| `raised` | `bg-card` + hairline border, 6px radius | Content that genuinely needs to read as a distinct object — a single stat, a form panel. No shadow here. |
+
+**A `Card` must earn its box.** Reach for `Card` when a single item (a
+stat, a settings panel, a form) needs to be visually distinct from the
+page. When rendering a collection, prefer a `ruled`-elevation `Surface` (or
+the `Divider` primitive between rows) over one `Card` per item — N bordered
+boxes stacked in a column is the pattern this model replaces, not a safe
+default to keep using.
+
+Shadow is reserved for true overlays that sit above the raised tier:
+`dialog.tsx`, `Popover.tsx`, `Select.tsx` content, and the toast stack.
+Never a shadow on an inline `Card`, and never a shadow tinted with a colour
+token — `shadow-md` on the plain `--popover`/`border` combination only.
+
+## Controls
+
+- 28px (`h-7`) is the dense, in-app default control height for `Button`,
+  `Input`, `Textarea` and `Select`'s trigger. `size="comfortable"` (32px,
+  the previous default) is reserved for primary/standalone actions, not
+  the default for in-app density.
+- 6px radius (`rounded-lg`, i.e. `--radius`) everywhere a control needs a
+  radius. Nothing above 8px anywhere in the app — `rounded-xl`/`2xl`/`3xl`/
+  `4xl` are all banned; if a design calls for a bigger radius, that's a
+  spec bug, not a new call site.
+- Focus rings stay on `--ring` (the neutral-inverse `--primary`), not the
+  amber `--accent` — the accent fails the WCAG 2.1 SC 1.4.11 3:1
+  non-text-contrast floor against the light-mode background (measured
+  2.04:1, see `colors.md`'s contrast table and ADR-018). A focus indicator
+  that's invisible in light mode is not an acceptable trade for brand
+  colour.
+- `Badge` is a small mono, uppercase, 2px-radius label (`success`,
+  `warning`, `info`, `destructive`, plus `default`/`secondary`/`outline`),
+  not a pill — status text, not a button.
 
 ## Layouts
 
@@ -55,39 +89,8 @@ of re-implementing the page shell:
    Input) before building anything new.
 2. Pick colors only from the semantic tokens in `colors.md` — never a raw
    OKLCH/hex value.
-3. If a screen seems to need a color or spacing value not covered here,
-   update this document first, then use it — don't improvise locally.
-
-## Audit findings (TASK-034)
-
-Every route (dashboard, offers list/detail, applications, posts, profile,
-sign-in) was run through the `/design-review` Playwright loop against the
-Linear/Vercel Dashboard/Stripe Dashboard benchmarks. Two root-cause CSS bugs
-accounted for nearly every visual defect found across all of them:
-
-- **`--font-sans` was self-referential** in `globals.css`'s `@theme inline`
-  block (`--font-sans: var(--font-sans)`), so Tailwind's `font-sans`
-  utility never resolved to Geist and the whole app silently fell back to
-  the browser's default serif font. Fixed to point at
-  `--font-geist-sans`.
-- **Two unlayered resets** in `globals.css` (outside any `@layer`) outranked
-  every matching Tailwind utility per CSS cascade-layer rules:
-  - `* { padding: 0; margin: 0; }` zeroed every `Card`'s inner padding
-    (dashboard cards, offer/application list items, the sign-in card),
-    content touching its own border. Removed — Tailwind's preflight already
-    resets margin/padding inside `@layer base`, so this was a duplicate
-    that happened to be load-bearing in the wrong direction.
-  - `a { color: inherit; text-decoration: none; }` killed every
-    `.underline`/`hover:underline` utility app-wide (the duplicate-offer
-    recovery link in `AddOfferForm`, `OfferList`/`ApplicationList` row
-    links, the `Button` `link` variant). Moved inside `@layer base` so an
-    explicit `.underline` opt-in still wins, matching how Tailwind's own
-    preflight registers this exact rule.
-
-Per-route: `AddOfferForm` (offers route) was floating unboxed above the
-bordered offer list; wrapped it in the existing `Card`/`CardContent`
-components so it groups visually like every other surface on the screen.
-
-No new component library, dependency, or one-off per-screen styling was
-added — every fix reused `src/shared/ui`/`src/shared/layouts` or corrected
-an existing shared token.
+3. Default to `flat`/`ruled` `Surface` for a collection; reach for `Card`
+   only when a single item earns its own box (see Elevation model above).
+4. If a screen seems to need a color, spacing or elevation value not
+   covered here, update this document first, then use it — don't
+   improvise locally.

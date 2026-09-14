@@ -3,28 +3,33 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/shared/ui/utils';
 
-const surfaceVariants = cva(
-  'rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10',
-  {
-    variants: {
-      padding: {
-        none: '',
-        sm: 'p-3',
-        md: 'p-4',
-        lg: 'p-6',
-      },
-      elevation: {
-        none: '',
-        sm: 'shadow-sm',
-        md: 'shadow-md',
-      },
+const surfaceVariants = cva('text-card-foreground', {
+  variants: {
+    padding: {
+      none: '',
+      sm: 'p-3',
+      md: 'p-4',
+      lg: 'p-6',
     },
-    defaultVariants: {
-      padding: 'none',
-      elevation: 'none',
+    elevation: {
+      // No border, no background, no shadow - separation comes from
+      // spacing and type hierarchy, not a box. This is the default because
+      // most content does not earn a container.
+      flat: '',
+      // A single hairline divider for rows/sections in a list - never a
+      // full border, never a shadow.
+      ruled: 'border-b border-border',
+      // Reserved for content that genuinely needs to read as a distinct
+      // object (Card). No shadow here - shadow is for true overlays only
+      // (dialog/popover/select/toaster).
+      raised: 'rounded-lg border border-border bg-card',
     },
   },
-);
+  defaultVariants: {
+    padding: 'none',
+    elevation: 'flat',
+  },
+});
 
 interface SurfaceProps
   extends React.ComponentProps<'div'>, VariantProps<typeof surfaceVariants> {}

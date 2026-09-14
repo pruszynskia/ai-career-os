@@ -27,7 +27,7 @@ export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
             {profile.skills.map((skill) => (
               <li
                 key={skill}
-                className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
+                className="rounded-lg bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
               >
                 {skill}
               </li>
@@ -91,7 +91,7 @@ export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
                         {project.technologies.map((tech) => (
                           <li
                             key={tech}
-                            className="rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
+                            className="rounded-lg bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
                           >
                             {tech}
                           </li>

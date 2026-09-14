@@ -136,5 +136,4 @@ export const applicationService = {
     if (error) throw error;
     return data ? toApplication(data) : null;
   },
-
 };
