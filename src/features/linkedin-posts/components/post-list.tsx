@@ -8,7 +8,7 @@ import { useDeletePost } from '@/features/linkedin-posts/hooks/use-delete-post';
 import { useMarkPostSent } from '@/features/linkedin-posts/hooks/use-mark-post-sent';
 import { useSchedulePost } from '@/features/linkedin-posts/hooks/use-schedule-post';
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
-import { Spinner } from '@/shared/ui/primitives';
+import { AsyncButton } from '@/shared/ui/async-button';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
@@ -18,15 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle as ConfirmDialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog';
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 import {
@@ -120,35 +112,19 @@ export function PostCard({ post }: { post: Post }) {
             {copied ? 'Copied!' : 'Copy'}
           </Button>
           {post.status === 'DRAFT' && <EditPostDialog post={post} />}
-          <Dialog>
-            <DialogTrigger asChild>
+          <ConfirmDialog
+            trigger={
               <Button variant="destructive" size="sm">
                 Delete
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <ConfirmDialogTitle>Delete this post?</ConfirmDialogTitle>
-              </DialogHeader>
-              <p className="text-sm text-muted-foreground">
-                This can&apos;t be undone.
-              </p>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  disabled={deleteMutation.isPending}
-                  onClick={handleDelete}
-                >
-                  {deleteMutation.isPending && <Spinner size="sm" />}
-                  {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            }
+            title="Delete this post?"
+            description="This can't be undone."
+            confirmLabel="Delete"
+            pendingLabel="Deleting…"
+            pending={deleteMutation.isPending}
+            onConfirm={handleDelete}
+          />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
@@ -163,30 +139,31 @@ export function PostCard({ post }: { post: Post }) {
               onChange={(event) => setScheduledAtInput(event.target.value)}
               disabled={scheduleMutation.isPending}
             />
-            <Button
+            <AsyncButton
               type="button"
               size="sm"
-              disabled={scheduleMutation.isPending || !scheduledAtInput}
+              disabled={!scheduledAtInput}
+              pending={scheduleMutation.isPending}
+              pendingLabel="Scheduling…"
               onClick={handleSchedule}
             >
-              {scheduleMutation.isPending && <Spinner size="sm" />}
-              {scheduleMutation.isPending ? 'Scheduling…' : 'Schedule'}
-            </Button>
+              Schedule
+            </AsyncButton>
           </div>
         )}
 
         {post.status === 'SCHEDULED' && (
-          <Button
+          <AsyncButton
             type="button"
             size="sm"
             variant="outline"
             className="self-start"
-            disabled={markSentMutation.isPending}
+            pending={markSentMutation.isPending}
+            pendingLabel="Marking…"
             onClick={handleMarkSent}
           >
-            {markSentMutation.isPending && <Spinner size="sm" />}
-            {markSentMutation.isPending ? 'Marking…' : 'Mark as sent'}
-          </Button>
+            Mark as sent
+          </AsyncButton>
         )}
       </CardContent>
     </Card>

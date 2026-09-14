@@ -4,16 +4,7 @@ import { useState } from 'react';
 
 import { useDeleteOffer } from '@/features/job-offer/hooks/use-delete-offer';
 import { Button } from '@/shared/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog';
-import { Spinner } from '@/shared/ui/primitives';
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
 
 export function DeleteOfferButton({
   offerId,
@@ -30,31 +21,20 @@ export function DeleteOfferButton({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+    <ConfirmDialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      trigger={
         <Button variant="outline" size="sm">
           Delete
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete this offer?</DialogTitle>
-          <DialogDescription>
-            This permanently removes the offer and any tailored CVs or cover
-            letters generated for it. This cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter showCloseButton>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending && <Spinner size="sm" />}
-            {mutation.isPending ? 'Deleting…' : 'Delete offer'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      }
+      title="Delete this offer?"
+      description="This permanently removes the offer and any tailored CVs or cover letters generated for it. This cannot be undone."
+      confirmLabel="Delete offer"
+      pendingLabel="Deleting…"
+      pending={mutation.isPending}
+      onConfirm={handleConfirm}
+    />
   );
 }

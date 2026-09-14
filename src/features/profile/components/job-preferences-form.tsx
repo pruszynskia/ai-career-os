@@ -20,18 +20,17 @@ import {
   UNSET,
   type PreferencesFormValues,
 } from '@/features/profile/utils/preferences-form';
-import { Button } from '@/shared/ui/button';
+import { AsyncButton } from '@/shared/ui/async-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Field } from '@/shared/ui/field';
 import {
   Grid,
   Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Spinner,
 } from '@/shared/ui/primitives';
 
 const WORK_MODE_LABEL: Record<z.infer<typeof workModeSchema>, string> = {
@@ -117,194 +116,177 @@ export function JobPreferencesForm({
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <Grid cols={1} colsMd={2} gap={4}>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="workMode">Work mode</Label>
-              <Controller
-                control={control}
-                name="workMode"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="workMode" className="w-full">
-                      <SelectValue placeholder="No preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNSET}>No preference</SelectItem>
-                      {workModeSchema.options.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {WORK_MODE_LABEL[option]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <Field id="workMode" label="Work mode">
+              {(controlProps) => (
+                <Controller
+                  control={control}
+                  name="workMode"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full" {...controlProps}>
+                        <SelectValue placeholder="No preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={UNSET}>No preference</SelectItem>
+                        {workModeSchema.options.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {WORK_MODE_LABEL[option]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="employmentType">Employment type</Label>
-              <Controller
-                control={control}
-                name="employmentType"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="employmentType" className="w-full">
-                      <SelectValue placeholder="No preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNSET}>No preference</SelectItem>
-                      {employmentTypeSchema.options.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {EMPLOYMENT_TYPE_LABEL[option]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <Field id="employmentType" label="Employment type">
+              {(controlProps) => (
+                <Controller
+                  control={control}
+                  name="employmentType"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full" {...controlProps}>
+                        <SelectValue placeholder="No preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={UNSET}>No preference</SelectItem>
+                        {employmentTypeSchema.options.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {EMPLOYMENT_TYPE_LABEL[option]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="seniority">Seniority</Label>
-              <Controller
-                control={control}
-                name="seniority"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="seniority" className="w-full">
-                      <SelectValue placeholder="No preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNSET}>No preference</SelectItem>
-                      {seniorityLevelSchema.options.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {SENIORITY_LABEL[option]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <Field id="seniority" label="Seniority">
+              {(controlProps) => (
+                <Controller
+                  control={control}
+                  name="seniority"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full" {...controlProps}>
+                        <SelectValue placeholder="No preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={UNSET}>No preference</SelectItem>
+                        {seniorityLevelSchema.options.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {SENIORITY_LABEL[option]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="companySize">Company size</Label>
-              <Controller
-                control={control}
-                name="companySize"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="companySize" className="w-full">
-                      <SelectValue placeholder="No preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNSET}>No preference</SelectItem>
-                      {companySizeSchema.options.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {COMPANY_SIZE_LABEL[option]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <Field id="companySize" label="Company size">
+              {(controlProps) => (
+                <Controller
+                  control={control}
+                  name="companySize"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full" {...controlProps}>
+                        <SelectValue placeholder="No preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={UNSET}>No preference</SelectItem>
+                        {companySizeSchema.options.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {COMPANY_SIZE_LABEL[option]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="specialization">Specialization</Label>
+            <Field id="specialization" label="Specialization">
               <Input
-                id="specialization"
                 placeholder="e.g. Frontend, Platform, ML"
                 {...register('specialization')}
               />
-            </div>
+            </Field>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="salaryMin">Salary min</Label>
+              <Field
+                id="salaryMin"
+                label="Salary min"
+                error={errors.salaryMin?.message}
+              >
                 <Input
-                  id="salaryMin"
                   type="number"
                   min={0}
                   step={1}
                   inputMode="numeric"
-                  aria-invalid={!!errors.salaryMin}
                   {...register('salaryMin')}
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="salaryMax">Salary max</Label>
+              </Field>
+              <Field
+                id="salaryMax"
+                label="Salary max"
+                error={errors.salaryMax?.message}
+              >
                 <Input
-                  id="salaryMax"
                   type="number"
                   min={0}
                   step={1}
                   inputMode="numeric"
-                  aria-invalid={!!errors.salaryMax}
                   {...register('salaryMax')}
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="salaryCurrency">Currency</Label>
-                <Input
-                  id="salaryCurrency"
-                  placeholder="USD"
-                  {...register('salaryCurrency')}
-                />
-              </div>
+              </Field>
+              <Field id="salaryCurrency" label="Currency">
+                <Input placeholder="USD" {...register('salaryCurrency')} />
+              </Field>
             </div>
           </Grid>
 
-          {errors.salaryMin && (
-            <p role="alert" className="text-sm text-destructive">
-              {errors.salaryMin.message}
-            </p>
-          )}
-
-          {errors.salaryMax && (
-            <p role="alert" className="text-sm text-destructive">
-              {errors.salaryMax.message}
-            </p>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="preferredTechnologies">
-              Preferred technologies (comma-separated)
-            </Label>
+          <Field
+            id="preferredTechnologies"
+            label="Preferred technologies (comma-separated)"
+          >
             <Input
-              id="preferredTechnologies"
               placeholder="TypeScript, React, PostgreSQL"
               {...register('preferredTechnologies')}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="industries">Industries (comma-separated)</Label>
+          <Field id="industries" label="Industries (comma-separated)">
             <Input
-              id="industries"
               placeholder="Fintech, Healthtech"
               {...register('industries')}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="locationPreferences">
-              Preferred locations (comma-separated)
-            </Label>
+          <Field
+            id="locationPreferences"
+            label="Preferred locations (comma-separated)"
+          >
             <Input
-              id="locationPreferences"
               placeholder="Wrocław, Berlin, Remote"
               {...register('locationPreferences')}
             />
-          </div>
+          </Field>
 
-          <Button
+          <AsyncButton
             type="submit"
-            disabled={mutation.isPending}
+            pending={mutation.isPending}
+            pendingLabel="Saving…"
             className="self-start"
           >
-            {mutation.isPending && <Spinner size="sm" />}
-            {mutation.isPending ? 'Saving…' : 'Save preferences'}
-          </Button>
+            Save preferences
+          </AsyncButton>
         </form>
       </CardContent>
     </Card>

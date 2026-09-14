@@ -1,8 +1,7 @@
-import Link from 'next/link';
-
 import type { ApplicationBundle } from '@/entities/application/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { ListRow } from '@/shared/ui/list-row';
 
 export function UpcomingInterviewsCard({
   applications,
@@ -14,25 +13,19 @@ export function UpcomingInterviewsCard({
       <CardHeader>
         <CardTitle>Upcoming interviews</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {applications.length === 0 ? (
-          <EmptyState message="No interviews in progress." />
+          <EmptyState message="No interviews in progress." className="p-6" />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {applications.map((application) => (
-              <li key={application.id}>
-                <Link
-                  href={`/offers/${application.jobOffer.id}`}
-                  className="-mx-2 block rounded-md px-2 py-1 text-sm transition-colors hover:bg-muted"
-                >
-                  <span className="font-medium">
-                    {application.jobOffer.title}
-                  </span>{' '}
-                  · {application.jobOffer.company} · {application.status}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          applications.map((application) => (
+            <ListRow
+              key={application.id}
+              href={`/offers/${application.jobOffer.id}`}
+              title={application.jobOffer.title}
+              supporting={application.jobOffer.company}
+              meta={application.status}
+            />
+          ))
         )}
       </CardContent>
     </Card>
