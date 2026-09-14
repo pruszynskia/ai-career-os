@@ -2,6 +2,46 @@
 
 ## Current Sprint
 
+### Feature: TASK-066 — Design token foundation (warm-neutral ramp, neutral-inverse primary, amber accent)
+
+Status: **done** — green on typecheck/lint/test/build. Token-value-only
+change in `src/app/globals.css`; no component files touched, no Playwright
+loop (this environment has no Playwright MCP tool available, and the change
+is a token re-skin with every component import/utility class unchanged —
+verified instead via a from-scratch OKLCH→WCAG contrast calculation for
+every text-on-surface pairing).
+
+What shipped:
+
+- `src/app/globals.css` — every shadcn semantic colour token (`--background`,
+  `--primary`, `--accent`, `--success`, `--destructive`, `--border`,
+  `--input`, `--ring`, …) now aliases a Tier-1 primitive (`--neutral-canvas`,
+  `--neutral-ink`, `--signal-amber`, `--signal-gold`, `--signal-info`,
+  `--status-success`, `--status-destructive`) instead of holding its own
+  literal `oklch()` value, defined separately for `:root` and `.dark`. New
+  `--warning`/`--warning-foreground` and `--info`/`--info-foreground`
+  tokens are wired into `@theme inline` alongside the existing
+  `--color-success` pattern. `--radius` is now `0.375rem`, with
+  `--radius-xl`..`--radius-4xl` all capped at `0.5rem` (8px) so the four
+  existing `rounded-xl` call sites (`dialog.tsx`, `Surface.tsx`,
+  `Popover.tsx`, `Select.tsx`) degrade correctly ahead of their individual
+  cleanup in TASK-069. `--dur-fast`/`--dur`/`--dur-slow`/`--ease` motion
+  tokens added for TASK-077.
+- `docs/design-system/colors.md` — rewritten palette table, colour-budget
+  note (~90/8/2), and a contrast table for both themes computed against the
+  final token values (all pairs ≥4.5:1).
+- `memory-bank/decisions.md` — new ADR-018, explicitly superseding ADR-010.
+- `ARCHITECTURE.md` — Design System section now points at ADR-018 instead of
+  the Deep Navy/Electric Blue/Emerald identity.
+
+Not touched (deliberately, out of this task's scope): `docs/design-system/
+ui-principles.md` still describes the old Deep Navy/Electric Blue/Emerald
+identity — it wasn't in TASK-066's `scope`, so it's now stale pending a
+follow-up; `--chart-*` and `--sidebar-*` tokens were left as literal OKLCH
+values since neither is consumed by any component today (dead shadcn
+boilerplate, confirmed via grep) and neither was part of ADR-010's palette
+either. Dark mode is still not wired to any class — that's TASK-067.
+
 ### Feature: TASK-065 — Account deletion and data export
 
 Status: **done** — green on typecheck/lint/test/build. Backend + settings-page

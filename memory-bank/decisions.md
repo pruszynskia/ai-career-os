@@ -808,3 +808,56 @@ Consequences:
   so a validator bug surfaces as an error rather than as silent fabrication.
 - Profiles created before TASK-078 load with an empty evidence base rather than
   failing, and generation degrades to a stated gap rather than an invention.
+
+## ADR-018
+
+Date:
+
+2026-09-14
+
+Decision:
+
+Supersede ADR-010's Deep Navy / Electric Blue / Emerald identity with a
+warm-shifted neutral ramp (OKLCH hue 75, very low chroma, never pure black or
+white), a `--primary` that is the high-contrast neutral inverse of the canvas
+(near-black on light, near-white on dark) rather than a brand hue, and a
+single amber (hue 55) signal accent restricted to interaction/focus states.
+Two new semantic tokens, `--warning` (hue 95) and `--info` (hue 240), join
+the existing `--success`/`--destructive` status colours. Every semantic
+token in `src/app/globals.css` now aliases a Tier-1 primitive (e.g.
+`--neutral-canvas`, `--signal-amber`) instead of holding a literal `oklch()`
+value — the shadcn semantic token names themselves are unchanged, so no
+component import or utility class changes. The colour budget is roughly
+90% neutral / 8% ink / 2% accent.
+
+Reason:
+
+The Deep Navy / Electric Blue / Emerald identity reads as a generic
+enterprise-SaaS template rather than a distinct product identity. A neutral-
+inverse primary structurally cannot collide with a status colour (the
+Vercel/Attio pattern), and confining colour to a single restrained accent
+plus true status hues gives the product a calmer, more considered surface
+than a blue-branded primary competing visually with blue-ish focus states.
+
+Alternatives Considered:
+
+- Keep Electric Blue as `--primary` and add amber only as a secondary accent
+  — rejected: a blue primary and a blue-adjacent info status token read as
+  the same colour doing two jobs, which was the original template-y problem.
+- A parallel Tier-1/Tier-2 token package outside `globals.css` — rejected for
+  the same reason ADR-010 rejected it: no second consumer exists, and it
+  would duplicate what `@theme inline` already resolves.
+
+Consequences:
+
+- `docs/design-system/colors.md` is rewritten with the new ramp and a
+  contrast table measured against the final rendered token values for both
+  themes.
+- `bg-warning`/`text-warning-foreground`/`bg-info`/`text-info-foreground`
+  become available Tailwind utilities alongside the existing
+  `bg-destructive`/`bg-success` pattern.
+- The radius scale is capped at 8px (`--radius-xl` through `--radius-4xl`),
+  which is a token-layer change only; the four existing `rounded-xl` call
+  sites are cleaned up individually in TASK-069.
+- Dark mode is not activated by this change — the `.dark` block's values are
+  rewritten but the class is still never applied until TASK-067.

@@ -173,8 +173,9 @@ Icons:
 
 Lucide React
 
-Palette, typography and UI principles (Deep Navy / Electric Blue / Emerald
-brand identity, expressed as tokens in `src/app/globals.css`):
+Palette, typography and UI principles (warm-neutral ramp, neutral-inverse
+primary and amber signal accent — ADR-018, superseding ADR-010 — expressed
+as tokens in `src/app/globals.css`):
 
 - [docs/design-system/colors.md](docs/design-system/colors.md)
 - [docs/design-system/typography.md](docs/design-system/typography.md)
