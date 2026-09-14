@@ -7,7 +7,7 @@ const labelVariants = cva('', {
   variants: {
     variant: {
       form: 'text-sm font-medium',
-      meta: 'text-xs text-muted-foreground',
+      meta: 'text-label font-mono uppercase [letter-spacing:0.08em] text-muted-foreground',
     },
   },
   defaultVariants: {

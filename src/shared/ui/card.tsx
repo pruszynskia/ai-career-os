@@ -36,11 +36,16 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+  // Explicit font-sans, not an oversight: --font-heading is a display face
+  // reserved for the >=24px zone (see Heading.tsx), and CardTitle renders at
+  // text-body-lg (16px) / text-body (sm). Letting font-heading cascade here
+  // would put the display face below its zone floor, so this task's "no
+  // individual edits" deliverable is deliberately not satisfied for Card.
   return (
     <div
       data-slot="card-title"
       className={cn(
-        'font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm',
+        'font-sans text-body-lg leading-snug font-medium group-data-[size=sm]/card:text-body',
         className,
       )}
       {...props}

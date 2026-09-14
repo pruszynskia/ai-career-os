@@ -6,10 +6,14 @@ import { cn } from '@/shared/ui/utils';
 const textVariants = cva('', {
   variants: {
     size: {
+      // No dedicated micro step exists in the gapped scale below body-sm;
+      // text-label (11px) is reserved for the Label primitive's mono/
+      // uppercase meta role, so xs keeps Tailwind's default 12px rather
+      // than borrowing that token for plain sans microcopy.
       xs: 'text-xs',
-      sm: 'text-sm',
-      base: 'text-base',
-      lg: 'text-lg',
+      sm: 'text-body-sm',
+      base: 'text-body',
+      lg: 'text-body-lg',
     },
     weight: {
       normal: 'font-normal',
