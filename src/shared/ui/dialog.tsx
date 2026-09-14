@@ -125,11 +125,14 @@ function DialogTitle({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  // Explicit font-sans, not an oversight: same 24px zone floor as
+  // CardTitle in card.tsx - DialogTitle renders at text-body-lg (16px),
+  // below where the display face (--font-heading) is allowed to apply.
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        'font-heading text-base leading-none font-medium',
+        'font-sans text-body-lg leading-none font-medium',
         className,
       )}
       {...props}
