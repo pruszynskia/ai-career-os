@@ -45,9 +45,7 @@ export function computeOfferFingerprint(input: {
 }
 
 export type FingerprintMatchSignal =
-  | 'canonical-url'
-  | 'content-hash'
-  | 'company-title';
+  'canonical-url' | 'content-hash' | 'company-title';
 
 // Returns which signal matched, strongest first, or null. 'company-title'
 // alone false-positives on a recurring generic title reposted by the same

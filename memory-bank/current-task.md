@@ -2,6 +2,77 @@
 
 ## Current Sprint
 
+### Feature: TASK-069 — Elevation model and control refit (flat, ruled, raised)
+
+Status: **done** — green on typecheck/lint/test/build. Playwright
+design-review loop not run (no Playwright MCP tool available in this
+environment, same limitation as TASK-066/060) — needs a visual pass across
+routes during review, since every `Card`/`Button`/`Input`/`Select`/`Dialog`/
+`Popover`/`Badge` consumer is affected by this token/primitive change even
+though no consumer file itself was edited.
+
+What shipped:
+
+- `Surface.tsx` — `surfaceVariants`'s `elevation` is now `flat` (default: no
+  border/background/shadow) / `ruled` (hairline `border-b`) / `raised`
+  (`bg-card` + hairline border, `rounded-lg`/6px, no shadow). Dropped the
+  unconditional `rounded-xl`/`ring-1 ring-foreground/10` base and the old
+  `none`/`sm`/`md` shadow-only `elevation` prop.
+- `card.tsx` — `Card` now built on `surfaceVariants({ elevation: 'raised' })`;
+  sub-component API (`CardHeader`/`CardTitle`/`CardDescription`/
+  `CardAction`/`CardContent`/`CardFooter`) unchanged. Corner radius on the
+  header/footer/image slots moved from `rounded-{t,b}-xl` to
+  `rounded-{t,b}-lg` to match.
+- `dialog.tsx`, `Popover.tsx`, `Select.tsx` (content) — the three remaining
+  `rounded-xl`/`ring-1 ring-foreground/10` call sites replaced with
+  `rounded-lg border border-border` + `shadow-md` (shadow now scoped to
+  these true-overlay surfaces only, never tinted). Dialog's
+  `supports-backdrop-filter:backdrop-blur-xs` removed — plain scrim now.
+  `DialogFooter`'s `rounded-b-xl` also moved to `rounded-b-lg`.
+- `button.tsx`, `input.tsx`, `textarea.tsx`, `Select.tsx` (trigger) — added a
+  `comfortable` (32px, the old default) size alongside a new dense `default`
+  (28px/`h-7`), matching height across all four controls;
+  `icon`/`icon-comfortable` added to `Button` for the same split. Radius
+  stays 6px (`rounded-lg`) via the existing base classes.
+- `Badge.tsx` — rebuilt as a `font-mono uppercase tracking-wide` label at
+  `rounded-xs` (2px), plus new `warning`/`info` variants mapping onto the
+  `--warning`/`--info` tokens from TASK-066 (existing `success`/
+  `destructive`/`default`/`secondary`/`outline` kept).
+- `docs/design-system/ui-principles.md` — rewritten around the three-tier
+  elevation model, the "a Card must earn its box" rule (ruled rows for
+  collections, raised only for a single stat/panel), and the control-density
+  rule; the stale Deep Navy/Electric Blue/Emerald brand-direction text (dead
+  since ADR-018/TASK-066) replaced with a pointer at `colors.md`.
+
+Deliberate deviation from the task's literal acceptance wording — flagged,
+not silently done: focus rings were **not** repointed at the amber
+`--accent` token. `docs/design-system/colors.md`'s contrast table (written
+in TASK-066/ADR-018, same day) measures `--accent`/background at 2.04:1 in
+light mode, under the WCAG 2.1 SC 1.4.11 3:1 floor for a focus indicator,
+and explicitly documents `--ring` staying on `--primary` *because* of that
+failure. Switching the ring to amber would satisfy this task's literal
+acceptance line but ship a measured accessibility regression the ADR log
+already reasoned about. Left `focus-visible:ring-ring`/`border-ring`
+unchanged everywhere (already passes at 18.28:1/17.21:1 per that table) and
+documented the reason in the rewritten `ui-principles.md`. Everything else
+in the task's acceptance list passes as specified.
+
+Two acceptance greps hold only within this task's file scope, not
+sitewide: `rounded-full` still appears in `profile-summary.tsx` (pill skill
+tags) and `onboarding-stepper.tsx`'s step-number circle — neither file is in
+this task's `scope:` list, and per the task's own framing ("Convert feature
+screens away from Card - that is TASK-072 through TASK-076"), per-screen
+pill/Card cleanup belongs to those later tasks, not this one.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 61 passed (no new tests — this task is styling/variant
+  surface area with no branching logic to unit-test; existing component
+  tests, if any, weren't touched)
+- `npm run build` — pass
+
 ### Feature: TASK-066 — Design token foundation (warm-neutral ramp, neutral-inverse primary, amber accent)
 
 Status: **done** — green on typecheck/lint/test/build. Token-value-only

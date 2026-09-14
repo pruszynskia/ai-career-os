@@ -48,7 +48,9 @@ export function NotificationList({
 
   if (notifications.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">You&apos;re all caught up.</p>
+      <p className="text-sm text-muted-foreground">
+        You&apos;re all caught up.
+      </p>
     );
   }
 

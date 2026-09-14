@@ -5119,14 +5119,14 @@ tasks:
       - Card built on the raised tier, no longer the default container for arbitrary content
       - A ruled row treatment available as a primitive so collections can be rendered as hairline-divided rows instead of stacked cards
       - The four rounded-xl call sites and the dialog's backdrop-blur overlay removed
-      - Controls at 28px dense default height with a 32px comfortable variant, 6px radius, and the amber accent as the focus ring
+      - Controls at 28px dense default height with a 32px comfortable variant, 6px radius, and the focus ring kept on --primary (ADR-018: amber/background contrast measures 2.04:1 in light mode, below the WCAG 3:1 floor for focus indicators)
     tasks:
       - Rewrite surfaceVariants in Surface.tsx to expose an elevation contract of flat (no border, no shadow, no background), ruled (hairline bottom border only) and raised (bg-card plus hairline border), defaulting to flat, and drop the unconditional rounded-xl and ring-1 ring-foreground/10 base
       - Rebuild Card on the raised tier at 6px radius, keeping its existing CardHeader / CardTitle / CardDescription / CardAction / CardContent / CardFooter sub-component API unchanged so no consumer breaks in this task
       - Replace rounded-xl with the capped radius on dialog.tsx, Select.tsx and Popover.tsx, and remove the supports-backdrop-filter:backdrop-blur-xs from the dialog overlay, leaving a plain neutral scrim
       - Restrict shadow to the overlay components only - dialog, popover, select content and the sonner toaster - and confirm no shadow utility is tinted with a colour
       - Add a dense 28px size to the button, input, textarea and select trigger variants and make it the default for in-app use, keeping the existing 32px as the comfortable variant used for primary actions
-      - Point every focus ring at the amber accent token from TASK-066 and verify the focus ring is visible against both the flat canvas and a raised surface in both themes
+      - Keep every focus ring on the --primary token (not the amber --accent from TASK-066, which fails WCAG 3:1 contrast for focus indicators per ADR-018) and verify the focus ring is visible against both the flat canvas and a raised surface in both themes
       - Rebuild Badge at 2px radius as a mono uppercase label rather than a pill, with variants mapping onto the success, warning, info and destructive tokens
       - Rewrite docs/design-system/ui-principles.md around the three-tier elevation model and the rule that a Card must earn its box - a collection of things is ruled rows, a single stat or form panel is a card
     acceptance:
@@ -5135,7 +5135,7 @@ tasks:
       - grep for rounded-full across src returns matches only in the Avatar primitive and the notification count indicator
       - No shadow utility appears in src outside dialog.tsx, Popover.tsx, Select.tsx and the toaster, and no shadow is tinted with a colour token
       - Surface renders with no border and no background at its default elevation, and its ruled elevation renders a single hairline bottom border
-      - A keyboard-focused button, input, select and link each show a visible amber focus ring on both the flat canvas and a raised surface, in both themes
+      - A keyboard-focused button, input, select and link each show a visible primary-token focus ring on both the flat canvas and a raised surface, in both themes
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Three-tier elevation shipped and the control layer refitted

@@ -2,9 +2,27 @@
 
 import * as React from 'react';
 import { Select as SelectPrimitive } from 'radix-ui';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 import { cn } from '@/shared/ui/utils';
+
+const selectTriggerVariants = cva(
+  'flex w-fit items-center justify-between gap-2 rounded-lg border border-border bg-background px-2.5 text-sm whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-input dark:bg-input/30',
+  {
+    variants: {
+      // Dense (28px) is the in-app default; comfortable (32px) is reserved
+      // for primary actions - same two-tier control height as Button/Input.
+      size: {
+        default: 'h-7',
+        comfortable: 'h-8',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+    },
+  },
+);
 
 function Select({
   ...props
@@ -26,16 +44,15 @@ function SelectValue({
 
 function SelectTrigger({
   className,
+  size,
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> &
+  VariantProps<typeof selectTriggerVariants>) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
-      className={cn(
-        'flex h-8 w-fit items-center justify-between gap-2 rounded-lg border border-border bg-background px-2.5 text-sm whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-input dark:bg-input/30',
-        className,
-      )}
+      className={cn(selectTriggerVariants({ size }), className)}
       {...props}
     >
       {children}
@@ -87,7 +104,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          'relative z-50 max-h-(--radix-select-content-available-height) min-w-32 overflow-hidden rounded-xl bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+          'relative z-50 max-h-(--radix-select-content-available-height) min-w-32 overflow-hidden rounded-lg border border-border bg-popover text-sm text-popover-foreground shadow-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
           className,

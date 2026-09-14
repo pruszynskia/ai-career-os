@@ -8,7 +8,10 @@ import { SECURITY_HEADERS } from './src/shared/security-headers';
 // the proxy matcher skips; src/proxy.ts applies the same set to the responses
 // it returns itself (the 429 and the /sign-in redirect), which `headers()`
 // does not reach.
-const securityHeaders = SECURITY_HEADERS.map(([key, value]) => ({ key, value }));
+const securityHeaders = SECURITY_HEADERS.map(([key, value]) => ({
+  key,
+  value,
+}));
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
