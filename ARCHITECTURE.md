@@ -137,7 +137,7 @@ slice is isolated automatically).
 Real, shipped slice names (singular, canonical for all future slices):
 
 `job-offer`, `application`, `cv`, `linkedin-posts`, `dashboard`, `document`,
-`billing`
+`billing`, `account`, `marketing`, `notification`, `onboarding`, `profile`
 
 `billing` (TASK-056) holds Stripe Checkout and the webhook-driven
 subscription sync; `src/entities/subscription` is its canonical entity and

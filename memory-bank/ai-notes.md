@@ -39,6 +39,19 @@ memory-bank/current-task.md
 
 ## Lessons Learned
 
+- Next.js App Router Server Components/layouts have **no API to read the
+  current pathname** — `headers()` does not expose it (verified empirically
+  in TASK-071: dumped every header on a real request, no path anywhere), and
+  layouts only receive `children`/`params` (`params` only for dynamic
+  segments). The only ways to know pathname server-side are `usePathname()`
+  in a Client Component, or middleware (`src/proxy.ts` here) setting a
+  custom header. So a shared layout **cannot** conditionally redirect based
+  on which child route matched (e.g. "redirect everywhere except /a and
+  /b") without one of those — the fix is a route group: give the
+  exempt/non-exempt routes their own nested `layout.tsx` instead of
+  branching on pathname in one shared layout. See
+  `src/app/(app)/(protected)/layout.tsx`.
+
 - Supabase Auth email flows (sign-up confirm, password recovery): the built-in
   email service is capped at ~2 messages/hour **project-wide** across all auth
   emails. Testing sign-up + reset in one sitting exhausts it and `/recover`
