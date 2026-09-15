@@ -13,6 +13,7 @@ import { ApplicationStatusSelect } from '@/features/application/components/appli
 import { useCreateApplication } from '@/features/application/hooks/use-create-application';
 import { useUpdateApplicationStatus } from '@/features/application/hooks/use-update-application-status';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
+import { surfaceVariants } from '@/shared/ui/primitives/surface/surface';
 import {
   Card,
   CardAction,
@@ -20,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { cn } from '@/shared/ui/utils';
 import { EmptyState } from '@/shared/ui/empty-state';
 
 const STATUS_COLUMNS = Object.entries(APPLICATION_STATUS_LABELS) as [
@@ -143,9 +145,11 @@ export function ApplicationBoard({
             event.preventDefault();
             handleDrop(status);
           }}
-          className={`flex flex-col gap-2 rounded-lg border p-2 transition-colors ${
-            dragOver === status ? 'border-ring bg-muted' : 'border-border'
-          }`}
+          className={cn(
+            surfaceVariants({ elevation: 'raised', padding: 'sm' }),
+            'flex flex-col gap-2 transition-colors',
+            dragOver === status && 'border-ring bg-muted',
+          )}
         >
           <h3 className="px-1 text-sm font-medium">
             {label}{' '}
@@ -161,7 +165,10 @@ export function ApplicationBoard({
 
       <section
         aria-label="Not tracked"
-        className="flex flex-col gap-2 rounded-lg border border-border p-2"
+        className={cn(
+          surfaceVariants({ elevation: 'raised', padding: 'sm' }),
+          'flex flex-col gap-2',
+        )}
       >
         <h3 className="px-1 text-sm font-medium">
           Not tracked{' '}

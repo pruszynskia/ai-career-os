@@ -5,10 +5,11 @@ export default function OffersLoading() {
     <VStack gap={6}>
       <Skeleton className="h-8 w-32" />
       <Skeleton className="h-32" />
-      <VStack gap={3}>
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
+      <VStack gap={0}>
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
       </VStack>
     </VStack>
   );

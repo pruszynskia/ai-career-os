@@ -108,7 +108,7 @@ export function AddOfferForm() {
           </Button>
 
           {duplicate && (
-            <div className="flex flex-col gap-2 text-sm text-amber-600">
+            <div className="flex flex-col gap-2 rounded-lg bg-warning p-3 text-sm text-warning-foreground">
               <p role="status">
                 This matches {SIGNAL_LABEL[duplicate.signal]} of an offer you
                 already added.{' '}
