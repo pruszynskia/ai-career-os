@@ -1,6 +1,7 @@
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
 import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { ListRow } from '@/shared/ui/list-row';
 
 // Events arrive oldest-to-newest from applicationStatusEventService.findMany.
 export function ApplicationTimeline({
@@ -13,19 +14,14 @@ export function ApplicationTimeline({
       <CardHeader>
         <CardTitle>Status history</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ol className="flex flex-col gap-2">
+      <CardContent className="p-0">
+        <ol>
           {events.map((event) => (
-            <li
-              key={event.id}
-              className="flex items-center justify-between text-sm"
-            >
-              <span className="font-medium">
-                {APPLICATION_STATUS_LABELS[event.status]}
-              </span>
-              <span className="text-muted-foreground">
-                {event.createdAt.toLocaleDateString()}
-              </span>
+            <li key={event.id}>
+              <ListRow
+                title={APPLICATION_STATUS_LABELS[event.status]}
+                meta={event.createdAt.toLocaleDateString()}
+              />
             </li>
           ))}
         </ol>

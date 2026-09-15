@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRef } from 'react';
 
 import type { OfferSortOption } from '@/entities/job-offer/types';
 
@@ -10,6 +11,13 @@ import {
 } from '@/entities/job-offer/types';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui/primitives';
 
 export function OfferFilters({
   query,
@@ -25,6 +33,7 @@ export function OfferFilters({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const formRef = useRef<HTMLFormElement>(null);
 
   function updateParams(patch: Record<string, string | undefined>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -37,6 +46,7 @@ export function OfferFilters({
 
   return (
     <form
+      ref={formRef}
       className="flex flex-wrap items-center gap-2"
       onSubmit={(event) => {
         event.preventDefault();
@@ -55,19 +65,22 @@ export function OfferFilters({
         aria-label="Search by title or company"
         className="max-w-xs"
       />
-      <select
+      <Select
         name="sort"
         defaultValue={sort}
-        onChange={(event) => event.currentTarget.form?.requestSubmit()}
-        aria-label="Sort offers"
-        className="h-7 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        onValueChange={(value) => updateParams({ sort: value })}
       >
-        {offerSortOptions.map((option) => (
-          <option key={option} value={option}>
-            {OFFER_SORT_LABELS[option]}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger aria-label="Sort offers">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {offerSortOptions.map((option) => (
+            <SelectItem key={option} value={option}>
+              {OFFER_SORT_LABELS[option]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <label className="flex items-center gap-1.5 text-sm">
         <input
           type="checkbox"

@@ -27,7 +27,7 @@ import {
 } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
-import { Label, Spinner } from '@/shared/ui/primitives';
+import { Divider, Heading, Label, Spinner } from '@/shared/ui/primitives';
 
 export interface CreateApplicationInput {
   jobOfferId: string;
@@ -117,265 +117,275 @@ export function OfferDetail({
         </div>
       }
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="whitespace-pre-wrap text-sm">{offer.description}</p>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            {offer.url && (
-              <a
-                href={offer.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                View original posting
-              </a>
-            )}
-            <span>Added {offer.createdAt.toLocaleDateString()}</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={offer.isFavorite ? 'default' : 'outline'}
-              size="sm"
-              disabled={toggleFavoriteMutation.isPending}
-              onClick={() =>
-                toggleFavoriteMutation.mutate({
-                  id: offer.id,
-                  isFavorite: !offer.isFavorite,
-                })
-              }
-            >
-              {toggleFavoriteMutation.isPending && <Spinner size="sm" />}
-              {offer.isFavorite ? 'Favorited' : 'Favorite'}
-            </Button>
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" onClick={openEditDialog}>
-                  Edit details
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit offer details</DialogTitle>
-                </DialogHeader>
-                <form
-                  onSubmit={handleEditSubmit}
-                  className="flex flex-col gap-3"
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <Card className="w-full lg:sticky lg:top-6 lg:w-80 lg:shrink-0 lg:max-h-[calc(100svh-3rem)] lg:overflow-y-auto">
+          <CardHeader>
+            <CardTitle>Offer details</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <p className="whitespace-pre-wrap text-sm">{offer.description}</p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              {offer.url && (
+                <a
+                  href={offer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
                 >
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="offer-company">Company</Label>
-                    <Input
-                      id="offer-company"
-                      value={editValues.company}
-                      onChange={(event) =>
-                        setEditValues((values) => ({
-                          ...values,
-                          company: event.target.value,
-                        }))
-                      }
-                      disabled={updateOfferMutation.isPending}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="offer-title">Title</Label>
-                    <Input
-                      id="offer-title"
-                      value={editValues.title}
-                      onChange={(event) =>
-                        setEditValues((values) => ({
-                          ...values,
-                          title: event.target.value,
-                        }))
-                      }
-                      disabled={updateOfferMutation.isPending}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="offer-description">Description</Label>
-                    <Textarea
-                      id="offer-description"
-                      value={editValues.description}
-                      onChange={(event) =>
-                        setEditValues((values) => ({
-                          ...values,
-                          description: event.target.value,
-                        }))
-                      }
-                      rows={6}
-                      disabled={updateOfferMutation.isPending}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={
-                        updateOfferMutation.isPending ||
-                        !editValues.company.trim() ||
-                        !editValues.title.trim()
-                      }
-                    >
-                      {updateOfferMutation.isPending && <Spinner size="sm" />}
-                      {updateOfferMutation.isPending ? 'Saving…' : 'Save'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
+                  View original posting
+                </a>
+              )}
+              <span>Added {offer.createdAt.toLocaleDateString()}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={offer.isFavorite ? 'default' : 'outline'}
+                size="sm"
+                disabled={toggleFavoriteMutation.isPending}
+                onClick={() =>
+                  toggleFavoriteMutation.mutate({
+                    id: offer.id,
+                    isFavorite: !offer.isFavorite,
+                  })
+                }
+              >
+                {toggleFavoriteMutation.isPending && <Spinner size="sm" />}
+                {offer.isFavorite ? 'Favorited' : 'Favorite'}
+              </Button>
+              <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={openEditDialog}>
+                    Edit details
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit offer details</DialogTitle>
+                  </DialogHeader>
+                  <form
+                    onSubmit={handleEditSubmit}
+                    className="flex flex-col gap-3"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="offer-company">Company</Label>
+                      <Input
+                        id="offer-company"
+                        value={editValues.company}
+                        onChange={(event) =>
+                          setEditValues((values) => ({
+                            ...values,
+                            company: event.target.value,
+                          }))
+                        }
+                        disabled={updateOfferMutation.isPending}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="offer-title">Title</Label>
+                      <Input
+                        id="offer-title"
+                        value={editValues.title}
+                        onChange={(event) =>
+                          setEditValues((values) => ({
+                            ...values,
+                            title: event.target.value,
+                          }))
+                        }
+                        disabled={updateOfferMutation.isPending}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="offer-description">Description</Label>
+                      <Textarea
+                        id="offer-description"
+                        value={editValues.description}
+                        onChange={(event) =>
+                          setEditValues((values) => ({
+                            ...values,
+                            description: event.target.value,
+                          }))
+                        }
+                        rows={6}
+                        disabled={updateOfferMutation.isPending}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        disabled={
+                          updateOfferMutation.isPending ||
+                          !editValues.company.trim() ||
+                          !editValues.title.trim()
+                        }
+                      >
+                        {updateOfferMutation.isPending && <Spinner size="sm" />}
+                        {updateOfferMutation.isPending ? 'Saving…' : 'Save'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Match</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {matchScore !== null && (
-            <p className="text-2xl font-semibold">{matchScore}%</p>
-          )}
-          <Button
-            variant="secondary"
-            className="self-start"
-            disabled={matchMutation.isPending}
-            onClick={() =>
-              matchMutation.mutate(offer.id, {
-                onSuccess: (data) => setMatchScore(data.jobOffer.matchScore),
-              })
-            }
-          >
-            {matchMutation.isPending && <Spinner size="sm" />}
-            {matchMutation.isPending
-              ? 'Calculating…'
-              : matchScore !== null
-                ? 'Recalculate match'
-                : 'Calculate match'}
-          </Button>
-        </CardContent>
-      </Card>
+            <Divider />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tailored CV</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            className="self-start"
-            disabled={tailorCvMutation.isPending}
-            onClick={() => tailorCvMutation.mutate(offer.id)}
-          >
-            {tailorCvMutation.isPending && <Spinner size="sm" />}
-            {tailorCvMutation.isPending ? 'Tailoring…' : 'Generate tailored CV'}
-          </Button>
-          {tailorCvMutation.isSuccess && (
-            <DocumentEditor
-              key={tailorCvMutation.data.cvDocument.id}
-              documentId={tailorCvMutation.data.cvDocument.id}
-              content={tailorCvMutation.data.cvDocument.content}
-              downloadFilename="tailored-cv.txt"
-            />
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={6} as="h2" className="text-muted-foreground">
+                Match
+              </Heading>
+              {matchScore !== null && (
+                <p className="text-2xl font-semibold">{matchScore}%</p>
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                className="self-start"
+                disabled={matchMutation.isPending}
+                onClick={() =>
+                  matchMutation.mutate(offer.id, {
+                    onSuccess: (data) =>
+                      setMatchScore(data.jobOffer.matchScore),
+                  })
+                }
+              >
+                {matchMutation.isPending && <Spinner size="sm" />}
+                {matchMutation.isPending
+                  ? 'Calculating…'
+                  : matchScore !== null
+                    ? 'Recalculate match'
+                    : 'Calculate match'}
+              </Button>
+            </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recruiter message</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            className="self-start"
-            disabled={recruiterMessageMutation.isPending}
-            onClick={() => recruiterMessageMutation.mutate(offer.id)}
-          >
-            {recruiterMessageMutation.isPending && <Spinner size="sm" />}
-            {recruiterMessageMutation.isPending
-              ? 'Generating…'
-              : 'Generate recruiter message'}
-          </Button>
-          {recruiterMessageMutation.isSuccess && (
-            <p className="whitespace-pre-wrap text-sm">
-              {recruiterMessageMutation.data.message}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+            <Divider />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Cover Letter</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            className="self-start"
-            disabled={coverLetterMutation.isPending}
-            onClick={() => coverLetterMutation.mutate(offer.id)}
-          >
-            {coverLetterMutation.isPending && <Spinner size="sm" />}
-            {coverLetterMutation.isPending
-              ? 'Generating…'
-              : 'Generate cover letter'}
-          </Button>
-          {coverLetterMutation.isSuccess && (
-            <DocumentEditor
-              key={coverLetterMutation.data.cvDocument.id}
-              documentId={coverLetterMutation.data.cvDocument.id}
-              content={coverLetterMutation.data.cvDocument.content}
-              downloadFilename="cover-letter.txt"
-            />
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={6} as="h2" className="text-muted-foreground">
+                Track application
+              </Heading>
+              {!sentCv && (
+                <p className="text-sm text-muted-foreground">
+                  Upload a CV in Profile before tracking this application.
+                </p>
+              )}
+              {isUsingFallback && (
+                <p className="text-sm text-muted-foreground">
+                  Tracking will use{' '}
+                  {isUsingMasterCvFallback
+                    ? 'your master CV'
+                    : 'the tailored CV'}
+                  {isUsingEmptyMessageFallback &&
+                    ' and an empty recruiter message'}
+                  .
+                </p>
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                className="self-start"
+                disabled={!canTrackApplication || isTrackingApplication}
+                onClick={() =>
+                  sentCv &&
+                  onTrackApplication(
+                    {
+                      jobOfferId: offer.id,
+                      sentCvId: sentCv.id,
+                      recruiterMessage:
+                        recruiterMessageMutation.data?.message ?? '',
+                    },
+                    { onSuccess: () => router.push('/offers') },
+                  )
+                }
+              >
+                {isTrackingApplication && <Spinner size="sm" />}
+                {isTrackingApplication ? 'Creating…' : 'Track application'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Track application</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {!sentCv && (
-            <p className="text-sm text-muted-foreground">
-              Upload a CV in Profile before tracking this application.
-            </p>
-          )}
-          {isUsingFallback && (
-            <p className="text-sm text-muted-foreground">
-              Tracking will use{' '}
-              {isUsingMasterCvFallback ? 'your master CV' : 'the tailored CV'}
-              {isUsingEmptyMessageFallback && ' and an empty recruiter message'}
-              .
-            </p>
-          )}
-          <Button
-            variant="secondary"
-            className="self-start"
-            disabled={!canTrackApplication || isTrackingApplication}
-            onClick={() =>
-              sentCv &&
-              onTrackApplication(
-                {
-                  jobOfferId: offer.id,
-                  sentCvId: sentCv.id,
-                  recruiterMessage:
-                    recruiterMessageMutation.data?.message ?? '',
-                },
-                { onSuccess: () => router.push('/offers') },
-              )
-            }
-          >
-            {isTrackingApplication && <Spinner size="sm" />}
-            {isTrackingApplication ? 'Creating…' : 'Track application'}
-          </Button>
-        </CardContent>
-      </Card>
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <section className="flex flex-col gap-3">
+            <Heading level={4} as="h2">
+              Tailored CV
+            </Heading>
+            <Button
+              variant="secondary"
+              className="self-start"
+              disabled={tailorCvMutation.isPending}
+              onClick={() => tailorCvMutation.mutate(offer.id)}
+            >
+              {tailorCvMutation.isPending && <Spinner size="sm" />}
+              {tailorCvMutation.isPending
+                ? 'Tailoring…'
+                : 'Generate tailored CV'}
+            </Button>
+            {tailorCvMutation.isSuccess && (
+              <DocumentEditor
+                key={tailorCvMutation.data.cvDocument.id}
+                documentId={tailorCvMutation.data.cvDocument.id}
+                content={tailorCvMutation.data.cvDocument.content}
+                downloadFilename="tailored-cv.txt"
+              />
+            )}
+          </section>
 
-      {applicationNotes}
+          <Divider />
 
-      {applicationTimeline}
+          <section className="flex flex-col gap-3">
+            <Heading level={4} as="h2">
+              Recruiter message
+            </Heading>
+            <Button
+              variant="secondary"
+              className="self-start"
+              disabled={recruiterMessageMutation.isPending}
+              onClick={() => recruiterMessageMutation.mutate(offer.id)}
+            >
+              {recruiterMessageMutation.isPending && <Spinner size="sm" />}
+              {recruiterMessageMutation.isPending
+                ? 'Generating…'
+                : 'Generate recruiter message'}
+            </Button>
+            {recruiterMessageMutation.isSuccess && (
+              <p className="whitespace-pre-wrap text-sm">
+                {recruiterMessageMutation.data.message}
+              </p>
+            )}
+          </section>
+
+          <Divider />
+
+          <section className="flex flex-col gap-3">
+            <Heading level={4} as="h2">
+              Cover letter
+            </Heading>
+            <Button
+              variant="secondary"
+              className="self-start"
+              disabled={coverLetterMutation.isPending}
+              onClick={() => coverLetterMutation.mutate(offer.id)}
+            >
+              {coverLetterMutation.isPending && <Spinner size="sm" />}
+              {coverLetterMutation.isPending
+                ? 'Generating…'
+                : 'Generate cover letter'}
+            </Button>
+            {coverLetterMutation.isSuccess && (
+              <DocumentEditor
+                key={coverLetterMutation.data.cvDocument.id}
+                documentId={coverLetterMutation.data.cvDocument.id}
+                content={coverLetterMutation.data.cvDocument.content}
+                downloadFilename="cover-letter.txt"
+              />
+            )}
+          </section>
+
+          {applicationNotes}
+
+          {applicationTimeline}
+        </div>
+      </div>
     </AppPageLayout>
   );
 }

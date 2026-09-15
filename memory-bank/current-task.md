@@ -2,6 +2,54 @@
 
 ## Current Sprint
 
+### Feature: TASK-073 — Offers and applications workspace redesign
+
+Status: **done** — green on typecheck/lint/test/build. Playwright
+design-review loop not run (no Playwright MCP tool available in this
+environment).
+
+What shipped:
+
+- `unified-offer-list.tsx` — one `Card` per offer replaced with a custom
+  row built directly on `surfaceVariants({ elevation: 'ruled' })` (not the
+  plain `ListRow` primitive, whose `title`/`supporting`/`meta` slots can't
+  hold the row's favorite toggle, delete action, status select and download
+  button alongside the link/badge/excerpt content). Every action the Card
+  version had is still on the row.
+- `offer-detail.tsx` — six stacked full-width `Card`s restructured into a
+  sticky summary `Card` (offer facts, match score, favorite/edit actions,
+  track-application) on the left and a content column (Tailored CV,
+  Recruiter message, Cover letter sections as plain headed sections divided
+  by `Divider`, then the injected `applicationNotes`/`applicationTimeline`)
+  on the right; `lg:flex-row` with `lg:sticky lg:top-6` on the summary,
+  collapsing to one column below `lg`. No hook, mutation or the
+  `applicationNotes`/`applicationTimeline` render-prop seam (ADR-008)
+  changed.
+- `application-status-select.tsx` and `offer-filters.tsx` — raw `<select>`
+  replaced with the `Select` primitive. The filters' sort select keeps the
+  existing FormData-driven submit via a `name="sort"` prop (Radix renders a
+  hidden bubble `<select>` for form participation) and a `formRef` to call
+  `requestSubmit()` from `onValueChange`, matching the favorite checkbox's
+  existing auto-submit pattern.
+- `add-offer-form.tsx` — the duplicate-detection banner's `text-amber-600`
+  replaced with `bg-warning`/`text-warning-foreground` (not plain
+  `text-warning`, which `docs/design-system/colors.md` measures at 1.67:1 —
+  fails contrast on the page background; the badge-pattern pairing is the
+  one the docs call out as compliant).
+- `application-board.tsx` — column/`"Not tracked"` containers' raw
+  `rounded-lg border p-2` replaced with `surfaceVariants({ elevation:
+  'raised', padding: 'sm' })`; `BoardCard` stays an actual `Card` and the
+  native HTML5 drag-and-drop is untouched.
+- `application-timeline.tsx` — the plain `<ol>` of events replaced with the
+  `ListRow` primitive (status as `title`, date as `meta`, which already
+  renders in `font-mono` i.e. Geist Mono).
+- `offers/loading.tsx` — the three `h-32` card-stack skeletons replaced
+  with four `h-20` rows in a `gap={0}` `VStack`, matching the ruled-row list.
+
+Not done: `application-notes.tsx` was in scope but had no raw markup or
+off-token styling to fix (it's a legitimate `Card` — a form panel), so it
+was left unchanged rather than rewritten for its own sake.
+
 ### Feature: TASK-071 — App shell, navigation and settings information architecture
 
 Status: **done** — green on typecheck/lint/test/build. Playwright
