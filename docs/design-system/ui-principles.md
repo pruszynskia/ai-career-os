@@ -77,11 +77,6 @@ of re-implementing the page shell:
   content stack. It sits inside the `Screen` primitive that
   `src/app/(app)/layout.tsx` already applies once per route — never re-add
   outer padding or a second scroll container inside it.
-- **`SplitLayout`** — a two-pane list/detail shell (fixed-width list rail,
-  flexible detail pane, stacks vertically below `md`), for a future screen
-  that actually needs a persistent list beside a detail view. Reach for it
-  only when a real master-detail navigation exists — don't wrap a
-  single-pane screen in it just because the component is available.
 
 ## When adding a new screen
 

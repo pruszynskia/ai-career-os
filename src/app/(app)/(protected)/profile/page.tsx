@@ -9,7 +9,6 @@ import { OptimizeCoverLetterPanel } from '@/features/cv/components/optimize-cove
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileScoreCard } from '@/features/cv/components/profile-score-card';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
-import { JobPreferencesForm } from '@/features/profile/components/job-preferences-form';
 import { getOwnerId } from '@/shared/auth/session';
 import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -21,7 +20,7 @@ export default async function ProfilePage() {
   const profile = await profileService.findUnique(ownerId);
 
   return (
-    <AppPageLayout title="Profile">
+    <AppPageLayout eyebrow="Account" title="Profile">
       <CvUploadForm />
       <CoverLetterUploadForm />
       <OptimizeCoverLetterPanel />
@@ -40,7 +39,6 @@ export default async function ProfilePage() {
             }}
           />
           <OptimizeCvPanel />
-          <JobPreferencesForm preferences={profile} />
         </>
       ) : (
         <EmptyState message="No profile yet — upload your CV to get started." />

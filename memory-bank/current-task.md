@@ -2,6 +2,57 @@
 
 ## Current Sprint
 
+### Feature: TASK-071 — App shell, navigation and settings information architecture
+
+Status: **done** — green on typecheck/lint/test/build. Playwright
+design-review loop not run (no Playwright MCP tool available in this
+environment).
+
+What shipped:
+
+- `sidebar.tsx` — `NAV_ITEMS` replaced with a `NAV_GROUPS` data structure
+  (`Workspace`: Dashboard/Offers/Documents/Posts, `Account`: Profile/
+  Settings), each group rendered under a mono `Label variant="meta"`
+  section heading. Restyled: dropped the filled `bg-card` rail (hairline
+  `border-r` only) and the active-item `bg-muted` pill for a `border-l-2
+  border-accent` indicator.
+- `page-header.tsx` / `AppPageLayout.tsx` — added an optional `eyebrow` prop
+  (rendered via `Label variant="meta"`) above the display-face title;
+  `/profile` and `/settings` now pass `eyebrow="Account"`, matching the
+  sidebar group they sit under.
+- **Onboarding redirect**: `onboarding-gate.tsx` (client-side
+  `usePathname`/`useEffect` redirect) deleted. Next.js Server Components
+  have no API to read the current pathname (verified empirically — no
+  request header exposes it without `src/proxy.ts` setting one, which was
+  out of scope and, project-wide, exactly the per-request Supabase-call cost
+  the original ponytail comment warned about), so a *route group*
+  (`src/app/(app)/(protected)/`) is what makes the `/onboarding` and
+  `/settings` exemption possible without it: `dashboard`, `offers`,
+  `documents`, `posts` and `profile` moved under it (URLs unchanged — route
+  groups aren't part of the path), and its new `layout.tsx` does the
+  server-side `redirect('/onboarding')` before any protected page renders.
+  `src/app/(app)/layout.tsx` is now shell-only (Sidebar/Screen/
+  notifications). See `memory-bank/ai-notes.md` for the pathname-in-layout
+  constraint.
+- Job preferences moved from `/profile` to a new sectioned `/settings`
+  (Appearance/Job preferences/Billing/AI usage; `DangerZone` stays after
+  them). "Appearance" is a static placeholder note — TASK-067 (dark-mode
+  toggle, still `todo`) is what will fill it; do not treat the placeholder
+  text as a TASK-067 implementation.
+- `SplitLayout` deleted (`src/shared/layouts/split-layout/`, barrel export,
+  and its documentation in `docs/design-system/components.md` and
+  `ui-principles.md`) — no consumer ever existed.
+- `ARCHITECTURE.md`'s Feature Slices list now includes `account`,
+  `marketing`, `notification`, `onboarding`, `profile` (previously only 7 of
+  12 real `src/features/*` slices were listed).
+- `tests/smoke/unit/onboarding.test.ts` — dropped the `isExemptPath` test
+  (function deleted with `onboarding-gate.tsx`); `clampStep`/`isPlaceholder`
+  tests untouched.
+
+Not done (explicitly out of scope): a command palette, any change to
+`src/proxy.ts` or the onboarding step flow, and building a real theme
+toggle (TASK-067 owns that).
+
 ### Feature: TASK-069 — Elevation model and control refit (flat, ruled, raised)
 
 Status: **done** — green on typecheck/lint/test/build. Playwright

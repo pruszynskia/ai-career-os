@@ -8,10 +8,9 @@ the existing shadcn components (`Button`, `Card`, `Dialog`, `Input`,
 `PageHeader` instead of hand-rolling the same Tailwind markup again — import
 them from the barrel at `@/shared/ui`.
 
-Page-shell components (`AppPageLayout`, `SplitLayout`) are documented here
-too but live in a sibling directory,
-[`src/shared/layouts`](../../src/shared/layouts) — import them from
-`@/shared/layouts`, not `@/shared/ui`.
+`AppPageLayout`, the page-shell component, is documented here too but lives
+in a sibling directory, [`src/shared/layouts`](../../src/shared/layouts) —
+import it from `@/shared/layouts`, not `@/shared/ui`.
 
 ## EmptyState
 
@@ -240,30 +239,6 @@ than being discarded by the wrapper:
     />
   )}
 </Field>
-```
-
-## SplitLayout
-
-Purpose: a two-pane list/detail shell for a screen with a persistent list
-beside a detail view. Lives in
-[`src/shared/layouts`](../../src/shared/layouts/split-layout). No screen
-uses it yet — no list/detail split UI exists in this codebase today, so
-this is built ready for the next screen that genuinely needs one, not
-retrofitted onto today's single-pane `offers` page (which would be a page
-redesign, not a shell extraction).
-
-Props:
-
-| Prop | Type | Required | Notes |
-|---|---|---|---|
-| `list` | `React.ReactNode` | yes | Fixed-width list rail (`w-80`), own scroll, right border on `md`+ |
-| `detail` | `React.ReactNode` | yes | Flexible detail pane, own scroll |
-| `className` | `string` | no | Extra classes merged via `cn` |
-
-```tsx
-import { SplitLayout } from '@/shared/layouts';
-
-<SplitLayout list={<OfferList offers={offers} />} detail={<OfferDetail offer={offer} />} />
 ```
 
 ## Not built here

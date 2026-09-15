@@ -4,6 +4,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { VStack } from '@/shared/ui/primitives';
 
 interface AppPageLayoutProps {
+  eyebrow?: string;
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
@@ -11,6 +12,7 @@ interface AppPageLayoutProps {
 }
 
 function AppPageLayout({
+  eyebrow,
   title,
   subtitle,
   action,
@@ -18,7 +20,12 @@ function AppPageLayout({
 }: AppPageLayoutProps) {
   return (
     <VStack gap={6}>
-      <PageHeader title={title} subtitle={subtitle} action={action} />
+      <PageHeader
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        action={action}
+      />
       {children}
     </VStack>
   );

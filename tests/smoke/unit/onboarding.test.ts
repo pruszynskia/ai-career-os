@@ -6,23 +6,12 @@ vi.mock('server-only', () => ({}));
 
 import { clampStep } from '@/app/(app)/onboarding/page';
 import { isPlaceholder } from '@/entities/profile/service';
-import { isExemptPath } from '@/features/onboarding/components/onboarding-gate';
 
 describe('isPlaceholder', () => {
   it('treats a NULL summary as a placeholder row', () => {
     expect(isPlaceholder({ summary: null })).toBe(true);
     expect(isPlaceholder({ summary: '' })).toBe(false);
     expect(isPlaceholder({ summary: 'real text' })).toBe(false);
-  });
-});
-
-describe('isExemptPath', () => {
-  it('exempts /onboarding and /settings and their subpaths', () => {
-    expect(isExemptPath('/onboarding')).toBe(true);
-    expect(isExemptPath('/onboarding/x')).toBe(true);
-    expect(isExemptPath('/settings')).toBe(true);
-    expect(isExemptPath('/dashboard')).toBe(false);
-    expect(isExemptPath('/onboardingx')).toBe(false);
   });
 });
 
