@@ -5,7 +5,15 @@ import type { Metadata } from 'next';
 import { PricingTable } from '@/features/marketing/components/pricing-table';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
-import { Grid, HStack, Heading, Text, VStack } from '@/shared/ui/primitives';
+import {
+  Divider,
+  Grid,
+  HStack,
+  Heading,
+  Label,
+  Text,
+  VStack,
+} from '@/shared/ui/primitives';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,32 +51,63 @@ export default async function LandingPage() {
 
   return (
     <VStack gap={12}>
-      <VStack gap={4} align="start">
-        <Heading level={1}>
-          Get more recruiter attention and never lose track of an application
-        </Heading>
-        <Text size="lg" color="muted">
-          AI Career OS tailors your CV and recruiter messages to each job offer
-          and keeps every application, CV and message in one searchable place.
-        </Text>
-        <HStack gap={2}>
-          <Button asChild>
-            <Link href="/sign-up">Create your account</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/pricing">See pricing</Link>
-          </Button>
-        </HStack>
+      <Grid cols={1} colsMd={12} gap={8}>
+        <VStack gap={4} align="start" className="md:col-span-8">
+          <Label as="span" variant="meta">
+            AI-tailored job search
+          </Label>
+          <Heading level={1} className="text-display">
+            Get more recruiter attention and never lose track of an application
+          </Heading>
+          <Text size="lg" color="muted" className="max-w-[52ch]">
+            AI Career OS tailors your CV and recruiter messages to each job
+            offer and keeps every application, CV and message in one searchable
+            place.
+          </Text>
+        </VStack>
+        <VStack
+          gap={3}
+          align="start"
+          className="md:col-span-4 md:justify-end md:pt-12"
+        >
+          <HStack gap={2}>
+            <Button asChild>
+              <Link href="/sign-up">Create your account</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/pricing">See pricing</Link>
+            </Button>
+          </HStack>
+          <Text size="sm" color="muted">
+            Free plan, no credit card required.
+          </Text>
+        </VStack>
+      </Grid>
+
+      <Divider />
+
+      <VStack gap={0}>
+        {HIGHLIGHTS.map((item, index) => (
+          <HStack
+            key={item.title}
+            gap={6}
+            align="start"
+            className="border-b border-border py-6 last:border-b-0"
+          >
+            <Text as="span" color="muted" className="w-8 shrink-0 font-mono">
+              {String(index + 1).padStart(2, '0')}
+            </Text>
+            <VStack gap={1}>
+              <Heading level={3}>{item.title}</Heading>
+              <Text color="muted" className="max-w-[60ch]">
+                {item.body}
+              </Text>
+            </VStack>
+          </HStack>
+        ))}
       </VStack>
 
-      <Grid cols={1} colsMd={3} gap={6}>
-        {HIGHLIGHTS.map((item) => (
-          <VStack key={item.title} gap={2} align="start">
-            <Heading level={3}>{item.title}</Heading>
-            <Text color="muted">{item.body}</Text>
-          </VStack>
-        ))}
-      </Grid>
+      <Divider />
 
       <VStack gap={6}>
         <VStack gap={2} align="start">
