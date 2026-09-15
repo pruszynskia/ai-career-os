@@ -4,14 +4,17 @@ import { createClient } from '@/shared/db/client';
 import { buildSearchOrFilter } from '@/shared/utils/offer-search';
 import { toCvDocument } from '@/entities/cv-document/service';
 import type { CvDocument } from '@/entities/cv-document/types';
-import type {
-  JobOffer,
-  OfferSortOption,
-  OfferSource,
+import {
+  fitAssessmentSchema,
+  type FitAssessment,
+  type JobOffer,
+  type OfferSortOption,
+  type OfferSource,
 } from '@/entities/job-offer/types';
 
 export function toJobOffer(row: Record<string, unknown>): JobOffer {
   const expiresAt = row.expires_at ? new Date(row.expires_at as string) : null;
+  const fitParsed = row.fit ? fitAssessmentSchema.safeParse(row.fit) : null;
 
   return {
     id: row.id as string,
@@ -23,6 +26,7 @@ export function toJobOffer(row: Record<string, unknown>): JobOffer {
     title: row.title as string,
     description: row.description as string,
     matchScore: (row.match_score as number | null) ?? null,
+    fit: fitParsed?.success ? fitParsed.data : null,
     expiresAt,
     isExpired: expiresAt !== null && expiresAt < new Date(),
     isFavorite: row.is_favorite as boolean,
@@ -103,6 +107,7 @@ export const jobOfferService = {
     values: Partial<{
       isFavorite: boolean;
       matchScore: number;
+      fit: FitAssessment;
       expiresAt: Date | null;
       company: string;
       title: string;
@@ -115,6 +120,7 @@ export const jobOfferService = {
     };
     if (values.isFavorite !== undefined) patch.is_favorite = values.isFavorite;
     if (values.matchScore !== undefined) patch.match_score = values.matchScore;
+    if (values.fit !== undefined) patch.fit = values.fit;
     if (values.expiresAt !== undefined)
       patch.expires_at = values.expiresAt?.toISOString() ?? null;
     if (values.company !== undefined) patch.company = values.company;
