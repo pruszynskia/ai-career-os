@@ -4,6 +4,8 @@ import { applicationService } from '@/entities/application/service';
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { jobOfferService } from '@/entities/job-offer/service';
+import { EMPTY_EVIDENCE_BASE } from '@/entities/profile/types';
+import { profileService } from '@/entities/profile/service';
 import { getOwnerId } from '@/shared/auth/session';
 import { OfferDetailPanel } from '@/widgets/offer-detail-panel/offer-detail-panel';
 
@@ -16,10 +18,11 @@ export default async function OfferPage({
 }) {
   const { id } = await params;
   const ownerId = await getOwnerId();
-  const [result, masterCv, application] = await Promise.all([
+  const [result, masterCv, application, profile] = await Promise.all([
     jobOfferService.findWithLatestTailoredCv(id),
     cvDocumentService.findFirst({ ownerId, isMaster: true, kind: 'MASTER' }),
     applicationService.findByOffer(ownerId, id),
+    profileService.findUnique(ownerId),
   ]);
 
   if (!result) notFound();
@@ -37,6 +40,7 @@ export default async function OfferPage({
       masterCv={masterCv ?? undefined}
       statusEvents={statusEvents}
       application={application}
+      evidence={profile?.evidence ?? EMPTY_EVIDENCE_BASE}
     />
   );
 }

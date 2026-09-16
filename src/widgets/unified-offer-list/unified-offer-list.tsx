@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { OfferWithApplication } from '@/features/job-offer/types';
 import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
 import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
+import { RecommendedActionBadge } from '@/features/job-offer/components/recommended-action-badge';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
@@ -68,10 +69,17 @@ export function UnifiedOfferList({
                   {offer.isExpired && (
                     <Badge variant="destructive">Expired</Badge>
                   )}
+                  {offer.fit && (
+                    <RecommendedActionBadge
+                      action={offer.fit.recommendedAction}
+                    />
+                  )}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {offer.company} · {offer.source}
                   {offer.matchScore !== null && ` · ${offer.matchScore}% match`}
+                  {offer.fit &&
+                    ` · ${offer.fit.hrCallbackProbability}% callback`}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
