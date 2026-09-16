@@ -9,6 +9,7 @@ import type { EvidenceBase } from '@/entities/profile/types';
 import { ApplicationNotes } from '@/features/application/components/application-notes';
 import { ApplicationTimeline } from '@/features/application/components/application-timeline';
 import { useCreateApplication } from '@/features/application/hooks/use-create-application';
+import { TailoringReport } from '@/features/document/components/tailoring-report';
 import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 import { useAddEvidenceSkill } from '@/features/profile/hooks/use-add-evidence-skill';
 
@@ -62,6 +63,7 @@ export function OfferDetailPanel({
           ? (addEvidenceSkillMutation.variables?.skill ?? null)
           : null
       }
+      renderTailoringReport={(report) => <TailoringReport report={report} />}
     />
   );
 }

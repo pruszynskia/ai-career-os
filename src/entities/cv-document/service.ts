@@ -1,7 +1,12 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
-import type { CvDocument, CvDocumentKind } from '@/entities/cv-document/types';
+import type {
+  CvDocument,
+  CvDocumentKind,
+  TailoringReport,
+} from '@/entities/cv-document/types';
+import { tailoringReportSchema } from '@/entities/cv-document/types';
 
 export class NoMasterCvError extends Error {
   constructor(message = 'Upload a CV before using it.') {
@@ -18,6 +23,13 @@ export class CvDocumentNotFoundError extends Error {
 }
 
 export function toCvDocument(row: Record<string, unknown>): CvDocument {
+  // safeParse rather than a cast - a CV created before this migration has
+  // tailoring_report: null, which must render with no report and no error
+  // (TASK-082).
+  const reportParsed = row.tailoring_report
+    ? tailoringReportSchema.safeParse(row.tailoring_report)
+    : null;
+
   return {
     id: row.id as string,
     ownerId: row.owner_id as string,
@@ -25,6 +37,7 @@ export function toCvDocument(row: Record<string, unknown>): CvDocument {
     content: row.content as string,
     jobOfferId: (row.job_offer_id as string | null) ?? null,
     kind: row.kind as CvDocumentKind,
+    tailoringReport: reportParsed?.success ? reportParsed.data : null,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
   };
@@ -37,6 +50,7 @@ export const cvDocumentService = {
     content: string;
     jobOfferId?: string;
     kind: CvDocumentKind;
+    tailoringReport?: TailoringReport;
   }): Promise<CvDocument> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -47,6 +61,7 @@ export const cvDocumentService = {
         content: values.content,
         job_offer_id: values.jobOfferId ?? null,
         kind: values.kind,
+        tailoring_report: values.tailoringReport ?? null,
       })
       .select()
       .single();
@@ -192,6 +207,7 @@ export const cvDocumentService = {
     isMaster: boolean;
     jobOfferId?: string;
     kind: CvDocumentKind;
+    tailoringReport?: TailoringReport;
   }): Promise<CvDocument> {
     if (values.isMaster) {
       await this.updateMany(

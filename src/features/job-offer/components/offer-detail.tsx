@@ -47,6 +47,7 @@ export function OfferDetail({
   alwaysIncludeWhenRelevant,
   onAddSkill,
   addingSkill,
+  renderTailoringReport,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -65,6 +66,12 @@ export function OfferDetail({
   alwaysIncludeWhenRelevant: string[];
   onAddSkill: (skill: string) => void;
   addingSkill: string | null;
+  // Same reason again: the tailoring report panel is owned by the document
+  // feature. A render prop rather than a plain ReactNode because the report
+  // only exists once tailorCvMutation succeeds, inside this component.
+  renderTailoringReport?: (
+    report: NonNullable<CvDocument['tailoringReport']>,
+  ) => ReactNode;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -345,13 +352,22 @@ export function OfferDetail({
                 ? 'Tailoring…'
                 : 'Generate tailored CV'}
             </Button>
-            {tailorCvMutation.isSuccess && (
-              <DocumentEditor
-                key={tailorCvMutation.data.cvDocument.id}
-                documentId={tailorCvMutation.data.cvDocument.id}
-                content={tailorCvMutation.data.cvDocument.content}
-                downloadFilename="tailored-cv.txt"
-              />
+            {tailoredCv && (
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                <div className="min-w-0 flex-1">
+                  <DocumentEditor
+                    key={tailoredCv.id}
+                    documentId={tailoredCv.id}
+                    content={tailoredCv.content}
+                    downloadFilename="tailored-cv.txt"
+                  />
+                </div>
+                {tailoredCv.tailoringReport && (
+                  <div className="w-full lg:w-80 lg:shrink-0">
+                    {renderTailoringReport?.(tailoredCv.tailoringReport)}
+                  </div>
+                )}
+              </div>
             )}
           </section>
 
