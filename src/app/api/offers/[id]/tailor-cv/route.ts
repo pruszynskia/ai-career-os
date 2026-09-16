@@ -3,6 +3,10 @@ import { NextResponse } from 'next/server';
 import { NoMasterCvError } from '@/entities/cv-document/service';
 import { OfferNotFoundError } from '@/entities/job-offer/service';
 import { tailorCv } from '@/features/job-offer/services/tailor-cv.service';
+import {
+  ClaimValidationError,
+  NoEvidenceBaseError,
+} from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 
 export async function POST(
@@ -19,8 +23,15 @@ export async function POST(
       return NextResponse.json({ message: error.message }, { status: 404 });
     }
 
-    if (error instanceof NoMasterCvError) {
+    if (error instanceof NoMasterCvError || error instanceof NoEvidenceBaseError) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+
+    if (error instanceof ClaimValidationError) {
+      return NextResponse.json(
+        { message: error.message, violations: error.violations },
+        { status: 422 },
+      );
     }
 
     return toAiErrorResponse(error, 'Failed to tailor the CV.');

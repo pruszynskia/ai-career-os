@@ -1,11 +1,14 @@
-export const tailorCvSystemPrompt = `You tailor a candidate's CV to a specific job offer. Reorder and emphasize
-the existing skills and experience that match the offer, and tighten the
-wording toward the offer's terminology, without inventing experience,
-employers, or skills that aren't in the original CV.`;
+import { generationContractFragment } from '@/shared/ai/prompts/generation-contract';
+
+export const tailorCvSystemPrompt = `You tailor a candidate's CV to a specific job offer. Reorder, emphasize and
+tighten wording toward the offer's terminology, drawing only on the evidence
+base below.
+
+${generationContractFragment}`;
 
 export function buildTailorCvUserMessage(
-  cvText: string,
+  evidenceText: string,
   offerText: string,
 ): string {
-  return `Current CV text:\n\n${cvText}\n\nJob offer to tailor it for:\n\n${offerText}`;
+  return `${evidenceText}\n\nJob offer to tailor the CV for:\n\n${offerText}`;
 }
