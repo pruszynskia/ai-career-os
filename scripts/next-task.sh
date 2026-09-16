@@ -26,6 +26,13 @@ if [ -n "${ON_MAIN_TASKS:-}" ]; then
 else
   git fetch origin --quiet 2>/dev/null || true
   SUBJECTS="$(git log origin/main --format='%s' 2>/dev/null || true)"
+  # chore(backlog) commits sometimes deliberately mark a task done via the
+  # "(TASK-NNN)" convention (e.g. "superseded by ADR-009 (TASK-021)"), so
+  # they must stay eligible for the exact heuristics below. But a range like
+  # "sync issue numbers for TASK-078-088" false-positives against the loose
+  # bare-number heuristic (the "-" before the next number reads as a valid
+  # word boundary) — so that one heuristic alone excludes chore(backlog).
+  SUBJECTS_LOOSE="$(printf '%s\n' "$SUBJECTS" | grep -v '^chore(backlog)' || true)"
   # The "(TASK-NNN)" commit-subject suffix is the current convention, but the
   # repo's history used two earlier ones before it settled: a "TASK-NNN: ..."
   # prefix (roughly TASK-001..016), and before that only the PR merge commit's
@@ -37,7 +44,7 @@ else
     local n="$1"
     printf '%s\n' "$SUBJECTS" | grep -qF "(TASK-$n)" && return 0
     printf '%s\n' "$SUBJECTS" | grep -qE "^TASK-$n:" && return 0
-    printf '%s\n' "$SUBJECTS" | grep -qiE "(^|[^0-9])task-0*$((10#$n))([^0-9]|\$)" && return 0
+    printf '%s\n' "$SUBJECTS_LOOSE" | grep -qiE "(^|[^0-9])task-0*$((10#$n))([^0-9]|\$)" && return 0
     return 1
   }
 fi
