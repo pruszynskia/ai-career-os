@@ -861,3 +861,61 @@ Consequences:
   sites are cleaned up individually in TASK-069.
 - Dark mode is not activated by this change — the `.dark` block's values are
   rewritten but the class is still never applied until TASK-067.
+
+## ADR-019
+
+Date:
+
+2026-09-15
+
+Decision:
+
+Replace the single AI-produced `match_score` integer with a nine-criterion
+fit assessment (`job_offers.fit` jsonb, TASK-079). Four criteria -
+coreStack (15), industry (10), workMode (10) and salary (10) - are computed
+mechanically in TypeScript from `jobPreferencesSchema`
+(`mechanical-subscores.ts`) with no AI call; the remaining five -
+technicalMatch (20), seniorityMatch (15), architectureExperience (10),
+companyAttractiveness (5) and experienceSimilarity (5) - are scored by a
+narrowed AI call that receives the four mechanical scores as given facts.
+`match_score` is kept as the weighted average of whichever criteria are
+known, rounded to an integer, so existing sort/filter/dashboard consumers
+are unaffected. `hrCallbackProbability` is derived from `match_score` by
+named, auditable modifiers (hard years gate, domain gap, applicant volume,
+AI-culture signal, flexible band, urgency, undisclosed salary) rather than
+asked of the model directly, and `recommendedAction` is a deterministic
+band lookup on `match_score` (90+ apply immediately, 80-89 strong
+opportunity, 70-79 consider, below 70 ignore).
+
+Reason:
+
+A bare integer from a five-line prompt explains nothing and cannot be
+acted on, while `jobPreferencesSchema` (TASK-033) already has twelve
+columns with no reader. Computing the four preference-driven criteria in
+TypeScript is strictly more reliable than asking the model to re-derive
+facts it's handed anyway, and narrows the AI call to the five criteria that
+genuinely require judgment.
+
+Alternatives Considered:
+
+- Ask the AI to score all nine criteria itself - rejected: re-derives facts
+  already known from structured preferences, and produces a callback
+  probability and match_score with no traceable relationship.
+- Store nine columns on `job_offers` instead of one jsonb - rejected: the
+  criteria set only has one consumer (the offer detail/list UI) and jsonb
+  keeps the migration additive and the shape versionable without more ALTER
+  TABLEs per criterion.
+
+Consequences:
+
+- `mechanical-subscores.ts` keyword matching is a known ceiling (plain
+  case-insensitive word-boundary substring matching, not NLP-grade
+  requirement extraction); see the `ponytail:` comments on
+  `includesKeyword` and `domainGap` for the upgrade path.
+- Salary comparison does not reconcile currency or pay period between the
+  posting and `preferences.salaryCurrency`; see the `ponytail:` comment on
+  `scoreSalary`/`extractSalaryTop`.
+- `match-offer.service.ts` and the AI judgment prompt both read
+  `offer.rawContent`, not the AI-condensed `offer.description`, so seniority
+  band wording and callback-modifier signals (volume, urgency, salary) are
+  judged from the full posting text.
