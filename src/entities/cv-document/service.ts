@@ -150,6 +150,28 @@ export const cvDocumentService = {
   // kind defaults to 'MASTER' so every existing caller (tailor-cv,
   // optimize-cv, per-offer cover-letter generation) keeps resolving the
   // master CV unchanged; the master cover letter is a separate kind.
+  // Existence-only check for callers (tailor-cv, cover-letter,
+  // recruiter-message) that only need to gate on "a master CV was
+  // uploaded" and never read its content — avoids fetching the full row via
+  // getMasterOrThrow just to discard the content.
+  async existsMaster(
+    ownerId: string,
+    kind: CvDocumentKind = 'MASTER',
+  ): Promise<boolean> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('cv_documents')
+      .select('id')
+      .eq('owner_id', ownerId)
+      .eq('is_master', true)
+      .eq('kind', kind)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data !== null;
+  },
+
   async getMasterOrThrow(
     ownerId: string,
     message?: string,

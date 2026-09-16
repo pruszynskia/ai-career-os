@@ -2,6 +2,49 @@
 
 ## Current Sprint
 
+### Feature: TASK-081 — Evidence-grounded generation contract and claim validator
+
+Status: **done** — green on typecheck/lint/test/build. Backend/AI-prompt-only,
+no Playwright loop.
+
+What shipped:
+
+- `src/shared/ai/prompts/generation-contract.ts` (new) — exports
+  `generationContractFragment` (the tri-state claim rule, impact rule,
+  relevance rule, verb rule, composed verbatim into all three generator
+  system prompts rather than duplicated) and `serializeEvidenceBase`, which
+  renders `EvidenceBase` as `claim id | state | text | metric` lines plus
+  `alwaysIncludeWhenRelevant`/`neverInclude` sections, omitting `EXCLUDED`
+  claims entirely.
+- `src/shared/ai/claim-validator.ts` (new) — `findClaimViolations` (unknown
+  claim id / `EXCLUDED` claim cited / `neverInclude` phrase present in the
+  output text) and `assertValidClaims`, which throws `ClaimValidationError`
+  on any violation. `src/shared/ai/claim-validator.test.ts` covers all four
+  cases (unknown id, excluded claim, `neverInclude` hit, clean pass).
+- `tailor-cv.ts` / `cover-letter.ts` / `recruiter-message.ts` prompts —
+  system prompts now compose `generationContractFragment`; user-message
+  builders take the serialized evidence text instead of raw CV text.
+- `tailor-cv.service.ts` / `cover-letter.service.ts` /
+  `recruiter-message.service.ts` — each now loads `profileService
+  .findUnique(ownerId).evidence` (falling back to `EMPTY_EVIDENCE_BASE`),
+  serializes it as the prompt's profile input, extends its output schema
+  with `claimsUsed: string[]`, and calls `assertValidClaims` before
+  persisting/returning. `cvDocumentService.getMasterOrThrow` is still called
+  first as an existence-only gate (so `NoMasterCvError`/"Upload a CV"
+  behaviour on the three routes is unchanged) but its `content` is no longer
+  read.
+
+Not done (explicitly out of scope): the tailoring report (TASK-082), outreach
+channel formats (TASK-083), and `buildProfileText`'s removal (TASK-087) —
+that helper is only used by `linkedin-posts`, untouched here.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 99 passed (5 new, in `claim-validator.test.ts`)
+- `npm run build` — pass
+
 ### Feature: TASK-073 — Offers and applications workspace redesign
 
 Status: **done** — green on typecheck/lint/test/build. Playwright

@@ -1,13 +1,15 @@
-export const coverLetterSystemPrompt = `You write a professional cover letter tailored to a specific job offer, based
-on a candidate's CV. Reference the candidate's real experience and skills
-from the CV and connect them to the offer's role and company, without
-inventing employers, skills, or achievements that aren't in the CV. Do not
-invent a recipient name or address it to anyone specific. Keep it to
-roughly 250-400 words.`;
+import { generationContractFragment } from '@/shared/ai/prompts/generation-contract';
+
+export const coverLetterSystemPrompt = `You write a professional cover letter tailored to a specific job offer,
+drawing only on the evidence base below. Connect the candidate's real
+claims to the offer's role and company. Do not invent a recipient name or
+address it to anyone specific. Keep it to roughly 250-400 words.
+
+${generationContractFragment}`;
 
 export function buildCoverLetterUserMessage(
-  cvText: string,
+  evidenceText: string,
   offerText: string,
 ): string {
-  return `Candidate CV:\n\n${cvText}\n\nJob offer to write the cover letter for:\n\n${offerText}`;
+  return `${evidenceText}\n\nJob offer to write the cover letter for:\n\n${offerText}`;
 }
