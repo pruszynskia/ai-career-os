@@ -1,5 +1,59 @@
 import { z } from 'zod';
 
+// Evidence base (ADR-017): a verified claim per skill/achievement/scope the
+// CV parser extracted, so later generators cite claims instead of raw CV
+// text. TRUSTED is the parse-time default; only riskLevel "high" claims are
+// ever surfaced for owner confirmation.
+export const claimStateSchema = z.enum([
+  'TRUSTED',
+  'CONFIRMED',
+  'FLAGGED',
+  'EXCLUDED',
+]);
+export type ClaimState = z.infer<typeof claimStateSchema>;
+
+export const claimRiskLevelSchema = z.enum(['low', 'high']);
+export type ClaimRiskLevel = z.infer<typeof claimRiskLevelSchema>;
+
+export const claimKindSchema = z.enum(['skill', 'experience', 'project']);
+export type ClaimKind = z.infer<typeof claimKindSchema>;
+
+export const claimMetricSchema = z.object({
+  value: z.number(),
+  unit: z.string().nullable(),
+});
+export type ClaimMetric = z.infer<typeof claimMetricSchema>;
+
+// What the CV parser returns per claim, before an id or state is assigned.
+export const parsedClaimSchema = z.object({
+  kind: claimKindSchema,
+  text: z.string(),
+  sourceRef: z.string(),
+  riskLevel: claimRiskLevelSchema,
+  metric: claimMetricSchema.nullable(),
+});
+export type ParsedClaim = z.infer<typeof parsedClaimSchema>;
+
+export const claimSchema = parsedClaimSchema.extend({
+  id: z.string(),
+  state: claimStateSchema,
+  note: z.string().nullable(),
+});
+export type Claim = z.infer<typeof claimSchema>;
+
+export const evidenceBaseSchema = z.object({
+  claims: z.array(claimSchema),
+  neverInclude: z.array(z.string()),
+  alwaysIncludeWhenRelevant: z.array(z.string()),
+});
+export type EvidenceBase = z.infer<typeof evidenceBaseSchema>;
+
+export const EMPTY_EVIDENCE_BASE: EvidenceBase = {
+  claims: [],
+  neverInclude: [],
+  alwaysIncludeWhenRelevant: [],
+};
+
 export const parsedProfileSchema = z.object({
   summary: z.string(),
   skills: z.array(z.string()),
@@ -30,6 +84,7 @@ export const parsedProfileSchema = z.object({
       }),
     ),
   }),
+  claims: z.array(parsedClaimSchema),
 });
 
 export type ParsedProfile = z.infer<typeof parsedProfileSchema>;
@@ -90,6 +145,7 @@ export const profileSchema = z
     experience: z.unknown(),
     projects: z.unknown(),
     score: z.unknown(),
+    evidence: evidenceBaseSchema,
     createdAt: z.date(),
     updatedAt: z.date(),
     onboardedAt: z.date().nullable(),
@@ -104,6 +160,7 @@ export interface Profile extends JobPreferences {
   experience: unknown;
   projects: unknown;
   score: unknown;
+  evidence: EvidenceBase;
   createdAt: Date;
   updatedAt: Date;
   onboardedAt: Date | null;

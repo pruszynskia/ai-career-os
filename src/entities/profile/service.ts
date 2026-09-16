@@ -1,7 +1,14 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
-import type { JobPreferences, Profile } from '@/entities/profile/types';
+import {
+  EMPTY_EVIDENCE_BASE,
+  type Claim,
+  type ClaimState,
+  type EvidenceBase,
+  type JobPreferences,
+  type Profile,
+} from '@/entities/profile/types';
 
 // A row that exists only to record onboarding completion / preferences
 // before any CV has been parsed. NULL summary is the DB's own "no CV yet";
@@ -20,6 +27,7 @@ function toProfile(row: Record<string, unknown>): Profile {
     experience: row.experience,
     projects: row.projects,
     score: row.score,
+    evidence: (row.evidence as EvidenceBase | null) ?? EMPTY_EVIDENCE_BASE,
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
     onboardedAt: row.onboarded_at ? new Date(row.onboarded_at as string) : null,
@@ -58,6 +66,25 @@ function toPreferencesRow(preferences: Partial<JobPreferences>) {
   return row;
 }
 
+// Shared by the two evidence mutators below: both need the current jsonb
+// blob before they can replace one part of it and write the whole column
+// back. Owner-scoped and placeholder-excluded exactly like updatePreferences.
+async function loadEvidence(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  ownerId: string,
+): Promise<EvidenceBase | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('evidence')
+    .eq('owner_id', ownerId)
+    .not('summary', 'is', null)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return (data.evidence as EvidenceBase | null) ?? EMPTY_EVIDENCE_BASE;
+}
+
 export const profileService = {
   async findUnique(ownerId: string): Promise<Profile | null> {
     const supabase = await createClient();
@@ -81,6 +108,7 @@ export const profileService = {
       experience: unknown;
       projects: unknown;
       score: unknown;
+      evidence: EvidenceBase;
     },
   ): Promise<Profile> {
     const supabase = await createClient();
@@ -94,6 +122,7 @@ export const profileService = {
           experience: values.experience,
           projects: values.projects,
           score: values.score,
+          evidence: values.evidence,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'owner_id' },
@@ -135,6 +164,60 @@ export const profileService = {
       // Scope the write to a real profile: a placeholder onboarding row has a
       // NULL summary, so this never persists preferences to it before the
       // result is checked.
+      .not('summary', 'is', null)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? toProfile(data) : null;
+  },
+
+  // Confirms, flags or excludes one claim. Unknown claim ids are a no-op
+  // (nothing in the array matches) rather than an error, since the caller
+  // has already scoped to an id it read from this same evidence base.
+  async updateEvidenceClaim(
+    ownerId: string,
+    claimId: string,
+    state: ClaimState,
+  ): Promise<Profile | null> {
+    const supabase = await createClient();
+    const evidence = await loadEvidence(supabase, ownerId);
+    if (!evidence) return null;
+
+    const claims: Claim[] = evidence.claims.map((claim) =>
+      claim.id === claimId ? { ...claim, state } : claim,
+    );
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        evidence: { ...evidence, claims },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('owner_id', ownerId)
+      .not('summary', 'is', null)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? toProfile(data) : null;
+  },
+
+  async updateEvidenceRules(
+    ownerId: string,
+    rules: Pick<EvidenceBase, 'neverInclude' | 'alwaysIncludeWhenRelevant'>,
+  ): Promise<Profile | null> {
+    const supabase = await createClient();
+    const evidence = await loadEvidence(supabase, ownerId);
+    if (!evidence) return null;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        evidence: { ...evidence, ...rules },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('owner_id', ownerId)
       .not('summary', 'is', null)
       .select()
       .maybeSingle();

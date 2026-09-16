@@ -237,6 +237,7 @@ Rules:
 - Every table carries `id`, `owner_id` (references `auth.users`, ADR-005/ADR-009), `created_at`, `updated_at`; RLS policies scope every row to `owner_id = auth.uid()`.
 - Supabase URL/keys and all secrets come from environment variables, never hardcoded; `SUPABASE_SERVICE_ROLE_KEY` is server-only and never used in request-handling code — the single sanctioned exception is the Stripe webhook's `sync-subscription.service.ts` (ADR-015), which has no user session and therefore no `auth.uid()` for RLS to match.
 - Entity types are canonical: each top-level entity has one `src/entities/{entity}/types.ts` with a hand-written type mirroring the Supabase schema and a Zod schema for that same shape (e.g. `applicationSchema`, `jobOfferSchema`). Route handlers and feature `types.ts` files never redeclare an entity's own fields as a new Zod schema — they import and compose (`.pick`/`.extend`) the entity schema, or import the entity type for request/response DTOs.
+- `profiles.evidence` (jsonb, ADR-017) is the verified claim base every generator will draw on: a `claims` array (each `id`, `kind`, `text`, `sourceRef`, `state`, `riskLevel`, `note`, `metric`), plus `neverInclude`/`alwaysIncludeWhenRelevant` generation rules. Additive beside `skills`/`experience`/`projects`/`score` — no generator reads it yet (TASK-081).
 
 This keeps each entity's data-access logic AI-discoverable in one file, and
 means SaaS-scale concerns (multi-tenant scoping is already enforced by RLS,

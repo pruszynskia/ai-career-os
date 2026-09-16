@@ -9,6 +9,7 @@ import { OptimizeCoverLetterPanel } from '@/features/cv/components/optimize-cove
 import { OptimizeCvPanel } from '@/features/cv/components/optimize-cv-panel';
 import { ProfileScoreCard } from '@/features/cv/components/profile-score-card';
 import { ProfileSummary } from '@/features/cv/components/profile-summary';
+import { EvidenceReview } from '@/features/profile/components/evidence-review';
 import { getOwnerId } from '@/shared/auth/session';
 import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -38,6 +39,7 @@ export default async function ProfilePage() {
               projects: (profile.projects ?? []) as ParsedProfile['projects'],
             }}
           />
+          <EvidenceReview evidence={profile.evidence} />
           <OptimizeCvPanel />
         </>
       ) : (
