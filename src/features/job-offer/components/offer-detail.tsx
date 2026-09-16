@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
 import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
+import { FitReport } from '@/features/job-offer/components/fit-report';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
 import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
@@ -43,6 +44,9 @@ export function OfferDetail({
   isTrackingApplication,
   applicationTimeline,
   applicationNotes,
+  alwaysIncludeWhenRelevant,
+  onAddSkill,
+  addingSkill,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -56,9 +60,15 @@ export function OfferDetail({
   // import the application feature directly (ADR-008).
   applicationTimeline?: ReactNode;
   applicationNotes?: ReactNode;
+  // Same reason: the "add this absent-but-true skill" action writes to the
+  // profile's evidence base, owned by the profile feature.
+  alwaysIncludeWhenRelevant: string[];
+  onAddSkill: (skill: string) => void;
+  addingSkill: string | null;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
+  const [fit, setFit] = useState(offer.fit);
   const matchMutation = useMatchOffer();
   const tailorCvMutation = useTailorCv();
   const recruiterMessageMutation = useRecruiterMessage();
@@ -243,8 +253,10 @@ export function OfferDetail({
                 disabled={matchMutation.isPending}
                 onClick={() =>
                   matchMutation.mutate(offer.id, {
-                    onSuccess: (data) =>
-                      setMatchScore(data.jobOffer.matchScore),
+                    onSuccess: (data) => {
+                      setMatchScore(data.jobOffer.matchScore);
+                      setFit(data.jobOffer.fit);
+                    },
                   })
                 }
               >
@@ -305,6 +317,19 @@ export function OfferDetail({
         </Card>
 
         <div className="flex min-w-0 flex-1 flex-col gap-6">
+          {fit && (
+            <>
+              <FitReport
+                matchScore={matchScore}
+                fit={fit}
+                alwaysIncludeWhenRelevant={alwaysIncludeWhenRelevant}
+                onAddSkill={onAddSkill}
+                addingSkill={addingSkill}
+              />
+              <Divider />
+            </>
+          )}
+
           <section className="flex flex-col gap-3">
             <Heading level={4} as="h2">
               Tailored CV

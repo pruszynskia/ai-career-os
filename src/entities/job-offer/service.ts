@@ -89,6 +89,9 @@ export const jobOfferService = {
     const sortColumn = {
       createdAt: 'created_at',
       matchScore: 'match_score',
+      // jsonb path - postgres compares jsonb numbers numerically, so this
+      // orders correctly without a generated column (TASK-080).
+      callbackProbability: 'fit->hrCallbackProbability',
       company: 'company',
     }[sort];
     query = query.order(sortColumn, {

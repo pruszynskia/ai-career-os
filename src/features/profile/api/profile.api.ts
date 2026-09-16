@@ -1,5 +1,8 @@
-import type { JobPreferences } from '@/entities/profile/types';
-import type { UpdatePreferencesResponse } from '@/features/profile/types';
+import type { EvidenceBase, JobPreferences } from '@/entities/profile/types';
+import type {
+  UpdateEvidenceResponse,
+  UpdatePreferencesResponse,
+} from '@/features/profile/types';
 
 async function parseErrorMessage(
   response: Response,
@@ -26,6 +29,24 @@ export async function updateProfilePreferences(
         response,
         'Failed to update your job preferences.',
       ),
+    );
+  }
+
+  return response.json();
+}
+
+export async function updateEvidenceRules(
+  rules: Pick<EvidenceBase, 'neverInclude' | 'alwaysIncludeWhenRelevant'>,
+): Promise<UpdateEvidenceResponse> {
+  const response = await fetch('/api/profile/evidence', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rules),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await parseErrorMessage(response, 'Failed to update your evidence base.'),
     );
   }
 
