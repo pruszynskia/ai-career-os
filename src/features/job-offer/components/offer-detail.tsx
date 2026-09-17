@@ -7,9 +7,9 @@ import { useState, type ReactNode } from 'react';
 
 import { DeleteOfferButton } from '@/features/job-offer/components/delete-offer-button';
 import { FitReport } from '@/features/job-offer/components/fit-report';
+import { OutreachPanel } from '@/features/job-offer/components/outreach-panel';
 import { useCoverLetter } from '@/features/job-offer/hooks/use-cover-letter';
 import { useMatchOffer } from '@/features/job-offer/hooks/use-match-offer';
-import { useRecruiterMessage } from '@/features/job-offer/hooks/use-recruiter-message';
 import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { useUpdateOffer } from '@/features/job-offer/hooks/use-update-offer';
@@ -78,7 +78,6 @@ export function OfferDetail({
   const [fit, setFit] = useState(offer.fit);
   const matchMutation = useMatchOffer();
   const tailorCvMutation = useTailorCv();
-  const recruiterMessageMutation = useRecruiterMessage();
   const coverLetterMutation = useCoverLetter();
   const toggleFavoriteMutation = useToggleFavorite();
   const updateOfferMutation = useUpdateOffer();
@@ -93,10 +92,6 @@ export function OfferDetail({
   const sentCv = tailoredCv ?? masterCv;
   const canTrackApplication = Boolean(sentCv);
   const isUsingMasterCvFallback = Boolean(sentCv) && !tailoredCv;
-  const isUsingEmptyMessageFallback =
-    Boolean(sentCv) && !recruiterMessageMutation.isSuccess;
-  const isUsingFallback =
-    isUsingMasterCvFallback || isUsingEmptyMessageFallback;
 
   function openEditDialog() {
     setEditValues({
@@ -287,15 +282,21 @@ export function OfferDetail({
                   Upload a CV in Profile before tracking this application.
                 </p>
               )}
-              {isUsingFallback && (
+              {isUsingMasterCvFallback && (
                 <p className="text-sm text-muted-foreground">
-                  Tracking will use{' '}
-                  {isUsingMasterCvFallback
-                    ? 'your master CV'
-                    : 'the tailored CV'}
-                  {isUsingEmptyMessageFallback &&
-                    ' and an empty recruiter message'}
-                  .
+                  Tracking will use your master CV.
+                </p>
+              )}
+              {sentCv && (
+                // Recruiter messaging now happens in the outreach panel
+                // above (TASK-083), which writes its own outreach_messages
+                // rows rather than applications.recruiter_message -
+                // tracking always starts that column empty. This is always
+                // true, not a fallback that varies, so it's a plain note
+                // rather than conditional fallback copy.
+                <p className="text-sm text-muted-foreground">
+                  Tracking starts with no recruiter message - draft one in
+                  Outreach above.
                 </p>
               )}
               <Button
@@ -309,8 +310,7 @@ export function OfferDetail({
                     {
                       jobOfferId: offer.id,
                       sentCvId: sentCv.id,
-                      recruiterMessage:
-                        recruiterMessageMutation.data?.message ?? '',
+                      recruiterMessage: '',
                     },
                     { onSuccess: () => router.push('/offers') },
                   )
@@ -373,27 +373,7 @@ export function OfferDetail({
 
           <Divider />
 
-          <section className="flex flex-col gap-3">
-            <Heading level={4} as="h2">
-              Recruiter message
-            </Heading>
-            <Button
-              variant="secondary"
-              className="self-start"
-              disabled={recruiterMessageMutation.isPending}
-              onClick={() => recruiterMessageMutation.mutate(offer.id)}
-            >
-              {recruiterMessageMutation.isPending && <Spinner size="sm" />}
-              {recruiterMessageMutation.isPending
-                ? 'Generating…'
-                : 'Generate recruiter message'}
-            </Button>
-            {recruiterMessageMutation.isSuccess && (
-              <p className="whitespace-pre-wrap text-sm">
-                {recruiterMessageMutation.data.message}
-              </p>
-            )}
-          </section>
+          <OutreachPanel offerId={offer.id} />
 
           <Divider />
 

@@ -2,11 +2,23 @@ import type {
   AddOfferResponse,
   CoverLetterResponse,
   MatchOfferResponse,
-  RecruiterMessageResponse,
+  OutreachResponse,
   TailorCvResponse,
   ToggleFavoriteResponse,
   UpdateOfferResponse,
 } from '@/features/job-offer/types';
+
+// Thrown on the no-contact path (422): no draft was produced, only the
+// posting URL and the reason to show instead (ADR-020).
+export class OutreachBlockedError extends Error {
+  constructor(
+    message: string,
+    public readonly postingUrl: string | null,
+  ) {
+    super(message);
+    this.name = 'OutreachBlockedError';
+  }
+}
 
 export async function addOffer(input: {
   url?: string;
@@ -106,14 +118,48 @@ export function tailorCv(id: string): Promise<TailorCvResponse> {
   return postOfferAction(id, 'tailor-cv', 'Failed to tailor the CV.');
 }
 
-export function generateRecruiterMessage(
+export async function generateOutreach(
   id: string,
-): Promise<RecruiterMessageResponse> {
-  return postOfferAction(
-    id,
-    'recruiter-message',
-    'Failed to generate the recruiter message.',
-  );
+  contact: { name: string; profileUrl?: string },
+): Promise<OutreachResponse> {
+  const response = await fetch(`/api/offers/${id}/outreach`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contactName: contact.name,
+      contactUrl: contact.profileUrl || undefined,
+    }),
+  });
+
+  const responseBody = (await response.json().catch(() => null)) as {
+    message?: string;
+    postingUrl?: string | null;
+    // Wire shape only: JSON has no Date type, so createdAt arrives as an
+    // ISO string here and is parsed into the real OutreachMessage below -
+    // asserting it straight to Date hid that mismatch instead of fixing it.
+    messages?: (Omit<OutreachResponse['messages'][number], 'createdAt'> & {
+      createdAt: string;
+    })[];
+  } | null;
+
+  if (!response.ok) {
+    if (response.status === 422 && responseBody?.postingUrl !== undefined) {
+      throw new OutreachBlockedError(
+        responseBody.message ?? 'Add a contact name before drafting outreach.',
+        responseBody.postingUrl,
+      );
+    }
+    throw new Error(
+      responseBody?.message ?? 'Failed to generate outreach drafts.',
+    );
+  }
+
+  return {
+    messages: (responseBody?.messages ?? []).map((message) => ({
+      ...message,
+      createdAt: new Date(message.createdAt),
+    })),
+  };
 }
 
 export function generateCoverLetter(id: string): Promise<CoverLetterResponse> {

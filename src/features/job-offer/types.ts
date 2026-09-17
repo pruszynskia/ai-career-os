@@ -1,6 +1,7 @@
 import type { ApplicationBundle } from '@/entities/application/types';
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
+import type { OutreachMessage } from '@/entities/outreach-message/types';
 import type { FingerprintMatchSignal } from '@/shared/utils/offer-fingerprint';
 
 // A job offer annotated with its application, if the offer is tracked.
@@ -30,8 +31,8 @@ export interface TailorCvResponse {
   cvDocument: CvDocument;
 }
 
-export interface RecruiterMessageResponse {
-  message: string;
+export interface OutreachResponse {
+  messages: OutreachMessage[];
 }
 
 export interface CoverLetterResponse {
