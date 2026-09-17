@@ -28,6 +28,33 @@ export function canBeSentCv(
   return cv.jobOfferId === jobOfferId || (cv.isMaster && cv.kind === 'MASTER');
 }
 
+// Tailoring report (TASK-082): a mechanical, non-AI verdict on the CV
+// tailor-cv.service.ts just generated, checked against the posting keywords
+// TASK-079 already extracted onto the offer's fit assessment. keywords
+// doubles as the evidence trace - each covered entry names the claim id
+// (from claimsUsed) that backs it.
+export const tailoringReportKeywordSchema = z.object({
+  keyword: z.string(),
+  covered: z.boolean(),
+  matchedSpan: z.string().nullable(),
+  evidenceClaimId: z.string().nullable(),
+});
+
+export type TailoringReportKeyword = z.infer<
+  typeof tailoringReportKeywordSchema
+>;
+
+export const tailoringReportSchema = z.object({
+  keywords: z.array(tailoringReportKeywordSchema),
+  coveredCount: z.number().int(),
+  totalCount: z.number().int(),
+  // Posting requirements the evidence base doesn't carry at all - stated
+  // plainly, never softened (see keyword-coverage.ts).
+  gaps: z.array(z.string()),
+});
+
+export type TailoringReport = z.infer<typeof tailoringReportSchema>;
+
 export const cvDocumentSchema = z.object({
   id: z.string(),
   ownerId: z.string(),
@@ -35,6 +62,7 @@ export const cvDocumentSchema = z.object({
   content: z.string(),
   jobOfferId: z.string().nullable(),
   kind: cvDocumentKindSchema,
+  tailoringReport: tailoringReportSchema.nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -46,6 +74,7 @@ export interface CvDocument {
   content: string;
   jobOfferId: string | null;
   kind: CvDocumentKind;
+  tailoringReport: TailoringReport | null;
   createdAt: Date;
   updatedAt: Date;
 }
