@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
+import { normalizeText } from '@/shared/utils/offer-fingerprint';
 import type {
   OutreachChannel,
   OutreachMessage,
@@ -92,5 +93,50 @@ export const outreachMessageService = {
 
     if (error) throw error;
     return (data ?? []).map((row) => row.body as string);
+  },
+
+  // Backs the per-company interlock (TASK-084, interlock.ts): who else at
+  // this company got a draft addressed to them recently. Joins job_offers
+  // for its company name since outreach_messages carries no company column
+  // of its own, then normalizes in JS same as contacts.findByCompany -
+  // company names never come from a canonical, normalized source.
+  // ponytail: filters this owner's whole recent-window result set in JS
+  // rather than a normalized DB-side join key; fine at personal-account
+  // volume, move to a normalized/indexed company column if this ever scans
+  // thousands of rows.
+  async findRecentByCompany(
+    ownerId: string,
+    company: string,
+    since: Date,
+  ): Promise<{ contactName: string; createdAt: Date }[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .select('contact_name, created_at, job_offer:job_offers(company)')
+      .eq('owner_id', ownerId)
+      .not('contact_name', 'is', null)
+      .gte('created_at', since.toISOString());
+
+    if (error) throw error;
+
+    const target = normalizeText(company);
+    // Supabase's TS types can't always tell a many-to-one join from a
+    // one-to-many one from the select string alone; job_offer is a single
+    // row at runtime (job_offer_id is one FK), so unwrap either shape.
+    const companyOf = (row: { job_offer: unknown }): string => {
+      const joined = row.job_offer as
+        { company: string } | { company: string }[] | null;
+      return (
+        (Array.isArray(joined) ? joined[0]?.company : joined?.company) ?? ''
+      );
+    };
+
+    return (data ?? [])
+      .filter((row) => normalizeText(companyOf(row)) === target)
+      .map((row) => ({
+        contactName: row.contact_name as string,
+        createdAt: new Date(row.created_at as string),
+      }))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   },
 };

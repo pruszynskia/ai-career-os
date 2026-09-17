@@ -975,3 +975,63 @@ Consequences:
   comments there for the upgrade path.
 - `/api/offers/[id]/recruiter-message` is removed; `/api/offers/[id]/outreach`
   and `src/shared/rate-limit/index.ts`'s `AI_OFFER_SUFFIXES` take its place.
+
+## ADR-021
+
+Date:
+
+2026-09-17
+
+Decision:
+
+Add the `contacts` table ADR-020 anticipated (TASK-084), owner-scoped and
+imported from the user's own LinkedIn "Connections.csv" data export (or
+added by hand). Each row is classified into one of `non-it`, `generalist`,
+`it-recruiter`, `decision-maker` by a plain keyword matcher over the job
+title (`classify-title.ts`) - no AI call. The outreach contract from
+ADR-020 does not change: `generateOutreach(id, { name, profileUrl })` still
+takes a plain name/URL pair, so a selected contact just supplies that pair
+from `OfferDetail`'s own lifted `selectedContact` state rather than the
+user typing it - `OutreachPanel` (job-offer feature) and `WhoYouKnowPanel`
+(new contact feature) stay isolated from each other per ADR-008; the offer
+detail page fetches both `contacts` and the per-company interlock warning
+server-side and `OfferDetail` composes them via the same render-prop
+pattern `applicationNotes`/`renderTailoringReport` already use. The interlock
+(`interlock.ts`) checks `outreach_messages` joined to `job_offers` for
+another contact at the same company messaged in the last 30 days and
+surfaces it as a warning on the outreach panel - never a block.
+
+Reason:
+
+A guessed recipient still has nowhere to come from without a contact list;
+this closes that gap the smallest way the existing contract allows. Keyword
+classification is fast, free and good enough for a few categories over
+short job titles - a model call per contact on an import of several hundred
+rows would be pure waste. The interlock is advisory because the user may
+have a good reason to contact two people at one company; the app's job is
+to inform that decision, not make it.
+
+Alternatives Considered:
+
+- Store the selected contact on `outreach_messages` via a `contact_id`
+  foreign key instead of passing name/URL through - rejected: no caller
+  needs to join back from a message to a contact yet, and it would touch
+  the outreach entity/migration this task doesn't otherwise need to change.
+- Normalize `contacts.company` and `job_offers.company` into a shared,
+  indexed column for an exact DB-side join - rejected: personal LinkedIn
+  networks are small enough that an owner-scoped fetch + JS-side
+  `normalizeText` filter (already used for offer duplicate detection) is
+  fast enough; a real normalization column is the upgrade path if imports
+  ever get large.
+
+Consequences:
+
+- `contacts.owner_id` carries no `ON DELETE CASCADE`, so `delete_own_account()`
+  was updated in the same migration to delete `contacts` before `auth.users`
+  - the same gap that had to be patched for `outreach_messages` after the
+    fact, done up front here instead.
+- `WhoYouKnowPanel`'s ranking (first-degree specialists first) and the
+  interlock's "most recent match" both do an O(n) scan over the owner's own
+  rows rather than a database-side rank/aggregate; see the `ponytail:`
+  comments on `contactService.findByCompany` and `interlock.ts` for the
+  ceiling.

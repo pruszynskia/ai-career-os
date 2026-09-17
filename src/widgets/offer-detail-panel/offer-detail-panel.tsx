@@ -2,6 +2,7 @@
 
 import type { Application } from '@/entities/application/types';
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
+import type { Contact } from '@/entities/contact/types';
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
 import type { EvidenceBase } from '@/entities/profile/types';
@@ -9,6 +10,7 @@ import type { EvidenceBase } from '@/entities/profile/types';
 import { ApplicationNotes } from '@/features/application/components/application-notes';
 import { ApplicationTimeline } from '@/features/application/components/application-timeline';
 import { useCreateApplication } from '@/features/application/hooks/use-create-application';
+import { WhoYouKnowPanel } from '@/features/contact/components/who-you-know-panel';
 import { TailoringReport } from '@/features/document/components/tailoring-report';
 import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 import { useAddEvidenceSkill } from '@/features/profile/hooks/use-add-evidence-skill';
@@ -20,6 +22,8 @@ export function OfferDetailPanel({
   statusEvents,
   application,
   evidence,
+  contacts,
+  interlockWarning,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -27,6 +31,8 @@ export function OfferDetailPanel({
   statusEvents: ApplicationStatusEvent[];
   application: Application | null;
   evidence: Pick<EvidenceBase, 'neverInclude' | 'alwaysIncludeWhenRelevant'>;
+  contacts: Contact[];
+  interlockWarning: { contactName: string; messagedAt: Date } | null;
 }) {
   const createApplicationMutation = useCreateApplication();
   const addEvidenceSkillMutation = useAddEvidenceSkill();
@@ -64,6 +70,15 @@ export function OfferDetailPanel({
           : null
       }
       renderTailoringReport={(report) => <TailoringReport report={report} />}
+      renderWhoYouKnow={({ onSelect, selectedContactName }) => (
+        <WhoYouKnowPanel
+          company={offer.company}
+          contacts={contacts}
+          selectedContactName={selectedContactName}
+          onSelect={onSelect}
+        />
+      )}
+      interlockWarning={interlockWarning}
     />
   );
 }
