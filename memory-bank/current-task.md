@@ -2,6 +2,87 @@
 
 ## Current Sprint
 
+### Feature: TASK-083 — Outreach studio: channel formats, ban-list validator and variation check
+
+Status: **done** — green on typecheck/lint/test/build. Backend + one panel
+component, no Playwright loop (not a `ui`-labelled scope beyond one section
+of the existing offer detail page).
+
+What shipped:
+
+- `supabase/migrations/20260917090000_outreach_messages.sql` (new) —
+  `outreach_channel` enum (`CONNECTION_NOTE`/`DIRECT_MESSAGE`/`EMAIL`),
+  `outreach_messages` table (`job_offer_id`, `channel`, `subject`, `body`,
+  `contact_name`, `contact_url`, `status`, `created_at`), `owner_all` RLS.
+- `src/entities/outreach-message/{types.ts,service.ts}` (new) — standard
+  entity slice; `createMany` (one insert, three rows), `findRecentBodies`
+  (30-day window for the variation check) and `deleteByJobOffer` (no `ON
+  DELETE CASCADE`, same choice `cv_documents` made — wired into
+  `delete-offer.service.ts` so deleting an offer with drafts still works).
+- `src/shared/ai/outreach-validator.ts` (new) + `.test.ts` — ban list,
+  per-channel character budget (connection note 300 hard/120-180 target,
+  direct message 400 hard/~275 target, email 800 hard - the task only pins
+  numbers for the first two), one-ask rule, em-dash/tricolon/bulleted-list/
+  signature-block style checks, and `fingerprintOutreach` + the 30-day
+  verbatim-collision check on opening line / ask sentence / sign-off. Tests
+  cover the 5 required cases (ban-list hit, over-budget note, two-ask draft,
+  30-day collision, clean pass); the style-heuristic checks are `ponytail:`
+  flagged as naive (keyword/line-count, not real NLP) but untested beyond
+  that, matching the task's own test-case list.
+- `src/shared/ai/prompts/outreach.ts` (new) — composes
+  `generationContractFragment` (ADR-017), the voice rules (short lines,
+  reason-for-writing first, raw posting URL inline, one hedged overlap
+  line, one small ask, first-name sign-off, no contact block), and the
+  dropped-comma-is-fine/tricolon-reads-as-generated framing.
+- `src/features/job-offer/services/recruiter-message.service.ts`
+  (rewritten, same path — kept for scope reasons) — `generateOutreach(id,
+  contact)` replaces `generateRecruiterMessage`. `NoOutreachContactError`
+  (carries the offer's posting URL) throws before any CV/evidence lookup or
+  AI call when `contact.name` is empty — no "contacts" entity exists yet,
+  so the caller supplies a name per generation (ADR-020) rather than one
+  being read from something "on file". One AI call returns all three
+  channels; each is run through `assertValidClaims` (ADR-017) and
+  `assertValidOutreach` before any row is persisted.
+- `src/app/api/offers/[id]/outreach/route.ts` (new) — replaces the deleted
+  `src/app/api/offers/[id]/recruiter-message/route.ts`. Maps
+  `NoOutreachContactError` to 422 with `{ message, postingUrl }`.
+- `src/features/job-offer/components/outreach-panel.tsx` (new) — contact
+  name/URL inputs, one "Draft outreach" action, three per-channel cards
+  with live `body.length / hardMax` counts and a copy button; renders the
+  posting-URL-and-reason message on the no-contact (blocked) path via
+  `mutation.error instanceof OutreachBlockedError` rather than a toast.
+- `src/features/job-offer/components/offer-detail.tsx` — "Recruiter
+  message" section replaced with `<OutreachPanel offerId={offer.id} />`.
+  "Track application" no longer reads a `recruiterMessageMutation` (deleted
+  along with the old hook) — `applications.recruiter_message` (untouched
+  schema, per this task's `do_not`) always starts empty now, since a single
+  canonical "the message" no longer exists.
+- `src/features/job-offer/{types.ts,api/job-offer.api.ts,hooks/use-outreach.ts}`
+  — `RecruiterMessageResponse`/`generateRecruiterMessage`/
+  `useRecruiterMessage` replaced with `OutreachResponse`/`generateOutreach`
+  (posts a JSON body, throws `OutreachBlockedError` on the 422 no-contact
+  response)/`useOutreach`.
+- `src/shared/rate-limit/index.ts` — `AI_OFFER_SUFFIXES`'s
+  `/recruiter-message` swapped for `/outreach` (the route it rate-limits no
+  longer exists).
+- `memory-bank/decisions.md` — new ADR-020.
+
+Not done (explicitly out of scope / `do_not`): no send/schedule/automate
+path (drafts only), no invented recipient name/URL/email ever (the
+no-contact path produces zero rows), no `contacts` entity (contact is
+supplied per generation, see ADR-020's alternatives-considered), docs/
+PRODUCT.md, ROADMAP.md and API_GUIDE.md's prose mentions of "recruiter
+message" left as pre-existing stale text (not in this task's `scope:`,
+same call TASK-066 made for `ui-principles.md`).
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 120 passed (7 new, in `outreach-validator.test.ts`)
+- `npm run build` — pass; `/api/offers/[id]/outreach` compiles,
+  `/api/offers/[id]/recruiter-message` is gone
+
 ### Feature: TASK-081 — Evidence-grounded generation contract and claim validator
 
 Status: **done** — green on typecheck/lint/test/build. Backend/AI-prompt-only,

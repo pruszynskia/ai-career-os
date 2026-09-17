@@ -919,3 +919,59 @@ Consequences:
   `offer.rawContent`, not the AI-condensed `offer.description`, so seniority
   band wording and callback-modifier signals (volume, urgency, salary) are
   judged from the full posting text.
+
+## ADR-020
+
+Date:
+
+2026-09-17
+
+Decision:
+
+Replace the single, unpersisted `generateRecruiterMessage` call with three
+persisted drafts in a new `outreach_messages` table (TASK-083) - a
+LinkedIn connection note (300 char hard budget, 120-180 target), a direct
+message (400 char hard budget, ~275 target) and an email. All three are
+generated in one AI call, run through both `claim-validator.ts` (ADR-017)
+and a new `outreach-validator.ts` - a ban list of AI-tell phrases, the
+per-channel character budget, a one-ask rule, an em-dash/tricolon/
+signature-block style check, and a 30-day verbatim-collision check against
+this owner's own `outreach_messages` rows. The recipient's contact name is
+supplied by the caller per generation, not read from a stored "contact on
+file" - no contacts entity exists yet, and job_offers carries no contact
+field. With no name given, nothing is drafted or persisted at all; the
+route returns the posting URL and the reason instead.
+
+Reason:
+
+The reference data behind this task showed messages that got ignored ran
+roughly three times longer than the ones that got answered, so channel
+length is a product decision, not a style preference, and has to be
+enforced in code rather than hoped for in a prompt. A guessed recipient
+name is not a lower-quality output, it is a nonexistent one, so the
+contract has no third option between "the caller names someone real" and
+"no draft."
+
+Alternatives Considered:
+
+- Keep one generic message and vary tone by channel client-side - rejected:
+  the whole point is channel-specific length and structure, which a single
+  generated body cannot satisfy after the fact.
+- Add a `contacts` table now so "on file" means something persisted -
+  rejected: no other feature needs a contact entity yet and this task does
+  not ask for one; the per-generation name is the smaller, additive step
+  and a `contacts` table can be layered under it later without a contract
+  change.
+
+Consequences:
+
+- `applications.recruiter_message` is untouched; `OfferDetail`'s "track
+  application" action always starts that column empty now, since a single
+  canonical "the message" no longer exists - the owner pastes whichever
+  outreach draft they actually sent, same manual step tracking already
+  required for CV choice.
+- The ask/tricolon/signature-block checks in `outreach-validator.ts` are
+  keyword and line-count heuristics, not real NLP; see the `ponytail:`
+  comments there for the upgrade path.
+- `/api/offers/[id]/recruiter-message` is removed; `/api/offers/[id]/outreach`
+  and `src/shared/rate-limit/index.ts`'s `AI_OFFER_SUFFIXES` take its place.

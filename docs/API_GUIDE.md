@@ -293,7 +293,7 @@ message:string;
 AI Routes Error Handling
 
 Every AI-backed route (cv upload/optimize, offers add/match/tailor-cv/
-recruiter-message/cover-letter, posts generate/plan) funnels its
+outreach/cover-letter, posts generate/plan) funnels its
 non-domain-specific failures through one shared helper,
 toAiErrorResponse(error, fallbackMessage) in src/shared/ai/errors.ts, after
 its own domain-error instanceof checks:
