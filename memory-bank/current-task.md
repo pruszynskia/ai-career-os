@@ -2,6 +2,66 @@
 
 ## Current Sprint
 
+### Feature: TASK-085 — Application outcomes and the response-rate readout
+
+Status: **done** — green on typecheck/lint/test/build. Backend + Kanban board
+tweak + one dashboard card, no Playwright loop (not `ui`-labelled, only one
+section of an existing board/dashboard).
+
+What shipped:
+
+- `supabase/migrations/20260918090000_application_status_terminal_outcomes.sql`
+  (new) — `alter type application_status add value if not exists` for
+  `OFFER`, `REJECTED`, `NO_RESPONSE`, `EXPIRED` (same idempotent pattern as
+  the `cv_document_kind` migrations).
+- `src/entities/application/types.ts` — the four values added to
+  `ApplicationStatus`/`applicationStatusSchema`/`APPLICATION_STATUS_LABELS`;
+  new `TERMINAL_APPLICATION_STATUSES`/`isTerminalApplicationStatus` and
+  `ACTIVE_APPLICATION_STATUSES` (the five open stages the Kanban board still
+  renders as columns).
+- `src/widgets/application-board/application-board.tsx` — columns now come
+  from `ACTIVE_APPLICATION_STATUSES` (still five); every terminal-status
+  application buckets into one new "Closed" lane instead of four more
+  columns. `BoardCard` gains a "Mark expired?" button, shown only when
+  `offer.isExpired && application && !isTerminalApplicationStatus(status)` —
+  calls the existing status mutation on click, never auto-applies.
+- `src/entities/outreach-message/service.ts` — added
+  `findChannelsByOwnerId` (job_offer_id + channel only, no message content)
+  for the readout's by-channel join.
+- `src/features/dashboard/services/response-rate-readout.ts` (new, pure, no
+  `server-only`) + `.test.ts` — `computeResponseRateReadout` buckets
+  applications by fit band (`fit.recommendedAction`), callback band
+  (`hrCallbackProbability` >=70/40-69/<40) and outreach channel (via
+  job-offer-joined `outreach_messages` rows, one application can span
+  channels); `MIN_SAMPLE_SIZE = 5` gates every rate to `null` below that
+  count. EXPIRED applications are excluded from every grouping entirely (no
+  decision was ever made). Median days-to-first-reply comes from
+  `application_status_events`, treating the first event past `APPLIED` that
+  isn't `NO_RESPONSE`/`EXPIRED` as the reply.
+- `src/features/dashboard/services/response-rate-readout.service.ts` (new,
+  `server-only`) — thin data-fetching wrapper (`applicationService
+  .findMany` + `applicationStatusEventService.findAllByOwnerId` +
+  `outreachMessageService.findChannelsByOwnerId`) calling the pure function.
+- `src/features/dashboard/components/response-rate-card.tsx` (new) — one
+  card, three `GroupSection`s plus the median-days line; renders one
+  not-enough-data `EmptyState` for the whole card below `MIN_SAMPLE_SIZE`
+  total applications, and "Not enough data" per group below that count.
+- `src/app/(app)/(protected)/dashboard/page.tsx` — fetches the readout,
+  renders `ResponseRateCard`; the "Upcoming interviews" active-pipeline
+  filter now also excludes `isTerminalApplicationStatus`, not just `APPLIED`.
+
+Not done (explicitly out of scope / `do_not`): EXPIRED is never applied
+automatically (suggestion button only), no timestamp columns added
+alongside `application_status_events`, no four extra Kanban columns, no
+response rate rendered below `MIN_SAMPLE_SIZE`.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 145 passed (5 new, in `response-rate-readout.test.ts`)
+- `npm run build` — pass
+
 ### Feature: TASK-083 — Outreach studio: channel formats, ban-list validator and variation check
 
 Status: **done** — green on typecheck/lint/test/build. Backend + one panel

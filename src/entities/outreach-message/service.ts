@@ -95,6 +95,25 @@ export const outreachMessageService = {
     return (data ?? []).map((row) => row.body as string);
   },
 
+  // Backs the response-rate readout's by-channel grouping (TASK-085,
+  // response-rate-readout.service.ts) - just enough to join an offer to the
+  // channel(s) it was outreached on, no message content.
+  async findChannelsByOwnerId(
+    ownerId: string,
+  ): Promise<{ jobOfferId: string; channel: OutreachChannel }[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .select('job_offer_id, channel')
+      .eq('owner_id', ownerId);
+
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      jobOfferId: row.job_offer_id as string,
+      channel: row.channel as OutreachChannel,
+    }));
+  },
+
   // Backs the per-company interlock (TASK-084, interlock.ts): who else at
   // this company got a draft addressed to them recently. Joins job_offers
   // for its company name since outreach_messages carries no company column
