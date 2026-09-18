@@ -6,9 +6,13 @@ import { PostCard } from '@/features/linkedin-posts/components/post-list';
 export function CampaignList({
   campaigns,
   posts,
+  reusedClaimIds,
+  claimTextById,
 }: {
   campaigns: PostCampaign[];
   posts: Post[];
+  reusedClaimIds: Set<string>;
+  claimTextById: Map<string, string>;
 }) {
   const nonEmptyCampaigns = campaigns.filter((campaign) =>
     posts.some((post) => post.campaignId === campaign.id),
@@ -29,7 +33,12 @@ export function CampaignList({
           {posts
             .filter((post) => post.campaignId === campaign.id)
             .map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard
+                key={post.id}
+                post={post}
+                reusedClaimIds={reusedClaimIds}
+                claimTextById={claimTextById}
+              />
             ))}
         </div>
       ))}

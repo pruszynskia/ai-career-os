@@ -4,11 +4,15 @@ import { z } from 'zod';
 
 import { postService } from '@/entities/post/service';
 import { profileService } from '@/entities/profile/service';
-import { parsedProfileSchema } from '@/entities/profile/types';
+import {
+  assertEvidenceBase,
+  assertValidClaims,
+} from '@/shared/ai/claim-validator';
 import {
   buildGeneratePostUserMessage,
   generatePostSystemPrompt,
 } from '@/shared/ai/prompts/generate-post';
+import { serializeEvidenceBase } from '@/shared/ai/prompts/generation-contract';
 import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
@@ -19,44 +23,45 @@ export class NoProfileError extends Error {
   }
 }
 
-const generatedPostSchema = z.object({ content: z.string() });
-
-export function buildProfileText(profile: {
-  summary: string;
-  skills: string[];
-  experience: unknown;
-}): string {
-  const experience = parsedProfileSchema.shape.experience.parse(
-    profile.experience,
-  );
-
-  const experienceText = experience
-    .map((item) => `${item.title} at ${item.company}: ${item.description}`)
-    .join('\n');
-
-  return `Summary: ${profile.summary}\n\nSkills: ${profile.skills.join(', ')}\n\nExperience:\n${experienceText}`;
-}
+const generatedPostSchema = z.object({
+  content: z.string(),
+  claimsUsed: z.array(z.string()),
+});
 
 export async function generatePost(topic: string) {
   const ownerId = await getOwnerId();
   const profile = await profileService.findUnique(ownerId);
 
   if (!profile) throw new NoProfileError();
+  // A profile with no usable claims (never parsed, or parsed before
+  // ADR-017's evidence base existed) would otherwise generate from
+  // "(no claims)" and still burn a metered quota unit.
+  assertEvidenceBase(profile.evidence);
 
   const aiService = await getMeteredAiService('generate_post');
-  const { content } = await aiService.generateStructured({
+  const { content, claimsUsed } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: generatePostSystemPrompt },
       {
         role: 'user',
-        content: buildGeneratePostUserMessage(buildProfileText(profile), topic),
+        content: buildGeneratePostUserMessage(
+          serializeEvidenceBase(profile.evidence),
+          topic,
+        ),
       },
     ],
     schema: generatedPostSchema,
     schemaName: 'generated_post',
   });
 
-  const post = await postService.create({ ownerId, content, status: 'DRAFT' });
+  assertValidClaims(profile.evidence, { claimsUsed, text: content });
+
+  const post = await postService.create({
+    ownerId,
+    content,
+    status: 'DRAFT',
+    claimsUsed,
+  });
 
   return { post };
 }
