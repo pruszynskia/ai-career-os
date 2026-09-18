@@ -35,7 +35,7 @@ export const outreachMessageService = {
       channel: OutreachChannel;
       subject: string | null;
       body: string;
-      contactName: string;
+      contactName: string | null;
       contactUrl: string | null;
       parentMessageId?: string | null;
     }[],
@@ -149,8 +149,14 @@ export const outreachMessageService = {
     }));
   },
 
-  // The most recent message for this offer, any channel - the "original"
-  // a follow-up (TASK-086) references and replies on the same channel as.
+  // The message this offer's follow-up (TASK-086) replies to: whichever
+  // channel was actually SENT, not an arbitrary draft. The outreach studio
+  // inserts all three channel drafts in a single createMany call, so they
+  // share an identical created_at - ordering by created_at alone can't
+  // break that tie, and picking the wrong one risks drafting a second
+  // CONNECTION_NOTE follow-up for a channel that can't send another.
+  // Falls back to most-recently-created among drafts only when nothing has
+  // been sent yet.
   async findLatestByJobOffer(
     ownerId: string,
     jobOfferId: string,
@@ -161,6 +167,7 @@ export const outreachMessageService = {
       .select('*')
       .eq('owner_id', ownerId)
       .eq('job_offer_id', jobOfferId)
+      .order('status', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();

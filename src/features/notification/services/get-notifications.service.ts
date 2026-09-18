@@ -2,6 +2,7 @@ import 'server-only';
 
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { applicationService } from '@/entities/application/service';
+import { isTerminalApplicationStatus } from '@/entities/application/types';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { outreachMessageService } from '@/entities/outreach-message/service';
 import { postService } from '@/entities/post/service';
@@ -161,10 +162,15 @@ export async function getNotifications(
   }
 
   const offerById = new Map(offers.map((offer) => [offer.id, offer]));
+  const applicationByOffer = new Map(
+    applications.map((application) => [application.jobOfferId, application]),
+  );
   for (const send of outreachSends) {
     if (send.channel !== 'CONNECTION_NOTE' || send.status !== 'SENT') continue;
     const offer = offerById.get(send.jobOfferId);
     if (!offer) continue;
+    const application = applicationByOffer.get(send.jobOfferId);
+    if (application && isTerminalApplicationStatus(application.status)) continue;
 
     const nudge = derivePendingRequestNudge(
       {

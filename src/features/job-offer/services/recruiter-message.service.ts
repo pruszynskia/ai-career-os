@@ -261,7 +261,7 @@ export async function generateFollowUp(
       channel,
       subject,
       body: result.body,
-      contactName: latest?.contactName ?? '',
+      contactName: latest?.contactName ?? null,
       contactUrl: latest?.contactUrl ?? null,
       parentMessageId: latest?.id ?? null,
     },
