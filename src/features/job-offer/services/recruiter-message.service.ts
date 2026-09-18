@@ -2,6 +2,7 @@ import 'server-only';
 
 import { z } from 'zod';
 
+import { applicationService } from '@/entities/application/service';
 import {
   cvDocumentService,
   NoMasterCvError,
@@ -19,11 +20,17 @@ import {
   assertValidClaims,
 } from '@/shared/ai/claim-validator';
 import {
+  buildFollowUpUserMessage,
   buildOutreachUserMessage,
+  followUpSystemPrompt,
   outreachSystemPrompt,
 } from '@/shared/ai/prompts/outreach';
 import { serializeEvidenceBase } from '@/shared/ai/prompts/generation-contract';
-import { assertValidOutreach } from '@/shared/ai/outreach-validator';
+import {
+  assertValidOutreach,
+  CHANNEL_BUDGETS,
+  EMAIL_SUBJECT_HARD_MAX,
+} from '@/shared/ai/outreach-validator';
 import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
 
@@ -152,4 +159,120 @@ export async function generateOutreach(
   );
 
   return { messages };
+}
+
+// Thrown when the follow-up nudge is drafted for an offer with no tracked
+// application - the nudge only ever fires for one (see derive-nudges.ts),
+// so this is a defensive guard, not a path a user should be able to reach.
+export class NoApplicationError extends Error {
+  constructor(
+    message = 'Track this offer as an application before drafting a follow-up.',
+  ) {
+    super(message);
+    this.name = 'NoApplicationError';
+  }
+}
+
+const FOLLOW_UP_SHRINK_FACTOR = 0.5;
+
+// A single, shorter reply-nudge for an offer's follow-up notification
+// (TASK-086) - not the three-channel first send generateOutreach produces.
+// Replies on whichever channel this owner last used for the offer, falling
+// back to email and the application's own recruiter message when no
+// outreach-studio draft exists yet for it.
+export async function generateFollowUp(
+  id: string,
+): Promise<{ message: OutreachMessage }> {
+  const ownerId = await getOwnerId();
+  const offer = await getOfferOrThrow(id);
+
+  const application = await applicationService.findByOffer(ownerId, offer.id);
+  if (!application) {
+    throw new NoApplicationError();
+  }
+
+  if (!(await cvDocumentService.existsMaster(ownerId))) {
+    throw new NoMasterCvError('Upload a CV before using it for this offer.');
+  }
+  const profile = await profileService.findUnique(ownerId);
+  const evidence = profile?.evidence ?? EMPTY_EVIDENCE_BASE;
+  assertEvidenceBase(evidence);
+
+  const latest = await outreachMessageService.findLatestByJobOffer(
+    ownerId,
+    offer.id,
+  );
+  // A connection note can't be sent a second time - LinkedIn allows one
+  // pending request per person - so a follow-up on that channel always
+  // means a direct message instead, never another connection note.
+  const originalChannel: OutreachChannel = latest?.channel ?? 'EMAIL';
+  const channel: OutreachChannel =
+    originalChannel === 'CONNECTION_NOTE' ? 'DIRECT_MESSAGE' : originalChannel;
+  const originalMessage = latest?.body ?? application.recruiterMessage;
+  const contactName = latest?.contactName ?? '';
+  const maxChars = Math.round(
+    CHANNEL_BUDGETS[channel].hardMax * FOLLOW_UP_SHRINK_FACTOR,
+  );
+
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - VARIATION_WINDOW_DAYS);
+  const recentBodies = await outreachMessageService.findRecentBodies(
+    ownerId,
+    since,
+    offer.id,
+  );
+
+  const aiService = await getMeteredAiService('outreach');
+  const result = await aiService.generateStructured({
+    messages: [
+      { role: 'system', content: followUpSystemPrompt },
+      {
+        role: 'user',
+        content: buildFollowUpUserMessage(
+          serializeEvidenceBase(evidence),
+          offer.description,
+          contactName,
+          originalMessage,
+          maxChars,
+        ),
+      },
+    ],
+    schema: draftSchema,
+    schemaName: 'outreach-follow-up',
+    maxTokens: 1024,
+  });
+
+  assertValidClaims(evidence, {
+    claimsUsed: result.claimsUsed,
+    text: result.body,
+  });
+
+  // A follow-up on the email channel is still an email - it needs a subject
+  // line even when there was no prior outreach-studio draft to reply to
+  // (the recruiterMessage fallback above has none of its own).
+  const rawSubject = latest?.subject
+    ? `Re: ${latest.subject}`
+    : channel === 'EMAIL'
+      ? `Following up: ${offer.title}`
+      : null;
+  const subject = rawSubject?.slice(0, EMAIL_SUBJECT_HARD_MAX) ?? null;
+
+  assertValidOutreach(
+    { channel, subject, body: result.body },
+    recentBodies,
+    maxChars,
+  );
+
+  const [message] = await outreachMessageService.createMany(ownerId, offer.id, [
+    {
+      channel,
+      subject,
+      body: result.body,
+      contactName: latest?.contactName ?? null,
+      contactUrl: latest?.contactUrl ?? null,
+      parentMessageId: latest?.id ?? null,
+    },
+  ]);
+
+  return { message };
 }

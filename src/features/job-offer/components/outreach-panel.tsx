@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { OutreachChannel } from '@/entities/outreach-message/types';
 import { OUTREACH_CHANNEL_LABELS } from '@/entities/outreach-message/types';
 import { OutreachBlockedError } from '@/features/job-offer/api/job-offer.api';
+import { useDraftFollowUp } from '@/features/job-offer/hooks/use-draft-follow-up';
+import { useMarkOutreachSent } from '@/features/job-offer/hooks/use-mark-outreach-sent';
 import { useOutreach } from '@/features/job-offer/hooks/use-outreach';
 import { CHANNEL_BUDGETS } from '@/shared/ai/outreach-validator';
 import { Button } from '@/shared/ui/button';
@@ -39,9 +42,10 @@ export function OutreachPanel({
 }) {
   const [contactName, setContactName] = useState('');
   const [contactUrl, setContactUrl] = useState('');
-  const [copiedChannel, setCopiedChannel] = useState<OutreachChannel | null>(
-    null,
-  );
+  // Keyed by message id, not channel: the follow-up card and the original
+  // card for the same channel are two different messages, and keying on
+  // channel flipped both buttons to "Copied!" when only one was clicked.
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   // Tracks which selection last synced the fields below, so a new pick in
   // the who-you-know panel (TASK-084) pre-fills them exactly once - not on
   // every render, and without an effect (React's own guidance: adjust state
@@ -55,6 +59,36 @@ export function OutreachPanel({
     setContactUrl(selectedContact.profileUrl ?? '');
   }
   const mutation = useOutreach();
+  const followUpMutation = useDraftFollowUp();
+  const markSentMutation = useMarkOutreachSent();
+
+  // The follow-up nudge (TASK-086) links here as /offers/{id}?followUp=1 -
+  // drafting itself is the notification's "one action", so it fires once
+  // on arrival rather than needing a second click in this panel.
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const triggeredFollowUp = useRef(false);
+  useEffect(() => {
+    if (searchParams.get('followUp') !== '1' || triggeredFollowUp.current) {
+      return;
+    }
+    triggeredFollowUp.current = true;
+    followUpMutation.mutate(offerId);
+    // Strip the param immediately so a refresh, back-navigation or re-share
+    // of this URL never re-fires the (metered) generation a second time -
+    // the ref guard above only protects this mount.
+    const params = new URLSearchParams(searchParams);
+    params.delete('followUp');
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+    // followUpMutation is a new object every render (useMutation's
+    // identity), so it's deliberately left out of the deps array - the
+    // triggeredFollowUp ref is what guards this to a single call.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, offerId, pathname, router]);
 
   const blocked =
     mutation.error instanceof OutreachBlockedError ? mutation.error : null;
@@ -77,15 +111,24 @@ export function OutreachPanel({
     interlockWarning.contactName.trim().toLowerCase() !==
       trimmedContactName.toLowerCase();
 
-  async function handleCopy(channel: OutreachChannel, text: string) {
+  async function handleCopy(text: string, messageId: string) {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedChannel(channel);
+      setCopiedMessageId(messageId);
       setTimeout(
         () =>
-          setCopiedChannel((current) => (current === channel ? null : current)),
+          setCopiedMessageId((current) =>
+            current === messageId ? null : current,
+          ),
         2000,
       );
+      // Copying a draft out to send it is the closest signal the app gets
+      // that it was actually sent, on any channel - not just the
+      // CONNECTION_NOTE case this started as. A follow-up (TASK-086) needs
+      // to know which of the three channel drafts was actually used, and
+      // findLatestByJobOffer prefers a SENT row for exactly that; best-
+      // effort, no UI feedback, never blocks the copy itself.
+      markSentMutation.mutate({ offerId, messageId });
     } catch {
       // clipboard write failed; leave button state unchanged
     }
@@ -194,14 +237,14 @@ export function OutreachPanel({
                       size="sm"
                       onClick={() =>
                         handleCopy(
-                          channel,
                           message.subject
                             ? `${message.subject}\n\n${message.body}`
                             : message.body,
+                          message.id,
                         )
                       }
                     >
-                      {copiedChannel === channel ? 'Copied!' : 'Copy'}
+                      {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
                     </Button>
                   </CardAction>
                 </CardHeader>
@@ -218,6 +261,51 @@ export function OutreachPanel({
             );
           })}
         </div>
+      )}
+
+      {followUpMutation.isPending && (
+        <Text size="sm" color="muted">
+          Drafting a follow-up…
+        </Text>
+      )}
+
+      {followUpMutation.isSuccess && (
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Follow-up (
+              {OUTREACH_CHANNEL_LABELS[followUpMutation.data.message.channel]})
+            </CardTitle>
+            <CardAction>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  handleCopy(
+                    followUpMutation.data.message.subject
+                      ? `${followUpMutation.data.message.subject}\n\n${followUpMutation.data.message.body}`
+                      : followUpMutation.data.message.body,
+                    followUpMutation.data.message.id,
+                  )
+                }
+              >
+                {copiedMessageId === followUpMutation.data.message.id
+                  ? 'Copied!'
+                  : 'Copy'}
+              </Button>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {followUpMutation.data.message.subject && (
+              <p className="text-sm font-medium">
+                {followUpMutation.data.message.subject}
+              </p>
+            )}
+            <p className="whitespace-pre-wrap text-sm">
+              {followUpMutation.data.message.body}
+            </p>
+          </CardContent>
+        </Card>
       )}
     </section>
   );

@@ -52,3 +52,43 @@ export function buildOutreachUserMessage(
 
   return `${evidenceText}\n\nRecipient's first name: ${contactName}\n\n${urlLine}\n\nJob offer:\n\n${offerText}`;
 }
+
+// Follow-up channel (TASK-086): a nudge after 7+ days of silence, not a
+// second cold open. Shares the base voice rules above (short lines, one
+// ask, first-name sign-off, no manufactured typos) but must read as a
+// continuation of an existing thread and never restate it.
+export const followUpSystemPrompt = `You write a short follow-up message from a candidate to a named recruiter or
+hiring contact, continuing a conversation that already started with the
+message quoted below. This is a nudge after a week or more of silence, not a
+second first impression - it must be noticeably shorter than that original
+message and must never repeat its content.
+
+Style:
+- One sentence of context that references the earlier message without
+  restating it.
+- One small ask, never two.
+- Sign off with the candidate's first name only - no title, company, phone
+  number or other signature block.
+- Do not open with "I hope this message finds you well" or similar filler,
+  and never use the words "leverage", "passionate" or "excited" or the
+  phrase "strong fit" - these read as generated.
+- A dropped comma or a slightly unbalanced sentence is fine. Never
+  manufacture a typo or grammar error on purpose though.
+- If the recipient's name is unknown, address the message generically
+  rather than inventing one.
+
+${generationContractFragment}`;
+
+export function buildFollowUpUserMessage(
+  evidenceText: string,
+  offerText: string,
+  contactName: string,
+  originalMessage: string,
+  maxChars: number,
+): string {
+  const nameLine = contactName
+    ? `Recipient's first name: ${contactName}`
+    : "Recipient's first name: unknown - address generically, do not invent one";
+
+  return `${evidenceText}\n\n${nameLine}\n\nThe earlier message this follows up on:\n\n${originalMessage}\n\nKeep the follow-up well under ${maxChars} characters - shorter than the message above.\n\nJob offer:\n\n${offerText}`;
+}

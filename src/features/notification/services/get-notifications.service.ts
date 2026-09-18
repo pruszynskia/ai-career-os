@@ -1,8 +1,14 @@
 import 'server-only';
 
+import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { applicationService } from '@/entities/application/service';
 import { jobOfferService } from '@/entities/job-offer/service';
+import { outreachMessageService } from '@/entities/outreach-message/service';
 import { postService } from '@/entities/post/service';
+import {
+  deriveFollowUpNudge,
+  derivePendingRequestNudge,
+} from '@/features/notification/services/derive-nudges';
 import type { Notification } from '@/features/notification/types';
 
 const RECENT_MS = 24 * 60 * 60 * 1000;
@@ -14,22 +20,34 @@ function isRecent(date: Date): boolean {
 export async function getNotifications(
   ownerId: string,
 ): Promise<Notification[]> {
-  let scheduledPosts, sentPosts, draftPosts, applications, offers;
+  let scheduledPosts,
+    sentPosts,
+    draftPosts,
+    applications,
+    offers,
+    statusEvents,
+    outreachSends;
   try {
-    [scheduledPosts, sentPosts, draftPosts, applications, offers] =
-      await Promise.all([
-        postService.findMany({ ownerId, status: 'SCHEDULED' }),
-        postService.findMany(
-          { ownerId, status: 'SENT' },
-          { orderBy: 'sentAt' },
-        ),
-        postService.findMany(
-          { ownerId, status: 'DRAFT' },
-          { orderBy: 'createdAt' },
-        ),
-        applicationService.findMany({ ownerId }),
-        jobOfferService.findMany({ ownerId }),
-      ]);
+    [
+      scheduledPosts,
+      sentPosts,
+      draftPosts,
+      applications,
+      offers,
+      statusEvents,
+      outreachSends,
+    ] = await Promise.all([
+      postService.findMany({ ownerId, status: 'SCHEDULED' }),
+      postService.findMany({ ownerId, status: 'SENT' }, { orderBy: 'sentAt' }),
+      postService.findMany(
+        { ownerId, status: 'DRAFT' },
+        { orderBy: 'createdAt' },
+      ),
+      applicationService.findMany({ ownerId }),
+      jobOfferService.findMany({ ownerId }),
+      applicationStatusEventService.findAllByOwnerId(ownerId),
+      outreachMessageService.findSendsByOwnerId(ownerId),
+    ]);
   } catch (error) {
     console.error('getNotifications: failed to aggregate notifications', error);
     return [];
@@ -104,6 +122,68 @@ export async function getNotifications(
         occurredAt: offer.expiresAt,
       });
     }
+  }
+
+  // Latest status event per application, and latest send per offer -
+  // both nudges below key off whichever of these is most recent rather
+  // than a stored "last notified" timestamp (TASK-086).
+  const latestEventByApplication = new Map<string, Date>();
+  for (const event of statusEvents) {
+    const current = latestEventByApplication.get(event.applicationId);
+    if (!current || event.createdAt > current) {
+      latestEventByApplication.set(event.applicationId, event.createdAt);
+    }
+  }
+  const latestSendByOffer = new Map<string, Date>();
+  for (const send of outreachSends) {
+    if (send.status !== 'SENT') continue;
+    const current = latestSendByOffer.get(send.jobOfferId);
+    if (!current || send.createdAt > current) {
+      latestSendByOffer.set(send.jobOfferId, send.createdAt);
+    }
+  }
+
+  for (const application of applications) {
+    const latestStatusEventAt =
+      latestEventByApplication.get(application.id) ?? application.createdAt;
+    const nudge = deriveFollowUpNudge(
+      {
+        applicationId: application.id,
+        jobOfferId: application.jobOfferId,
+        company: application.jobOffer.company,
+        status: application.status,
+        latestStatusEventAt,
+        latestOutreachAt: latestSendByOffer.get(application.jobOfferId) ?? null,
+      },
+      now,
+    );
+    if (nudge) notifications.push(nudge);
+  }
+
+  const offerById = new Map(offers.map((offer) => [offer.id, offer]));
+  const applicationByOffer = new Map(
+    applications.map((application) => [application.jobOfferId, application]),
+  );
+  for (const send of outreachSends) {
+    if (send.channel !== 'CONNECTION_NOTE' || send.status !== 'SENT') continue;
+    const offer = offerById.get(send.jobOfferId);
+    if (!offer) continue;
+    // "Still pending after 14 days" only holds while the application has
+    // had no reply at all - HR/TECHNICAL/TEAM/CEO_OR_MANAGER already got
+    // one even though those stages aren't terminal, same as any outcome.
+    const application = applicationByOffer.get(send.jobOfferId);
+    if (application && application.status !== 'APPLIED') continue;
+
+    const nudge = derivePendingRequestNudge(
+      {
+        outreachMessageId: send.id,
+        jobOfferId: send.jobOfferId,
+        company: offer.company,
+        sentAt: send.createdAt,
+      },
+      now,
+    );
+    if (nudge) notifications.push(nudge);
   }
 
   return notifications.sort(
