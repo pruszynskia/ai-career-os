@@ -21,6 +21,7 @@ function toOutreachMessage(row: Record<string, unknown>): OutreachMessage {
     body: row.body,
     contactName: row.contact_name ?? null,
     contactUrl: row.contact_url ?? null,
+    parentMessageId: row.parent_message_id ?? null,
     status: row.status,
     createdAt: new Date(row.created_at as string),
   });
@@ -36,6 +37,7 @@ export const outreachMessageService = {
       body: string;
       contactName: string;
       contactUrl: string | null;
+      parentMessageId?: string | null;
     }[],
   ): Promise<OutreachMessage[]> {
     const supabase = await createClient();
@@ -50,6 +52,7 @@ export const outreachMessageService = {
           body: draft.body,
           contact_name: draft.contactName,
           contact_url: draft.contactUrl,
+          parent_message_id: draft.parentMessageId ?? null,
         })),
       )
       .select();
@@ -112,6 +115,80 @@ export const outreachMessageService = {
       jobOfferId: row.job_offer_id as string,
       channel: row.channel as OutreachChannel,
     }));
+  },
+
+  // Backs both notification nudges (TASK-086, derive-nudges.ts): the
+  // follow-up nudge needs this owner's latest send per offer regardless of
+  // channel/status, the pending-request nudge needs every sent connection
+  // note. One bulk, no-body fetch covers both rather than two near-duplicate
+  // queries.
+  async findSendsByOwnerId(ownerId: string): Promise<
+    {
+      id: string;
+      jobOfferId: string;
+      channel: OutreachChannel;
+      status: 'DRAFT' | 'SENT';
+      contactName: string | null;
+      createdAt: Date;
+    }[]
+  > {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .select('id, job_offer_id, channel, status, contact_name, created_at')
+      .eq('owner_id', ownerId);
+
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      id: row.id as string,
+      jobOfferId: row.job_offer_id as string,
+      channel: row.channel as OutreachChannel,
+      status: row.status as 'DRAFT' | 'SENT',
+      contactName: (row.contact_name as string | null) ?? null,
+      createdAt: new Date(row.created_at as string),
+    }));
+  },
+
+  // The most recent message for this offer, any channel - the "original"
+  // a follow-up (TASK-086) references and replies on the same channel as.
+  async findLatestByJobOffer(
+    ownerId: string,
+    jobOfferId: string,
+  ): Promise<OutreachMessage | null> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .eq('job_offer_id', jobOfferId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? toOutreachMessage(data) : null;
+  },
+
+  // The only status transition this entity ever makes (TASK-086) - the
+  // outreach panel calls this when the owner copies a connection note,
+  // since copying it out to LinkedIn is the closest signal the app gets to
+  // "this was actually sent".
+  // maybeSingle, not single: a wrong-owner or already-deleted id is a
+  // legitimate "not found" case, not a server error - single() would throw
+  // a Postgrest error for zero rows and the route below would 500 instead
+  // of 404.
+  async markSent(id: string, ownerId: string): Promise<OutreachMessage | null> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .update({ status: 'SENT' })
+      .eq('id', id)
+      .eq('owner_id', ownerId)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? toOutreachMessage(data) : null;
   },
 
   // Backs the per-company interlock (TASK-084, interlock.ts): who else at

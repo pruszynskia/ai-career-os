@@ -35,6 +35,10 @@ export interface OutreachResponse {
   messages: OutreachMessage[];
 }
 
+export interface FollowUpResponse {
+  message: OutreachMessage;
+}
+
 export interface CoverLetterResponse {
   cvDocument: CvDocument;
 }

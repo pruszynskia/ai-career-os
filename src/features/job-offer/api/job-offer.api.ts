@@ -1,6 +1,7 @@
 import type {
   AddOfferResponse,
   CoverLetterResponse,
+  FollowUpResponse,
   MatchOfferResponse,
   OutreachResponse,
   TailorCvResponse,
@@ -160,6 +161,48 @@ export async function generateOutreach(
       createdAt: new Date(message.createdAt),
     })),
   };
+}
+
+export async function draftFollowUp(id: string): Promise<FollowUpResponse> {
+  const response = await fetch(`/api/offers/${id}/outreach/follow-up`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(errorBody?.message ?? 'Failed to draft a follow-up.');
+  }
+
+  // Wire shape only - see generateOutreach's identical comment above.
+  const body = (await response.json()) as {
+    message: Omit<OutreachResponse['messages'][number], 'createdAt'> & {
+      createdAt: string;
+    };
+  };
+
+  return {
+    message: { ...body.message, createdAt: new Date(body.message.createdAt) },
+  };
+}
+
+export async function markOutreachSent(
+  offerId: string,
+  messageId: string,
+): Promise<void> {
+  const response = await fetch(`/api/offers/${offerId}/outreach/mark-sent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messageId }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? 'Failed to mark the message as sent.');
+  }
 }
 
 export function generateCoverLetter(id: string): Promise<CoverLetterResponse> {

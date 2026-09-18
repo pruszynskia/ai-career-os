@@ -188,13 +188,16 @@ function findVariationViolation(
 export function findOutreachViolations(
   draft: OutreachDraft,
   recentBodies: string[],
+  // Follow-ups (TASK-086) pass a tighter cap than the channel's own hard
+  // max - "shorter than the original" is otherwise only a prompt hint, so
+  // a follow-up as long as the original still passed this check.
+  maxLength: number = CHANNEL_BUDGETS[draft.channel].hardMax,
 ): string[] {
   const violations: string[] = [];
-  const budget = CHANNEL_BUDGETS[draft.channel];
 
-  if (draft.body.length > budget.hardMax) {
+  if (draft.body.length > maxLength) {
     violations.push(
-      `${draft.channel} body is ${draft.body.length} characters, over the ${budget.hardMax} character budget`,
+      `${draft.channel} body is ${draft.body.length} characters, over the ${maxLength} character budget`,
     );
   }
 
@@ -254,8 +257,9 @@ export function findOutreachViolations(
 export function assertValidOutreach(
   draft: OutreachDraft,
   recentBodies: string[],
+  maxLength?: number,
 ): void {
-  const violations = findOutreachViolations(draft, recentBodies);
+  const violations = findOutreachViolations(draft, recentBodies, maxLength);
   if (violations.length > 0) {
     throw new OutreachValidationError(violations);
   }

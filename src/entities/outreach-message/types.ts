@@ -23,10 +23,14 @@ export const outreachMessageSchema = z.object({
   body: z.string().min(1),
   contactName: z.string().nullable(),
   contactUrl: z.string().nullable(),
-  // Only value ever written today (see the column default in the
-  // outreach_messages migration) - a literal keeps this schema as strict
-  // as the rest of the slice instead of accepting any string.
-  status: z.literal('DRAFT'),
+  // Set only for a follow-up draft (TASK-086) - the outreach_messages row
+  // it replies to.
+  parentMessageId: z.string().nullable(),
+  // DRAFT until the owner marks it sent (TASK-086's outreach-panel "Copy"
+  // action does this for a connection note) - the pending-request nudge
+  // derives from that transition. An enum, not a free string, so a typo'd
+  // status can't silently fail to match either derivation.
+  status: z.enum(['DRAFT', 'SENT']),
   createdAt: z.date(),
 });
 
@@ -39,6 +43,7 @@ export interface OutreachMessage {
   body: string;
   contactName: string | null;
   contactUrl: string | null;
-  status: 'DRAFT';
+  parentMessageId: string | null;
+  status: 'DRAFT' | 'SENT';
   createdAt: Date;
 }
