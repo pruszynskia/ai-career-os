@@ -3,6 +3,7 @@ import type {
   ParsedProfileScore,
 } from '@/entities/profile/types';
 import { profileService } from '@/entities/profile/service';
+import { ImportConnectionsForm } from '@/features/contact/components/import-connections-form';
 import { CoverLetterUploadForm } from '@/features/cv/components/cover-letter-upload-form';
 import { CvUploadForm } from '@/features/cv/components/cv-upload-form';
 import { OptimizeCoverLetterPanel } from '@/features/cv/components/optimize-cover-letter-panel';
@@ -25,6 +26,7 @@ export default async function ProfilePage() {
       <CvUploadForm />
       <CoverLetterUploadForm />
       <OptimizeCoverLetterPanel />
+      <ImportConnectionsForm />
 
       {profile ? (
         <>

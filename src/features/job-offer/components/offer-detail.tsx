@@ -48,6 +48,8 @@ export function OfferDetail({
   onAddSkill,
   addingSkill,
   renderTailoringReport,
+  renderWhoYouKnow,
+  interlockWarning,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -72,10 +74,24 @@ export function OfferDetail({
   renderTailoringReport?: (
     report: NonNullable<CvDocument['tailoringReport']>,
   ) => ReactNode;
+  // Same reason again: the who-you-know panel is owned by the contact
+  // feature. A render prop (not a plain ReactNode) because OfferDetail owns
+  // the "which contact is selected" state that both this panel and
+  // OutreachPanel need (TASK-084) - the widget can't own it since it
+  // doesn't render the outreach panel itself.
+  renderWhoYouKnow?: (params: {
+    onSelect: (contact: { name: string; profileUrl: string | null }) => void;
+    selectedContactName: string | null;
+  }) => ReactNode;
+  interlockWarning?: { contactName: string; messagedAt: Date } | null;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
   const [fit, setFit] = useState(offer.fit);
+  const [selectedContact, setSelectedContact] = useState<{
+    name: string;
+    profileUrl: string | null;
+  } | null>(null);
   const matchMutation = useMatchOffer();
   const tailorCvMutation = useTailorCv();
   const coverLetterMutation = useCoverLetter();
@@ -373,7 +389,21 @@ export function OfferDetail({
 
           <Divider />
 
-          <OutreachPanel offerId={offer.id} />
+          {renderWhoYouKnow && (
+            <>
+              {renderWhoYouKnow({
+                onSelect: setSelectedContact,
+                selectedContactName: selectedContact?.name ?? null,
+              })}
+              <Divider />
+            </>
+          )}
+
+          <OutreachPanel
+            offerId={offer.id}
+            selectedContact={selectedContact}
+            interlockWarning={interlockWarning}
+          />
 
           <Divider />
 

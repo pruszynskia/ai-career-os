@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { applicationService } from '@/entities/application/service';
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
+import { contactService } from '@/entities/contact/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { postService } from '@/entities/post/service';
@@ -23,6 +24,7 @@ export async function GET() {
     posts,
     statusEvents,
     subscription,
+    contacts,
   ] = await Promise.all([
     profileService.findUnique(ownerId),
     jobOfferService.findMany({ ownerId }),
@@ -31,6 +33,7 @@ export async function GET() {
     postService.findMany({ ownerId }),
     applicationStatusEventService.findAllByOwnerId(ownerId),
     subscriptionService.findByOwnerId(ownerId),
+    contactService.findAllByOwnerId(ownerId),
   ]);
 
   return NextResponse.json(
@@ -43,6 +46,7 @@ export async function GET() {
       posts,
       statusEvents,
       subscription,
+      contacts,
     },
     {
       headers: {

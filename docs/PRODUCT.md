@@ -157,6 +157,25 @@ Users can:
 
 ---
 
+### Warm contacts
+
+A first-degree LinkedIn connection is both the highest-response and the
+lowest-risk outreach channel, because the platform treats a message to
+someone already connected very differently from a cold request to a
+stranger. Users can:
+
+- import their own LinkedIn "Connections.csv" data export and have each
+  contact classified by job title (non-IT, generalist, IT recruiter,
+  decision-maker) with a deterministic keyword matcher - no AI call, and
+  never a scrape or a LinkedIn API integration
+- add a contact by hand, with no import required
+- see who they already know at an offer's hiring company, on that offer's
+  detail page, and select a contact to address an outreach draft to
+- get a non-blocking warning when another contact at the same company was
+  already messaged within the last 30 days
+
+---
+
 ### LinkedIn posts
 
 Users can:

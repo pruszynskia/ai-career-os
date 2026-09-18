@@ -24,12 +24,36 @@ const CHANNEL_ORDER: OutreachChannel[] = [
   'EMAIL',
 ];
 
-export function OutreachPanel({ offerId }: { offerId: string }) {
+// interlockWarning/selectedContact carry no dependency on the contact
+// feature's own types - job-offer and contact are isolated feature slices
+// (ADR-008), so OfferDetail (which composes both) passes this panel plain
+// data rather than either feature importing the other.
+export function OutreachPanel({
+  offerId,
+  selectedContact,
+  interlockWarning,
+}: {
+  offerId: string;
+  selectedContact?: { name: string; profileUrl: string | null } | null;
+  interlockWarning?: { contactName: string; messagedAt: Date } | null;
+}) {
   const [contactName, setContactName] = useState('');
   const [contactUrl, setContactUrl] = useState('');
   const [copiedChannel, setCopiedChannel] = useState<OutreachChannel | null>(
     null,
   );
+  // Tracks which selection last synced the fields below, so a new pick in
+  // the who-you-know panel (TASK-084) pre-fills them exactly once - not on
+  // every render, and without an effect (React's own guidance: adjust state
+  // during render, not in a setState-in-effect that triggers a second
+  // render). The name/URL stay plain editable state after that, so the
+  // user can still hand-type or tweak them.
+  const [syncedContact, setSyncedContact] = useState(selectedContact ?? null);
+  if (selectedContact && selectedContact !== syncedContact) {
+    setSyncedContact(selectedContact);
+    setContactName(selectedContact.name);
+    setContactUrl(selectedContact.profileUrl ?? '');
+  }
   const mutation = useOutreach();
 
   const blocked =
@@ -40,6 +64,18 @@ export function OutreachPanel({ offerId }: { offerId: string }) {
       message,
     ]),
   );
+  // Only a warning once a contact is actually addressed, and only when that
+  // contact differs from the one the interlock already flagged -
+  // re-messaging the same person isn't "a second contact at this company"
+  // (do_not: never a hard block either). Without the non-empty check this
+  // fired on page load before any contact was picked, since '' never
+  // matches the flagged name.
+  const trimmedContactName = contactName.trim();
+  const showInterlockWarning =
+    interlockWarning &&
+    trimmedContactName.length > 0 &&
+    interlockWarning.contactName.trim().toLowerCase() !==
+      trimmedContactName.toLowerCase();
 
   async function handleCopy(channel: OutreachChannel, text: string) {
     try {
@@ -109,6 +145,15 @@ export function OutreachPanel({ offerId }: { offerId: string }) {
           {mutation.isPending ? 'Drafting…' : 'Draft outreach'}
         </Button>
       </div>
+
+      {showInterlockWarning && interlockWarning && (
+        <Text size="sm" color="accent">
+          {interlockWarning.contactName} at this company was already messaged on{' '}
+          {interlockWarning.messagedAt.toLocaleDateString()} - contacting a
+          second person here within 30 days may look like spam. This is only a
+          warning; nothing is blocked.
+        </Text>
+      )}
 
       {blocked && (
         <Text size="sm" color="muted">
