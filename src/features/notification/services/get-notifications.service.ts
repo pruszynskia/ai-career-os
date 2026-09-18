@@ -2,7 +2,6 @@ import 'server-only';
 
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { applicationService } from '@/entities/application/service';
-import { isTerminalApplicationStatus } from '@/entities/application/types';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { outreachMessageService } from '@/entities/outreach-message/service';
 import { postService } from '@/entities/post/service';
@@ -169,8 +168,11 @@ export async function getNotifications(
     if (send.channel !== 'CONNECTION_NOTE' || send.status !== 'SENT') continue;
     const offer = offerById.get(send.jobOfferId);
     if (!offer) continue;
+    // "Still pending after 14 days" only holds while the application has
+    // had no reply at all - HR/TECHNICAL/TEAM/CEO_OR_MANAGER already got
+    // one even though those stages aren't terminal, same as any outcome.
     const application = applicationByOffer.get(send.jobOfferId);
-    if (application && isTerminalApplicationStatus(application.status)) continue;
+    if (application && application.status !== 'APPLIED') continue;
 
     const nudge = derivePendingRequestNudge(
       {

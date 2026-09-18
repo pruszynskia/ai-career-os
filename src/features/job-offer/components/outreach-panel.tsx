@@ -111,11 +111,7 @@ export function OutreachPanel({
     interlockWarning.contactName.trim().toLowerCase() !==
       trimmedContactName.toLowerCase();
 
-  async function handleCopy(
-    channel: OutreachChannel,
-    text: string,
-    messageId: string,
-  ) {
+  async function handleCopy(text: string, messageId: string) {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedMessageId(messageId);
@@ -126,12 +122,13 @@ export function OutreachPanel({
           ),
         2000,
       );
-      // Copying a connection note out to LinkedIn is the closest signal the
-      // app gets that it was actually sent (see markSent's own comment) -
-      // best-effort, no UI feedback, never blocks the copy itself.
-      if (channel === 'CONNECTION_NOTE') {
-        markSentMutation.mutate({ offerId, messageId });
-      }
+      // Copying a draft out to send it is the closest signal the app gets
+      // that it was actually sent, on any channel - not just the
+      // CONNECTION_NOTE case this started as. A follow-up (TASK-086) needs
+      // to know which of the three channel drafts was actually used, and
+      // findLatestByJobOffer prefers a SENT row for exactly that; best-
+      // effort, no UI feedback, never blocks the copy itself.
+      markSentMutation.mutate({ offerId, messageId });
     } catch {
       // clipboard write failed; leave button state unchanged
     }
@@ -240,7 +237,6 @@ export function OutreachPanel({
                       size="sm"
                       onClick={() =>
                         handleCopy(
-                          channel,
                           message.subject
                             ? `${message.subject}\n\n${message.body}`
                             : message.body,
@@ -286,7 +282,6 @@ export function OutreachPanel({
                 size="sm"
                 onClick={() =>
                   handleCopy(
-                    followUpMutation.data.message.channel,
                     followUpMutation.data.message.subject
                       ? `${followUpMutation.data.message.subject}\n\n${followUpMutation.data.message.body}`
                       : followUpMutation.data.message.body,

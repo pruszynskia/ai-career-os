@@ -169,6 +169,7 @@ export const outreachMessageService = {
       .eq('job_offer_id', jobOfferId)
       .order('status', { ascending: false })
       .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
       .limit(1)
       .maybeSingle();
 
