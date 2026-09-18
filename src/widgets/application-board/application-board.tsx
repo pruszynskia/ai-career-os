@@ -8,12 +8,17 @@ import { toast } from 'sonner';
 import type { ApplicationStatus } from '@/entities/application/types';
 import type { OfferWithApplication } from '@/features/job-offer/types';
 
-import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
+import {
+  ACTIVE_APPLICATION_STATUSES,
+  APPLICATION_STATUS_LABELS,
+  isTerminalApplicationStatus,
+} from '@/entities/application/types';
 import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
 import { useCreateApplication } from '@/features/application/hooks/use-create-application';
 import { useUpdateApplicationStatus } from '@/features/application/hooks/use-update-application-status';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { surfaceVariants } from '@/shared/ui/primitives/surface/surface';
+import { Button } from '@/shared/ui/button';
 import {
   Card,
   CardAction,
@@ -24,10 +29,11 @@ import {
 import { cn } from '@/shared/ui/utils';
 import { EmptyState } from '@/shared/ui/empty-state';
 
-const STATUS_COLUMNS = Object.entries(APPLICATION_STATUS_LABELS) as [
-  ApplicationStatus,
-  string,
-][];
+// The five open stages get one column each; terminal outcomes (TASK-085)
+// get one closed lane instead of four more columns.
+const STATUS_COLUMNS = ACTIVE_APPLICATION_STATUSES.map(
+  (status) => [status, APPLICATION_STATUS_LABELS[status]] as const,
+);
 
 // Module-scoped handle for the card being dragged. Native drag events only
 // carry strings; keeping the source here lets the drop handler tell a status
@@ -77,9 +83,15 @@ export function ApplicationBoard({
     STATUS_COLUMNS.map(([status]) => [status, []]),
   );
   const untracked: OfferWithApplication[] = [];
+  const closed: OfferWithApplication[] = [];
   for (const offer of offers) {
-    if (offer.application) tracked.get(offer.application.status)?.push(offer);
-    else untracked.push(offer);
+    if (!offer.application) {
+      untracked.push(offer);
+    } else if (isTerminalApplicationStatus(offer.application.status)) {
+      closed.push(offer);
+    } else {
+      tracked.get(offer.application.status)?.push(offer);
+    }
   }
 
   function handleDrop(target: ApplicationStatus) {
@@ -124,7 +136,7 @@ export function ApplicationBoard({
   return (
     <div
       aria-busy={isBusy}
-      className={`grid grid-cols-1 gap-3 transition-opacity sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 ${
+      className={`grid grid-cols-1 gap-3 transition-opacity sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 ${
         isBusy ? 'pointer-events-none opacity-60' : ''
       }`}
     >
@@ -178,12 +190,32 @@ export function ApplicationBoard({
           <BoardCard key={offer.id} offer={offer} />
         ))}
       </section>
+
+      <section
+        aria-label="Closed"
+        className={cn(
+          surfaceVariants({ elevation: 'raised', padding: 'sm' }),
+          'flex flex-col gap-2',
+        )}
+      >
+        <h3 className="px-1 text-sm font-medium">
+          Closed <span className="text-muted-foreground">{closed.length}</span>
+        </h3>
+        {closed.map((offer) => (
+          <BoardCard key={offer.id} offer={offer} />
+        ))}
+      </section>
     </div>
   );
 }
 
 function BoardCard({ offer }: { offer: OfferWithApplication }) {
   const { application } = offer;
+  const statusMutation = useUpdateApplicationStatus();
+  const suggestExpired =
+    application &&
+    offer.isExpired &&
+    !isTerminalApplicationStatus(application.status);
 
   return (
     <Card
@@ -221,11 +253,27 @@ function BoardCard({ offer }: { offer: OfferWithApplication }) {
           )}
         </CardDescription>
         {application ? (
-          <CardAction>
+          <CardAction className="flex flex-col items-end gap-1">
             <ApplicationStatusSelect
               applicationId={application.id}
               status={application.status}
             />
+            {suggestExpired && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={statusMutation.isPending}
+                onClick={() =>
+                  statusMutation.mutate({
+                    id: application.id,
+                    status: 'EXPIRED',
+                  })
+                }
+              >
+                Mark expired?
+              </Button>
+            )}
           </CardAction>
         ) : (
           <CardAction>

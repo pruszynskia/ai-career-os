@@ -1,5 +1,6 @@
 import { applicationService } from '@/entities/application/service';
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
+import { isTerminalApplicationStatus } from '@/entities/application/types';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { postService } from '@/entities/post/service';
 import { ApplicationStatusBreakdownCard } from '@/features/dashboard/components/application-status-breakdown-card';
@@ -7,7 +8,9 @@ import { FavoriteOffersCard } from '@/features/dashboard/components/favorite-off
 import { NextPostCard } from '@/features/dashboard/components/next-post-card';
 import { RecentActivityCard } from '@/features/dashboard/components/recent-activity-card';
 import { RecentOffersCard } from '@/features/dashboard/components/recent-offers-card';
+import { ResponseRateCard } from '@/features/dashboard/components/response-rate-card';
 import { UpcomingInterviewsCard } from '@/features/dashboard/components/upcoming-interviews-card';
+import { getResponseRateReadout } from '@/features/dashboard/services/response-rate-readout.service';
 import { getOwnerId } from '@/shared/auth/session';
 import { AppPageLayout } from '@/shared/layouts';
 import { Grid } from '@/shared/ui/primitives';
@@ -16,18 +19,29 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const ownerId = await getOwnerId();
-  const [posts, applications, favoriteOffers, recentOffers, recentActivity] =
-    await Promise.all([
-      postService.findMany(
-        { ownerId, status: 'SCHEDULED' },
-        { orderBy: 'scheduledAt', take: 1 },
-      ),
-      applicationService.findMany({ ownerId }),
-      jobOfferService.findMany({ ownerId, isFavorite: true }),
-      jobOfferService.findMany({ ownerId }, { take: 5 }),
-      applicationStatusEventService.findRecent({ ownerId }, { take: 5 }),
-    ]);
-  const upcoming = applications.filter((a) => a.status !== 'APPLIED');
+  const [
+    posts,
+    applications,
+    favoriteOffers,
+    recentOffers,
+    recentActivity,
+    responseRateReadout,
+  ] = await Promise.all([
+    postService.findMany(
+      { ownerId, status: 'SCHEDULED' },
+      { orderBy: 'scheduledAt', take: 1 },
+    ),
+    applicationService.findMany({ ownerId }),
+    jobOfferService.findMany({ ownerId, isFavorite: true }),
+    jobOfferService.findMany({ ownerId }, { take: 5 }),
+    applicationStatusEventService.findRecent({ ownerId }, { take: 5 }),
+    getResponseRateReadout(ownerId),
+  ]);
+  // Active pipeline: still-open work, not the terminal outcomes (TASK-085) -
+  // an OFFER/REJECTED/NO_RESPONSE/EXPIRED application is done, not upcoming.
+  const upcoming = applications.filter(
+    (a) => a.status !== 'APPLIED' && !isTerminalApplicationStatus(a.status),
+  );
 
   return (
     <AppPageLayout title="Dashboard">
@@ -35,6 +49,7 @@ export default async function DashboardPage() {
         <NextPostCard post={posts[0] ?? null} />
         <UpcomingInterviewsCard applications={upcoming} />
         <ApplicationStatusBreakdownCard applications={applications} />
+        <ResponseRateCard readout={responseRateReadout} />
         <RecentActivityCard events={recentActivity} />
         <FavoriteOffersCard offers={favoriteOffers} />
         <RecentOffersCard offers={recentOffers} />
