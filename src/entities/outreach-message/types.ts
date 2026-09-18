@@ -26,6 +26,9 @@ export const outreachMessageSchema = z.object({
   // Set only for a follow-up draft (TASK-086) - the outreach_messages row
   // it replies to.
   parentMessageId: z.string().nullable(),
+  // Set by markSent, alongside status - the tie-break findLatestByJobOffer
+  // needs when more than one channel draft for the same offer got sent.
+  sentAt: z.date().nullable(),
   // DRAFT until the owner marks it sent (TASK-086's outreach-panel "Copy"
   // action does this for a connection note) - the pending-request nudge
   // derives from that transition. An enum, not a free string, so a typo'd
@@ -44,6 +47,7 @@ export interface OutreachMessage {
   contactName: string | null;
   contactUrl: string | null;
   parentMessageId: string | null;
+  sentAt: Date | null;
   status: 'DRAFT' | 'SENT';
   createdAt: Date;
 }

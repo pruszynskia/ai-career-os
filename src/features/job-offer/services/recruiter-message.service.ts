@@ -29,6 +29,7 @@ import { serializeEvidenceBase } from '@/shared/ai/prompts/generation-contract';
 import {
   assertValidOutreach,
   CHANNEL_BUDGETS,
+  EMAIL_SUBJECT_HARD_MAX,
 } from '@/shared/ai/outreach-validator';
 import { getMeteredAiService } from '@/shared/ai/service';
 import { getOwnerId } from '@/shared/auth/session';
@@ -201,7 +202,12 @@ export async function generateFollowUp(
     ownerId,
     offer.id,
   );
-  const channel: OutreachChannel = latest?.channel ?? 'EMAIL';
+  // A connection note can't be sent a second time - LinkedIn allows one
+  // pending request per person - so a follow-up on that channel always
+  // means a direct message instead, never another connection note.
+  const originalChannel: OutreachChannel = latest?.channel ?? 'EMAIL';
+  const channel: OutreachChannel =
+    originalChannel === 'CONNECTION_NOTE' ? 'DIRECT_MESSAGE' : originalChannel;
   const originalMessage = latest?.body ?? application.recruiterMessage;
   const contactName = latest?.contactName ?? '';
   const maxChars = Math.round(
@@ -244,11 +250,12 @@ export async function generateFollowUp(
   // A follow-up on the email channel is still an email - it needs a subject
   // line even when there was no prior outreach-studio draft to reply to
   // (the recruiterMessage fallback above has none of its own).
-  const subject = latest?.subject
+  const rawSubject = latest?.subject
     ? `Re: ${latest.subject}`
     : channel === 'EMAIL'
       ? `Following up: ${offer.title}`
       : null;
+  const subject = rawSubject?.slice(0, EMAIL_SUBJECT_HARD_MAX) ?? null;
 
   assertValidOutreach(
     { channel, subject, body: result.body },

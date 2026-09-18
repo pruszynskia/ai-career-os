@@ -22,6 +22,7 @@ function toOutreachMessage(row: Record<string, unknown>): OutreachMessage {
     contactName: row.contact_name ?? null,
     contactUrl: row.contact_url ?? null,
     parentMessageId: row.parent_message_id ?? null,
+    sentAt: row.sent_at ? new Date(row.sent_at as string) : null,
     status: row.status,
     createdAt: new Date(row.created_at as string),
   });
@@ -150,13 +151,13 @@ export const outreachMessageService = {
   },
 
   // The message this offer's follow-up (TASK-086) replies to: whichever
-  // channel was actually SENT, not an arbitrary draft. The outreach studio
-  // inserts all three channel drafts in a single createMany call, so they
-  // share an identical created_at - ordering by created_at alone can't
-  // break that tie, and picking the wrong one risks drafting a second
-  // CONNECTION_NOTE follow-up for a channel that can't send another.
-  // Falls back to most-recently-created among drafts only when nothing has
-  // been sent yet.
+  // channel was actually sent, most recently, not an arbitrary draft. The
+  // outreach studio inserts all three channel drafts in a single createMany
+  // call, so they share an identical created_at - ordering by created_at
+  // alone can't tell which one the owner went on to send, and sent_at (set
+  // by markSent, not by the insert) is the only column that can. Falls back
+  // to most-recently-created among drafts only when nothing has been sent
+  // yet.
   async findLatestByJobOffer(
     ownerId: string,
     jobOfferId: string,
@@ -167,9 +168,8 @@ export const outreachMessageService = {
       .select('*')
       .eq('owner_id', ownerId)
       .eq('job_offer_id', jobOfferId)
-      .order('status', { ascending: false })
+      .order('sent_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
-      .order('id', { ascending: false })
       .limit(1)
       .maybeSingle();
 
@@ -178,9 +178,10 @@ export const outreachMessageService = {
   },
 
   // The only status transition this entity ever makes (TASK-086) - the
-  // outreach panel calls this when the owner copies a connection note,
-  // since copying it out to LinkedIn is the closest signal the app gets to
-  // "this was actually sent".
+  // outreach panel calls this when the owner copies a draft out to send it,
+  // since copying is the closest signal the app gets to "this was actually
+  // sent". sent_at (not just status) is what findLatestByJobOffer's
+  // channel-of-record tie-break relies on.
   // maybeSingle, not single: a wrong-owner or already-deleted id is a
   // legitimate "not found" case, not a server error - single() would throw
   // a Postgrest error for zero rows and the route below would 500 instead
@@ -189,7 +190,7 @@ export const outreachMessageService = {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('outreach_messages')
-      .update({ status: 'SENT' })
+      .update({ status: 'SENT', sent_at: new Date().toISOString() })
       .eq('id', id)
       .eq('owner_id', ownerId)
       .select()
