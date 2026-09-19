@@ -1,6 +1,9 @@
+import Link from 'next/link';
+
 import type { ResponseRateReadout } from '@/features/dashboard/services/response-rate-readout';
 
 import { MIN_SAMPLE_SIZE } from '@/features/dashboard/services/response-rate-readout';
+import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Text, VStack } from '@/shared/ui/primitives';
@@ -42,12 +45,16 @@ function GroupSection({
   );
 }
 
+// readout is null on the Free plan (TASK-088 gates the outcome readout
+// behind Pro) - shown as an inline upgrade prompt rather than hiding the
+// card entirely.
 export function ResponseRateCard({
   readout,
 }: {
-  readout: ResponseRateReadout;
+  readout: ResponseRateReadout | null;
 }) {
-  const hasEnoughData = readout.totalConsidered >= MIN_SAMPLE_SIZE;
+  const hasEnoughData =
+    readout !== null && readout.totalConsidered >= MIN_SAMPLE_SIZE;
 
   return (
     <Card>
@@ -55,7 +62,16 @@ export function ResponseRateCard({
         <CardTitle>Response rate</CardTitle>
       </CardHeader>
       <CardContent>
-        {!hasEnoughData ? (
+        {readout === null ? (
+          <EmptyState
+            message="See response rates by fit band, callback band and outreach channel on Pro."
+            action={
+              <Button asChild size="sm">
+                <Link href="/pricing">Upgrade to Pro</Link>
+              </Button>
+            }
+          />
+        ) : !hasEnoughData ? (
           <EmptyState
             message={`Not enough applications yet to report a response rate — track at least ${MIN_SAMPLE_SIZE} to see this readout.`}
           />

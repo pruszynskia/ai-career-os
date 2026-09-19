@@ -33,8 +33,8 @@ export default async function SettingsPage() {
             Appearance
           </Label>
           <Text size="sm" color="muted">
-            Follows your system&apos;s light/dark preference. A manual toggle
-            is coming soon.
+            Follows your system&apos;s light/dark preference. A manual toggle is
+            coming soon.
           </Text>
         </VStack>
 

@@ -31,7 +31,10 @@ export class NoEvidenceBaseError extends Error {
   }
 }
 
-export function assertEvidenceBase(evidence: EvidenceBase, message?: string): void {
+export function assertEvidenceBase(
+  evidence: EvidenceBase,
+  message?: string,
+): void {
   const usable = evidence.claims.filter((claim) => claim.state !== 'EXCLUDED');
   if (usable.length === 0) {
     throw new NoEvidenceBaseError(message);

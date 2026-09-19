@@ -48,10 +48,8 @@ describe('computeMechanicalSubscores', () => {
   it('records a missing preference as unknown rather than a silent zero', () => {
     const offerText = 'We use React, TypeScript and Postgres.';
 
-    const { coreStack, industry, workMode, salary } = computeMechanicalSubscores(
-      BASE_PREFERENCES,
-      offerText,
-    );
+    const { coreStack, industry, workMode, salary } =
+      computeMechanicalSubscores(BASE_PREFERENCES, offerText);
 
     expect(coreStack).toEqual({
       score: null,

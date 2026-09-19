@@ -7,6 +7,49 @@
 // compares array index to decide whether a plan meets a requirement.
 export type PlanId = 'free' | 'pro';
 
+// The capabilities TASK-088 gates behind Pro via requirePlan(ownerId, 'pro')
+// - src/app/(app)/(protected)/offers/[id]/page.tsx (fit report detail,
+// tailoring report), src/app/api/offers/[id]/outreach/route.ts and its
+// follow-up/route.ts sibling (outreach studio, both the initial draft and
+// the follow-up) and src/features/dashboard/services/response-rate-readout.service.ts
+// (outcome readout) each check the same tier, so this is the one place their
+// names are written down - Pro's feature bullets below quote it directly
+// rather than restating it.
+interface ProCapability {
+  name: string;
+  description: string;
+}
+
+const PRO_CAPABILITY_LIST: readonly ProCapability[] = [
+  {
+    name: 'Full fit report',
+    description: 'criteria breakdown, callback probability and missing skills',
+  },
+  {
+    name: 'Tailoring report',
+    description: 'keyword coverage and evidence trace on every tailored CV',
+  },
+  {
+    name: 'Outreach studio',
+    description: 'channel-specific drafts and ban-list validation',
+  },
+  {
+    name: 'Outcome readout',
+    description: 'response rates by fit band, callback band and channel',
+  },
+];
+
+export const PRO_CAPABILITIES: readonly string[] = PRO_CAPABILITY_LIST.map(
+  (capability) => `${capability.name} — ${capability.description}`,
+);
+
+// Short names for the same four capabilities, for copy that reads as a
+// sentence rather than a bulleted list (the marketing landing page and the
+// pricing page intro) - derived so that copy can't drift from the list above.
+export const PRO_CAPABILITY_NAMES: readonly string[] = PRO_CAPABILITY_LIST.map(
+  (capability) => capability.name.toLowerCase(),
+);
+
 export interface Plan {
   id: PlanId;
   name: string;
@@ -29,9 +72,9 @@ export const PLANS: readonly Plan[] = [
     tagline: 'Track your whole job search in one place.',
     aiActionsPerMonth: 10,
     features: [
-      'Unlimited job offers and applications',
-      'Master profile and CV',
+      'Unlimited job offers and applications, master profile and CV',
       'Duplicate-offer detection and interview pipeline',
+      'AI match score, tailored CVs and LinkedIn posts',
       '10 AI actions per month',
     ],
     cta: 'Get started',
@@ -42,13 +85,13 @@ export const PLANS: readonly Plan[] = [
     name: 'Pro',
     price: '€12',
     pricePeriod: 'per month',
-    tagline: 'Tailor every application with AI, without counting actions.',
+    tagline:
+      'See why an offer is worth the effort, and where a reply is likely.',
     aiActionsPerMonth: 500,
     features: [
       'Everything in Free',
+      ...PRO_CAPABILITIES,
       '500 AI actions per month',
-      'AI-tailored CVs and recruiter messages',
-      'AI-planned LinkedIn posts',
     ],
     cta: 'Upgrade to Pro',
     featured: true,

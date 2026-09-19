@@ -12,6 +12,7 @@ import { ResponseRateCard } from '@/features/dashboard/components/response-rate-
 import { UpcomingInterviewsCard } from '@/features/dashboard/components/upcoming-interviews-card';
 import { getResponseRateReadout } from '@/features/dashboard/services/response-rate-readout.service';
 import { getOwnerId } from '@/shared/auth/session';
+import { EntitlementError } from '@/shared/billing/errors';
 import { AppPageLayout } from '@/shared/layouts';
 import { Grid } from '@/shared/ui/primitives';
 
@@ -35,7 +36,12 @@ export default async function DashboardPage() {
     jobOfferService.findMany({ ownerId, isFavorite: true }),
     jobOfferService.findMany({ ownerId }, { take: 5 }),
     applicationStatusEventService.findRecent({ ownerId }, { take: 5 }),
-    getResponseRateReadout(ownerId),
+    // Free plan: null, not a thrown error, so the card below renders its
+    // own inline upgrade prompt instead of taking down the whole page.
+    getResponseRateReadout(ownerId).catch((error) => {
+      if (error instanceof EntitlementError) return null;
+      throw error;
+    }),
   ]);
   // Active pipeline: still-open work, not the terminal outcomes (TASK-085) -
   // an OFFER/REJECTED/NO_RESPONSE/EXPIRED application is done, not upcoming.

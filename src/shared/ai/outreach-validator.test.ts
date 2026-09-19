@@ -107,9 +107,9 @@ describe('findOutreachViolations', () => {
       [],
     );
 
-    expect(
-      violations.some((violation) => violation.includes('Tricolon')),
-    ).toBe(false);
+    expect(violations.some((violation) => violation.includes('Tricolon'))).toBe(
+      false,
+    );
   });
 
   it('does not flag a signature block on an early farewell-word opener', () => {

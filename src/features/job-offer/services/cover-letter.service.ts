@@ -2,11 +2,17 @@ import 'server-only';
 
 import { z } from 'zod';
 
-import { cvDocumentService, NoMasterCvError } from '@/entities/cv-document/service';
+import {
+  cvDocumentService,
+  NoMasterCvError,
+} from '@/entities/cv-document/service';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
 import { profileService } from '@/entities/profile/service';
 import { EMPTY_EVIDENCE_BASE } from '@/entities/profile/types';
-import { assertEvidenceBase, assertValidClaims } from '@/shared/ai/claim-validator';
+import {
+  assertEvidenceBase,
+  assertValidClaims,
+} from '@/shared/ai/claim-validator';
 import {
   buildCoverLetterUserMessage,
   coverLetterSystemPrompt,

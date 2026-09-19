@@ -24,17 +24,26 @@ export async function getPlanForOwner(ownerId: string): Promise<Plan> {
   return FREE_PLAN;
 }
 
+// Whether `plan` meets or exceeds `requiredPlanId`'s tier. PLANS is ordered
+// lowest-to-highest, so index comparison is tier ordering - the one place
+// that ordering is read, so a non-throwing check (e.g. deciding whether to
+// render a gated panel) never has to re-derive it as a raw `plan.id === X`.
+export function meetsPlan(plan: Plan, requiredPlanId: PlanId): boolean {
+  const requiredIndex = PLANS.findIndex(
+    (candidate) => candidate.id === requiredPlanId,
+  );
+  const currentIndex = PLANS.findIndex((candidate) => candidate.id === plan.id);
+  return currentIndex >= requiredIndex;
+}
+
 // Throws when the owner's current plan doesn't include the required tier.
-// PLANS is ordered lowest-to-highest, so index comparison is tier ordering.
 export async function requirePlan(
   ownerId: string,
   planId: PlanId,
 ): Promise<Plan> {
   const plan = await getPlanForOwner(ownerId);
-  const requiredIndex = PLANS.findIndex((candidate) => candidate.id === planId);
-  const currentIndex = PLANS.findIndex((candidate) => candidate.id === plan.id);
 
-  if (currentIndex < requiredIndex) {
+  if (!meetsPlan(plan, planId)) {
     const requiredPlan = getPlanById(planId);
     throw new EntitlementError(
       `This feature requires the ${requiredPlan.name} plan.`,

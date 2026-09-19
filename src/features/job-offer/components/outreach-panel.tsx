@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { OutreachChannel } from '@/entities/outreach-message/types';
 import { OUTREACH_CHANNEL_LABELS } from '@/entities/outreach-message/types';
-import { OutreachBlockedError } from '@/features/job-offer/api/job-offer.api';
+import {
+  EntitlementRequiredError,
+  OutreachBlockedError,
+} from '@/features/job-offer/api/job-offer.api';
 import { useDraftFollowUp } from '@/features/job-offer/hooks/use-draft-follow-up';
 import { useMarkOutreachSent } from '@/features/job-offer/hooks/use-mark-outreach-sent';
 import { useOutreach } from '@/features/job-offer/hooks/use-outreach';
@@ -18,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 import { Heading, Label, Spinner, Text } from '@/shared/ui/primitives';
 
@@ -92,6 +97,12 @@ export function OutreachPanel({
 
   const blocked =
     mutation.error instanceof OutreachBlockedError ? mutation.error : null;
+  const gated =
+    mutation.error instanceof EntitlementRequiredError
+      ? mutation.error
+      : followUpMutation.error instanceof EntitlementRequiredError
+        ? followUpMutation.error
+        : null;
   const messagesByChannel = new Map(
     (mutation.data?.messages ?? []).map((message) => [
       message.channel,
@@ -196,6 +207,17 @@ export function OutreachPanel({
           second person here within 30 days may look like spam. This is only a
           warning; nothing is blocked.
         </Text>
+      )}
+
+      {gated && (
+        <EmptyState
+          message={gated.message}
+          action={
+            <Button asChild size="sm">
+              <Link href={gated.upgradePath}>Upgrade to Pro</Link>
+            </Button>
+          }
+        />
       )}
 
       {blocked && (

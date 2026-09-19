@@ -21,11 +21,10 @@ matched, tailored, and consistent.
 
 # Product Mission
 
-Help `the owner (job-seeking professional)` land more interviews by:
-
-- `keeping a consistent, AI-assisted LinkedIn presence`
-- `tailoring CV and recruiter messages to each job offer automatically`
-- `tracking every application, its status, and its interview pipeline without duplicates`
+One verified record of what `the owner (job-seeking professional)` has
+actually done. Every tailored CV, recruiter message and LinkedIn post AI
+Career OS generates comes only from that record, with every claim traceable
+back to it — and effort is spent only where a reply is actually likely.
 
 ---
 
@@ -66,11 +65,13 @@ this company" is manual and error-prone.
 
 ---
 
-## Inconsistent CV tailoring
+## Ungrounded AI output and undifferentiated effort
 
-A CV tailored for one offer is forgotten by the next. There's no persistent
-"master" profile that every tailored version derives from, and no visibility
-into how well a CV actually matches a given offer.
+A CV or recruiter message an AI generates can claim things the user never
+actually did, with no way to check a claim against what is true. And every
+offer gets the same effort regardless of fit — there's no signal for which
+ones are actually worth tailoring, messaging and following up on, and which
+are not.
 
 ---
 
@@ -199,10 +200,12 @@ Users can:
 # Pricing & Packaging
 
 AI Career OS is sold as a subscription with two plans. This section is the
-single source of truth for tier names, limits and prices: TASK-056's Stripe
-prices, TASK-058's entitlement gate and TASK-059's usage quota all encode
-what is written here, and `src/features/marketing/components/pricing-table.tsx`
-renders it from one exported `PLANS` constant.
+single source of truth for tier names, limits, the capability split and
+prices: TASK-056's Stripe prices, TASK-058/TASK-088's entitlement gate and
+TASK-059's usage quota all encode what is written here, and
+`src/features/marketing/components/pricing-table.tsx` and the marketing
+landing page both render their feature lists from the one exported `PLANS`
+constant in `src/shared/billing/plans.ts` — neither hand-writes a duplicate.
 
 ## Plans
 
@@ -211,10 +214,33 @@ renders it from one exported `PLANS` constant.
 | **Free** | €0 / month | 10 | unlimited | unlimited |
 | **Pro** | €12 / month | 500 | unlimited | unlimited |
 
-Both plans include the full application tracker: master profile and CV,
-job-offer ingestion, duplicate-offer detection, the interview pipeline and
-company search. The only thing a plan limits is the monthly **AI-action
-allowance**.
+## What each plan includes
+
+Free is a complete, working product, not a demo: the full application
+tracker (master profile and CV, job-offer ingestion, duplicate-offer
+detection, the interview pipeline and company search), the headline match
+percentage on every offer, tailored-CV generation and LinkedIn posts — all
+within the plan's monthly AI-action allowance.
+
+Pro adds the judgment layer Stage 3 built on top of that, enforced by
+`requirePlan(ownerId, 'pro')` (`src/shared/billing/entitlements.ts`):
+
+- the full **fit report** — criteria breakdown, callback probability and
+  missing skills (the match percentage itself stays on Free)
+- the **tailoring report** — keyword coverage and evidence trace on every
+  tailored CV
+- the **outreach studio** — channel-specific recruiter-message drafts
+  (including follow-ups) and ban-list validation (the 30-day interlock
+  warning itself is free - it's shown on every offer, gated or not)
+- the **outcome readout** — response rates by fit band, callback band and
+  channel
+
+A Free account that reaches one of these sees an inline upgrade prompt in
+place of the capability, never a blank or missing surface. A gated API route
+returns a 402 (`EntitlementError` / `toEntitlementErrorResponse`,
+`src/shared/billing/errors.ts`) carrying the plan, the limit and the upgrade
+path — the same shape TASK-059's AI-action quota already returns when the
+allowance runs out.
 
 ## What counts as one AI action
 
@@ -222,7 +248,7 @@ Any single AI generation the user triggers:
 
 - an offer match-score calculation
 - a tailored CV generation
-- a recruiter-message generation
+- a recruiter-message generation (Pro only, see above)
 - a LinkedIn post draft (including AI-planned next posts)
 
 The allowance resets at the start of each calendar month (TASK-059). When it

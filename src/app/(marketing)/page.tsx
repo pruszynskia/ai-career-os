@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
 import { PricingTable } from '@/features/marketing/components/pricing-table';
+import { PRO_CAPABILITY_NAMES } from '@/shared/billing/plans';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import {
@@ -18,24 +19,28 @@ import {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title:
-    'AI Career OS — AI-tailored CVs and a duplicate-free application tracker',
+  title: 'AI Career OS — one verified record of what you have actually done',
   description:
-    'Tailor your CV and recruiter messages to every job offer with AI, and track every application in one searchable place.',
+    'AI Career OS keeps one verified record of what you have actually done. Every tailored CV, recruiter message and LinkedIn post is generated only from it, and Pro shows where the effort actually pays off.',
 };
 
-const HIGHLIGHTS = [
+const proCapabilityList = new Intl.ListFormat('en', {
+  style: 'long',
+  type: 'conjunction',
+}).format(PRO_CAPABILITY_NAMES);
+const proCapabilityListCapitalized =
+  proCapabilityList.charAt(0).toUpperCase() + proCapabilityList.slice(1);
+
+// One product, two things that fall out of the same promise (docs/ROADMAP.md
+// "Stage 3 - Evidence and Signal") - not three unrelated feature bullets.
+const PROMISE_POINTS = [
   {
-    title: 'AI-tailored applications',
-    body: 'Generate a match score, a tailored CV and a recruiter message for every offer from a pasted link or raw text.',
+    title: "It won't lie about you",
+    body: 'Every tailored CV, recruiter message and LinkedIn post is generated only from one verified record of what you have actually done, with every claim traceable back to it.',
   },
   {
-    title: 'One duplicate-free pipeline',
-    body: 'Every application links back to one offer, one sent CV and one message, and cross-portal duplicates are flagged when you add them.',
-  },
-  {
-    title: 'A consistent LinkedIn presence',
-    body: 'Draft and schedule posts from your profile, with AI planning the next ones from what you have already posted.',
+    title: 'It tells you where a reply is likely',
+    body: `${proCapabilityListCapitalized} (Pro) show which offers are worth the effort, instead of spending it evenly across every one.`,
   },
 ];
 
@@ -54,15 +59,18 @@ export default async function LandingPage() {
       <Grid cols={1} colsMd={12} gap={8}>
         <VStack gap={4} align="start" className="md:col-span-8">
           <Label as="span" variant="meta">
-            AI-tailored job search
+            One verified record of your job search
           </Label>
           <Heading level={1} className="text-display">
-            Get more recruiter attention and never lose track of an application
+            One record of what you&apos;ve actually done, and everything else
+            generated only from it
           </Heading>
           <Text size="lg" color="muted" className="max-w-[52ch]">
-            AI Career OS tailors your CV and recruiter messages to each job
-            offer and keeps every application, CV and message in one searchable
-            place.
+            AI Career OS builds a verified profile from your real experience,
+            tracks every application without duplicates, and generates a match
+            score, a tailored CV and LinkedIn posts from that profile — free.
+            Pro adds the judgment layer below that shows where the effort
+            actually pays off.
           </Text>
         </VStack>
         <VStack
@@ -86,8 +94,15 @@ export default async function LandingPage() {
 
       <Divider />
 
+      <VStack gap={2} align="start">
+        <Heading level={2}>
+          One promise: it won&apos;t lie about you, and it tells you where the
+          effort pays off
+        </Heading>
+      </VStack>
+
       <VStack gap={0}>
-        {HIGHLIGHTS.map((item, index) => (
+        {PROMISE_POINTS.map((item, index) => (
           <HStack
             key={item.title}
             gap={6}

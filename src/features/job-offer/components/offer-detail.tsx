@@ -2,6 +2,7 @@
 
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
@@ -17,7 +18,6 @@ import { AppPageLayout } from '@/shared/layouts';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { DocumentEditor } from '@/shared/ui/document-editor';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog';
+import { DocumentEditor } from '@/shared/ui/document-editor';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
 import { Divider, Heading, Label, Spinner } from '@/shared/ui/primitives';
@@ -50,6 +52,7 @@ export function OfferDetail({
   renderTailoringReport,
   renderWhoYouKnow,
   interlockWarning,
+  canViewFitDetail,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -71,9 +74,11 @@ export function OfferDetail({
   // Same reason again: the tailoring report panel is owned by the document
   // feature. A render prop rather than a plain ReactNode because the report
   // only exists once tailorCvMutation succeeds, inside this component.
-  renderTailoringReport?: (
-    report: NonNullable<CvDocument['tailoringReport']>,
-  ) => ReactNode;
+  // Always called once a tailored CV exists, report or not - it decides for
+  // itself whether a null report means "upgrade to see this" (Free,
+  // TASK-088) or "nothing to show" (Pro, fit was never scored), and this
+  // component renders whatever ReactNode (or null) comes back.
+  renderTailoringReport?: (report: CvDocument['tailoringReport']) => ReactNode;
   // Same reason again: the who-you-know panel is owned by the contact
   // feature. A render prop (not a plain ReactNode) because OfferDetail owns
   // the "which contact is selected" state that both this panel and
@@ -84,6 +89,9 @@ export function OfferDetail({
     selectedContactName: string | null;
   }) => ReactNode;
   interlockWarning?: { contactName: string; messagedAt: Date } | null;
+  // Fit report detail is Pro-only (TASK-088); matchScore above stays free
+  // regardless.
+  canViewFitDetail: boolean;
 }) {
   const router = useRouter();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
@@ -105,6 +113,9 @@ export function OfferDetail({
   });
 
   const tailoredCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
+  const tailoringReportNode = tailoredCv
+    ? renderTailoringReport?.(tailoredCv.tailoringReport)
+    : null;
   const sentCv = tailoredCv ?? masterCv;
   const canTrackApplication = Boolean(sentCv);
   const isUsingMasterCvFallback = Boolean(sentCv) && !tailoredCv;
@@ -340,15 +351,33 @@ export function OfferDetail({
         </Card>
 
         <div className="flex min-w-0 flex-1 flex-col gap-6">
-          {fit && (
+          {matchScore !== null && (
             <>
-              <FitReport
-                matchScore={matchScore}
-                fit={fit}
-                alwaysIncludeWhenRelevant={alwaysIncludeWhenRelevant}
-                onAddSkill={onAddSkill}
-                addingSkill={addingSkill}
-              />
+              {!canViewFitDetail ? (
+                // Free: always the upgrade prompt, regardless of whether
+                // fit was ever computed for this offer.
+                <EmptyState
+                  message="See the full fit report - criteria breakdown, callback probability and missing skills - on Pro. Your match score stays free."
+                  action={
+                    <Button asChild size="sm">
+                      <Link href="/pricing">Upgrade to Pro</Link>
+                    </Button>
+                  }
+                />
+              ) : (
+                fit && (
+                  // Pro with no fit yet (legacy row, or a parse failure in
+                  // entities/job-offer/service.ts) - nothing to gate, so
+                  // stay silent instead of telling a paying user to upgrade.
+                  <FitReport
+                    matchScore={matchScore}
+                    fit={fit}
+                    alwaysIncludeWhenRelevant={alwaysIncludeWhenRelevant}
+                    onAddSkill={onAddSkill}
+                    addingSkill={addingSkill}
+                  />
+                )
+              )}
               <Divider />
             </>
           )}
@@ -378,9 +407,9 @@ export function OfferDetail({
                     downloadFilename="tailored-cv.txt"
                   />
                 </div>
-                {tailoredCv.tailoringReport && (
+                {tailoringReportNode && (
                   <div className="w-full lg:w-80 lg:shrink-0">
-                    {renderTailoringReport?.(tailoredCv.tailoringReport)}
+                    {tailoringReportNode}
                   </div>
                 )}
               </div>
