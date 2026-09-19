@@ -21,6 +21,19 @@ export class OutreachBlockedError extends Error {
   }
 }
 
+// Thrown on the 402 a Pro-gated route returns (TASK-088) - shape mirrors
+// EntitlementError's JSON body (src/shared/billing/errors.ts), so the
+// upgrade prompt always has somewhere to link.
+export class EntitlementRequiredError extends Error {
+  constructor(
+    message: string,
+    public readonly upgradePath: string,
+  ) {
+    super(message);
+    this.name = 'EntitlementRequiredError';
+  }
+}
+
 export async function addOffer(input: {
   url?: string;
   rawText?: string;
@@ -135,6 +148,7 @@ export async function generateOutreach(
   const responseBody = (await response.json().catch(() => null)) as {
     message?: string;
     postingUrl?: string | null;
+    upgradePath?: string;
     // Wire shape only: JSON has no Date type, so createdAt arrives as an
     // ISO string here and is parsed into the real OutreachMessage below -
     // asserting it straight to Date hid that mismatch instead of fixing it.
@@ -144,6 +158,12 @@ export async function generateOutreach(
   } | null;
 
   if (!response.ok) {
+    if (response.status === 402) {
+      throw new EntitlementRequiredError(
+        responseBody?.message ?? 'This feature requires the Pro plan.',
+        responseBody?.upgradePath ?? '/pricing',
+      );
+    }
     if (response.status === 422 && responseBody?.postingUrl !== undefined) {
       throw new OutreachBlockedError(
         responseBody.message ?? 'Add a contact name before drafting outreach.',
@@ -171,7 +191,14 @@ export async function draftFollowUp(id: string): Promise<FollowUpResponse> {
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => null)) as {
       message?: string;
+      upgradePath?: string;
     } | null;
+    if (response.status === 402) {
+      throw new EntitlementRequiredError(
+        errorBody?.message ?? 'This feature requires the Pro plan.',
+        errorBody?.upgradePath ?? '/pricing',
+      );
+    }
     throw new Error(errorBody?.message ?? 'Failed to draft a follow-up.');
   }
 

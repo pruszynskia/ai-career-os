@@ -23,7 +23,10 @@ export async function POST(
       return NextResponse.json({ message: error.message }, { status: 404 });
     }
 
-    if (error instanceof NoMasterCvError || error instanceof NoEvidenceBaseError) {
+    if (
+      error instanceof NoMasterCvError ||
+      error instanceof NoEvidenceBaseError
+    ) {
       return NextResponse.json({ message: error.message }, { status: 422 });
     }
 

@@ -35,8 +35,7 @@ pay for."
   implemented — TASK-053–062 have landed on `main`; TASK-063/064/065 remain.
 - **Design System Overhaul** (`backlog/mvp.yaml` TASK-066–077): defined, not yet
   implemented.
-- **Stage 3 — Evidence and Signal** (`backlog/mvp.yaml` TASK-078–088): defined,
-  not yet implemented.
+- **Stage 3 — Evidence and Signal** (`backlog/mvp.yaml` TASK-078–088): shipped.
 
 Note: `status:` in `backlog/mvp.yaml` is stale and lags reality — most tasks
 still read `todo` after shipping. Judge what is done from the code and git

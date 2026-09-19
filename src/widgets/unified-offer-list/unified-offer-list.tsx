@@ -24,9 +24,14 @@ import { EmptyState } from '@/shared/ui/empty-state';
 export function UnifiedOfferList({
   offers,
   isFiltered = false,
+  canViewFitDetail = true,
 }: {
   offers: OfferWithApplication[];
   isFiltered?: boolean;
+  // Fit detail (recommended action, callback probability) is Pro-only
+  // (TASK-088) - offers arrive with fit already stripped for Free, so this
+  // only decides whether to surface the upgrade prompt in its place.
+  canViewFitDetail?: boolean;
 }) {
   const favoriteMutation = useToggleFavorite();
 
@@ -44,6 +49,15 @@ export function UnifiedOfferList({
 
   return (
     <div className="flex flex-col">
+      {!canViewFitDetail && (
+        <p className="px-1 pb-2 text-sm text-muted-foreground">
+          See the recommended action and callback probability for every offer on{' '}
+          <Link href="/pricing" className="underline">
+            Pro
+          </Link>
+          .
+        </p>
+      )}
       {offers.map(({ application, ...offer }) => {
         const isTogglingThis =
           favoriteMutation.isPending &&

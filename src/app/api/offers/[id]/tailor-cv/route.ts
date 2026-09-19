@@ -9,6 +9,8 @@ import {
   NoEvidenceBaseError,
 } from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
+import { getOwnerId } from '@/shared/auth/session';
+import { getPlanForOwner, meetsPlan } from '@/shared/billing/entitlements';
 
 export async function POST(
   request: Request,
@@ -17,9 +19,21 @@ export async function POST(
   const { id } = await params;
 
   try {
+    // Tailoring itself stays free; the tailoring report is Pro-only
+    // (TASK-088). Checked before tailorCv runs so a Free account never pays
+    // for the report's own rescore-if-unscored path (tailor-cv.service.ts)
+    // just to have the result discarded.
+    const ownerId = await getOwnerId();
+    const plan = await getPlanForOwner(ownerId);
+    const canViewTailoringReport = meetsPlan(plan, 'pro');
+
     // job-offer and document are isolated from each other (ADR-008); this
     // route is where they compose, same as a widget composes features for UI.
-    const cvDocument = await tailorCv(id, buildTailoringReport);
+    const cvDocument = await tailorCv(
+      id,
+      canViewTailoringReport ? buildTailoringReport : undefined,
+    );
+
     return NextResponse.json({ cvDocument });
   } catch (error) {
     if (error instanceof OfferNotFoundError) {

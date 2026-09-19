@@ -63,7 +63,10 @@ export async function PricingTable() {
                   Recommended
                 </Label>
               )}
-              <Heading level={2} className={plan.featured ? 'font-bold' : undefined}>
+              <Heading
+                level={2}
+                className={plan.featured ? 'font-bold' : undefined}
+              >
                 {plan.name}
               </Heading>
               <HStack gap={2} align="baseline">
@@ -86,7 +89,9 @@ export async function PricingTable() {
                       className="size-4 shrink-0 text-primary"
                       aria-hidden
                     />
-                    <Text>{formatFeature(feature, plan.aiActionsPerMonth)}</Text>
+                    <Text>
+                      {formatFeature(feature, plan.aiActionsPerMonth)}
+                    </Text>
                   </HStack>
                 ))}
               </VStack>

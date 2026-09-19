@@ -13,6 +13,8 @@ import {
 } from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 import { OutreachValidationError } from '@/shared/ai/outreach-validator';
+import { getOwnerId } from '@/shared/auth/session';
+import { requirePlan } from '@/shared/billing/entitlements';
 
 const outreachRequestSchema = z.object({
   contactName: z.string().optional(),
@@ -38,6 +40,13 @@ export async function POST(
   }
 
   try {
+    // Outreach studio is Pro-only (TASK-088) - checked here, before the
+    // contact/CV lookups, so a Free account never spends its AI-action
+    // allowance on a draft it can't have; the EntitlementError falls
+    // through to toAiErrorResponse below, the same 402 path the quota uses.
+    const ownerId = await getOwnerId();
+    await requirePlan(ownerId, 'pro');
+
     const { messages } = await generateOutreach(id, {
       name: parsedInput.data.contactName ?? '',
       profileUrl: parsedInput.data.contactUrl,

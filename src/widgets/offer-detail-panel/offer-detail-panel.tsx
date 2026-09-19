@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import type { Application } from '@/entities/application/types';
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
 import type { Contact } from '@/entities/contact/types';
@@ -14,6 +16,8 @@ import { WhoYouKnowPanel } from '@/features/contact/components/who-you-know-pane
 import { TailoringReport } from '@/features/document/components/tailoring-report';
 import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 import { useAddEvidenceSkill } from '@/features/profile/hooks/use-add-evidence-skill';
+import { Button } from '@/shared/ui/button';
+import { EmptyState } from '@/shared/ui/empty-state';
 
 export function OfferDetailPanel({
   offer,
@@ -24,6 +28,8 @@ export function OfferDetailPanel({
   evidence,
   contacts,
   interlockWarning,
+  canViewFitDetail,
+  canViewTailoringReport,
 }: {
   offer: JobOffer;
   latestTailoredCv?: CvDocument;
@@ -33,6 +39,12 @@ export function OfferDetailPanel({
   evidence: Pick<EvidenceBase, 'neverInclude' | 'alwaysIncludeWhenRelevant'>;
   contacts: Contact[];
   interlockWarning: { contactName: string; messagedAt: Date } | null;
+  // Pro-only reads (TASK-088) - the offer detail page resolves these
+  // server-side so the widget only ever renders, never gates. offer.fit and
+  // latestTailoredCv.tailoringReport are already stripped/never-built
+  // server-side when the flag below is false.
+  canViewFitDetail: boolean;
+  canViewTailoringReport: boolean;
 }) {
   const createApplicationMutation = useCreateApplication();
   const addEvidenceSkillMutation = useAddEvidenceSkill();
@@ -69,7 +81,22 @@ export function OfferDetailPanel({
           ? (addEvidenceSkillMutation.variables?.skill ?? null)
           : null
       }
-      renderTailoringReport={(report) => <TailoringReport report={report} />}
+      canViewFitDetail={canViewFitDetail}
+      renderTailoringReport={(report) =>
+        report ? (
+          <TailoringReport report={report} />
+        ) : canViewTailoringReport ? // Pro with no report yet (fit unscored): nothing to gate, stay silent.
+        null : (
+          <EmptyState
+            message="See the tailoring report - keyword coverage and evidence trace - on Pro."
+            action={
+              <Button asChild size="sm">
+                <Link href="/pricing">Upgrade to Pro</Link>
+              </Button>
+            }
+          />
+        )
+      }
       renderWhoYouKnow={({ onSelect, selectedContactName }) => (
         <WhoYouKnowPanel
           company={offer.company}

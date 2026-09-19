@@ -46,7 +46,9 @@ function scoreCoreStack(
   const matched = preferredTechnologies.filter((tech) =>
     includesKeyword(offerText, tech),
   );
-  const score = Math.round((matched.length / preferredTechnologies.length) * 100);
+  const score = Math.round(
+    (matched.length / preferredTechnologies.length) * 100,
+  );
 
   return {
     score,
@@ -118,7 +120,8 @@ function scoreWorkMode(
 // (monthly vs. annual, offer currency vs. preferences.salaryCurrency) are
 // still not reconciled - a wrong-currency or monthly figure can still be
 // compared as-is; a real fix needs unit-aware parsing, not more regex.
-const SALARY_RANGE_REGEX = /(\d[\d,.]*)\s*(k)?\s*(?:-|–|to)\s*(\d[\d,.]*)\s*(k)?/gi;
+const SALARY_RANGE_REGEX =
+  /(\d[\d,.]*)\s*(k)?\s*(?:-|–|to)\s*(\d[\d,.]*)\s*(k)?/gi;
 const CURRENCY_TOKEN = 'PLN|USD|EUR|GBP|zł|\\$|€|£';
 const SALARY_SINGLE_REGEX = new RegExp(
   `(?:${CURRENCY_TOKEN})\\s*(\\d[\\d,.]*)\\s*(k)?|(\\d[\\d,.]*)\\s*(k)?\\s*(?:${CURRENCY_TOKEN})`,
@@ -214,9 +217,13 @@ export function computeMechanicalSubscores(
 // itself is rounded.
 export function computeMatchScore(criteria: FitAssessment['criteria']): number {
   const known = fitCriterionKeys
-    .map((key) => ({ weight: FIT_CRITERION_WEIGHTS[key], score: criteria[key].score }))
+    .map((key) => ({
+      weight: FIT_CRITERION_WEIGHTS[key],
+      score: criteria[key].score,
+    }))
     .filter(
-      (entry): entry is { weight: number; score: number } => entry.score !== null,
+      (entry): entry is { weight: number; score: number } =>
+        entry.score !== null,
     );
 
   const totalWeight = known.reduce((sum, entry) => sum + entry.weight, 0);
@@ -229,7 +236,9 @@ export function computeMatchScore(criteria: FitAssessment['criteria']): number {
   return Math.round(weightedSum / totalWeight);
 }
 
-export function recommendedActionForScore(matchScore: number): RecommendedAction {
+export function recommendedActionForScore(
+  matchScore: number,
+): RecommendedAction {
   if (matchScore >= 90) return 'APPLY_IMMEDIATELY';
   if (matchScore >= 80) return 'STRONG_OPPORTUNITY';
   if (matchScore >= 70) return 'CONSIDER';
@@ -240,7 +249,8 @@ const HIGH_APPLICANT_VOLUME_REGEX =
   /\b(100\+ applicants|hundreds of applicants|high[- ]volume|highly competitive process)\b/i;
 const AI_CULTURE_REGEX =
   /\b(LLM|GPT|generative ai|ai-native|ai-first|applied ai)\b/i;
-const URGENCY_REGEX = /\b(urgent(ly)?|immediate start|asap|start immediately)\b/i;
+const URGENCY_REGEX =
+  /\b(urgent(ly)?|immediate start|asap|start immediately)\b/i;
 
 // Deterministic point modifiers on top of match_score, per ADR-019 - each
 // named modifier records why it fired so the fit jsonb stays auditable.
@@ -261,7 +271,10 @@ export function computeHrCallbackProbability(params: {
   // extraction noted on includesKeyword above.
   const domainGap = industryScore !== null && industryScore === 0;
   if (hardYearsGate && domainGap) {
-    modifiers.push({ name: 'Hard years gate stacked with domain gap', delta: -25 });
+    modifiers.push({
+      name: 'Hard years gate stacked with domain gap',
+      delta: -25,
+    });
   } else if (hardYearsGate) {
     modifiers.push({ name: 'Hard years gate', delta: -15 });
   }

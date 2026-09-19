@@ -76,7 +76,10 @@ export async function matchOffer(id: string) {
           masterCv.content,
           offer.rawContent,
           mechanical,
-          { skills: profile?.skills ?? [], experience: profile?.experience ?? [] },
+          {
+            skills: profile?.skills ?? [],
+            experience: profile?.experience ?? [],
+          },
         ),
       },
     ],

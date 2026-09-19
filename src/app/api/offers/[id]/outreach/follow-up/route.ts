@@ -12,6 +12,8 @@ import {
 } from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 import { OutreachValidationError } from '@/shared/ai/outreach-validator';
+import { getOwnerId } from '@/shared/auth/session';
+import { requirePlan } from '@/shared/billing/entitlements';
 
 export async function POST(
   _request: Request,
@@ -20,6 +22,13 @@ export async function POST(
   const { id } = await params;
 
   try {
+    // A follow-up is the outreach studio drafting again (TASK-086 wires it
+    // to the same recruiter-message service), so it is gated the same as
+    // the initial draft (TASK-088) - otherwise a Free account could reach
+    // the studio through this route without ever hitting the gate above.
+    const ownerId = await getOwnerId();
+    await requirePlan(ownerId, 'pro');
+
     const { message } = await generateFollowUp(id);
     return NextResponse.json({ message });
   } catch (error) {

@@ -78,7 +78,9 @@ function countAsks(text: string): number {
   const sentences = text.split(/(?<=[.!?])\s+/);
   return sentences.reduce((count, sentence) => {
     const lower = sentence.toLowerCase();
-    return count + (ASK_MARKERS.some((marker) => lower.includes(marker)) ? 1 : 0);
+    return (
+      count + (ASK_MARKERS.some((marker) => lower.includes(marker)) ? 1 : 0)
+    );
   }, 0);
 }
 

@@ -2,6 +2,68 @@
 
 ## Current Sprint
 
+### Feature: TASK-088 — Pro capability gating and product positioning pass
+
+Status: **done** — green on typecheck/lint/test/build. Backend gating plus
+copy-only UI/docs changes, no Playwright loop (feature surfaces themselves
+are unchanged, just an `EmptyState` swapped in when gated).
+
+What shipped:
+
+- `src/shared/billing/plans.ts` — added `PRO_CAPABILITIES` (the four
+  Stage 3 capabilities, quoted by Pro's `features` so they're written once);
+  fixed Free's `features` to drop "recruiter messages" (now Pro-only, see
+  below) and list what Free actually has (match score, tailored CVs,
+  LinkedIn posts).
+- `requirePlan(ownerId, 'pro')` call sites (five, all reusing TASK-058's
+  existing `EntitlementError`/402 plumbing — no new gate mechanism):
+  `src/app/(app)/(protected)/offers/[id]/page.tsx` (fit report detail,
+  tailoring report — resolved to booleans, not thrown, since the offer page
+  itself must still render for Free), `src/app/api/offers/[id]/outreach/
+  route.ts` and its `follow-up/route.ts` sibling (outreach studio — gated
+  the follow-up route too since TASK-086 wires it to the same
+  recruiter-message service; gating only the initial draft would have left
+  a bypass), `src/features/dashboard/services/response-rate-readout.service.ts`
+  (outcome readout).
+- `src/features/job-offer/api/job-offer.api.ts` — new `EntitlementRequiredError`
+  (mirrors the 402 body); `generateOutreach`/`draftFollowUp` throw it on a
+  402 instead of a generic `Error`.
+- Inline upgrade prompts (`EmptyState` + a `Button asChild` linking
+  `/pricing`) where each gated capability would render, never a hidden
+  surface: `offer-detail.tsx` (fit report), `offer-detail-panel.tsx`
+  (tailoring report), `outreach-panel.tsx` (outreach + follow-up, keyed off
+  `EntitlementRequiredError`), `response-rate-card.tsx` (readout — the
+  dashboard page catches the thrown error to `null` rather than failing the
+  whole page).
+- `src/app/(marketing)/page.tsx` — three unconnected `HIGHLIGHTS` bullets
+  replaced with `PROMISE_POINTS`, the two things that fall out of one
+  promise ("it won't lie about you" / "it tells you where a reply is
+  likely"); hero copy and metadata rewritten to match. Pricing table itself
+  was already rendering from `PLANS` (TASK-058), no duplicate to remove.
+- `src/app/(marketing)/pricing/page.tsx` — one-line tagline updated to
+  mention the capability split, not just the AI-action count.
+- `docs/PRODUCT.md` — "Product Mission" replaced with the single promise;
+  "User Problems" → "Inconsistent CV tailoring" replaced with "Ungrounded AI
+  output and undifferentiated effort" to match; "Pricing & Packaging" gained
+  a "What each plan includes" section listing the capability split
+  (stated as the section's single source of truth, code already matches).
+- `docs/ROADMAP.md` — "Where We Are" now reads Stage 3 as shipped.
+
+Not done (explicitly out of scope per `do_not`): tracker, documents (CV
+generation) and LinkedIn posts stay free; prices/AI-action allowances
+unchanged; no third plan or trial; no feature list duplicated outside
+`PLANS`.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 156 passed, no new tests added (`requirePlan` itself is
+  already covered by `tests/smoke/unit/entitlements.test.ts` from TASK-058;
+  every new call site is one-line delegation to that already-tested
+  function, and this codebase has no route-level test convention to match)
+- `npm run build` — pass
+
 ### Feature: TASK-087 — LinkedIn posts grounded in the evidence base
 
 Status: **done** — green on typecheck/lint/test/build. Backend/AI-prompt

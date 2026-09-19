@@ -25,10 +25,7 @@ function escapeRegExp(value: string): string {
 // lookaround boundaries instead of \b fix that for every keyword shape.
 function buildKeywordPattern(keyword: string): RegExp {
   const escaped = escapeRegExp(keyword.trim()).replace(/[\s-]+/g, '[\\s-]*');
-  return new RegExp(
-    `(?<![A-Za-z0-9])${escaped}(?:es|s)?(?![A-Za-z0-9])`,
-    'i',
-  );
+  return new RegExp(`(?<![A-Za-z0-9])${escaped}(?:es|s)?(?![A-Za-z0-9])`, 'i');
 }
 
 export interface KeywordVerdict {
