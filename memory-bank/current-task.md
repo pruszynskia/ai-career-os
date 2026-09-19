@@ -2,6 +2,67 @@
 
 ## Current Sprint
 
+### Feature: TASK-087 — LinkedIn posts grounded in the evidence base
+
+Status: **done** — green on typecheck/lint/test/build. Backend/AI-prompt
+change plus one card decoration on an existing list, no Playwright loop (not
+`ui`-labelled, no layout change).
+
+What shipped:
+
+- `supabase/migrations/20260918120000_posts_claims_used.sql` (new) —
+  `posts.claims_used text[] not null default '{}'`.
+- `src/entities/post/{types.ts,service.ts}` — `Post`/`postSchema` gained
+  `claimsUsed: string[]`; `toPost` maps `claims_used` (`?? []` for
+  pre-migration rows), `create()` accepts an optional `claimsUsed` and
+  inserts it.
+- `src/shared/ai/prompts/{generate-post,plan-posts,generate-campaign}.ts` —
+  all three system prompts now compose `generationContractFragment`
+  (TASK-081/ADR-017); user-message builders take the serialized evidence
+  text instead of profile prose. `plan-posts`/`generate-campaign` also take
+  a `usedClaimsText` param listing claim ids from the owner's recent sent
+  posts, so planning avoids unused material, not just unused topics.
+- `src/features/linkedin-posts/services/{generate-post,plan-posts,
+  generate-campaign}.service.ts` — `buildProfileText` deleted (only
+  consumer was these three); each now reads `profileService.findUnique
+  (ownerId).evidence` directly (a returned `Profile` always has one, no
+  `EMPTY_EVIDENCE_BASE` fallback needed here since `NoProfileError` already
+  guards `!profile`), calls `assertEvidenceBase`, serializes it via
+  `serializeEvidenceBase`, extends its output schema with `claimsUsed`, and
+  runs every generated post through `assertValidClaims` before persisting.
+  `plan-posts`/`generate-campaign` also query the last 10 `SENT` posts (same
+  `take: 10` window `plan-posts` already used) to build the avoid-list.
+  `generate-campaign.service.ts`/`plan-posts.service.ts` aren't in TASK-087's
+  literal `scope:` list but the task's own `tasks:` step explicitly requires
+  editing both ("Compose the generation contract into generate-post,
+  plan-posts and generate-campaign") — scope names the primary files, not
+  every file the acceptance criteria require touching.
+- `src/features/linkedin-posts/components/post-list.tsx` — new exported pure
+  `findReusedClaimIds(posts, now?)`: a claim id used in more than one post
+  created in the last 30 days is "reused". `PostList` computes this set once
+  and passes it to `PostCard` (`reusedClaimIds` now an optional prop,
+  default empty `Set` — `CampaignList`'s existing `<PostCard>` usage is
+  unchanged and just shows claims with no reuse badge). Each post's
+  `claimsUsed` renders as `Badge`s under its content, `warning` variant plus
+  " · reused" suffix when in the reused set.
+- `src/features/linkedin-posts/components/post-list.test.ts` (new) — three
+  cases for `findReusedClaimIds`: flags a claim in ≥2 recent posts, doesn't
+  flag a single use, ignores posts older than the 30-day window.
+
+Not done (explicitly out of scope / `do_not`): no redesign of scheduling/
+editing/deleting/campaign management (all untouched), no LinkedIn API call,
+no invented metric, no claim-validator bypass. `page.tsx` and
+`campaign-list.tsx` weren't touched (not in scope, and campaign posts render
+through the same `PostCard` so they already show claims without needing
+either file changed).
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 155 passed (3 new, in `post-list.test.ts`)
+- `npm run build` — pass
+
 ### Feature: TASK-085 — Application outcomes and the response-rate readout
 
 Status: **done** — green on typecheck/lint/test/build. Backend + Kanban board

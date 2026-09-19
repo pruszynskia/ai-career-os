@@ -5,6 +5,10 @@ import {
   NoProfileError,
   generatePost,
 } from '@/features/linkedin-posts/services/generate-post.service';
+import {
+  ClaimValidationError,
+  NoEvidenceBaseError,
+} from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 
 const generatePostSchema = z.object({
@@ -26,8 +30,18 @@ export async function POST(request: Request) {
     const { post } = await generatePost(parsedInput.data.topic);
     return NextResponse.json({ post });
   } catch (error) {
-    if (error instanceof NoProfileError) {
+    if (
+      error instanceof NoProfileError ||
+      error instanceof NoEvidenceBaseError
+    ) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+
+    if (error instanceof ClaimValidationError) {
+      return NextResponse.json(
+        { message: error.message, violations: error.violations },
+        { status: 422 },
+      );
     }
 
     return toAiErrorResponse(error, 'Failed to generate the post.');

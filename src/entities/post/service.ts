@@ -12,6 +12,9 @@ function toPost(row: Record<string, unknown>): Post {
     scheduledAt: row.scheduled_at ? new Date(row.scheduled_at as string) : null,
     sentAt: row.sent_at ? new Date(row.sent_at as string) : null,
     campaignId: (row.campaign_id as string | null) ?? null,
+    // Nullable in practice only for rows predating this column - the
+    // migration default is already '{}'.
+    claimsUsed: (row.claims_used as string[] | null) ?? [],
     createdAt: new Date(row.created_at as string),
     updatedAt: new Date(row.updated_at as string),
   };
@@ -24,6 +27,7 @@ export const postService = {
     status: PostStatus;
     scheduledAt?: Date | null;
     campaignId?: string | null;
+    claimsUsed?: string[];
   }): Promise<Post> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -34,6 +38,7 @@ export const postService = {
         status: values.status,
         scheduled_at: values.scheduledAt?.toISOString() ?? null,
         campaign_id: values.campaignId ?? null,
+        claims_used: values.claimsUsed ?? [],
       })
       .select()
       .single();

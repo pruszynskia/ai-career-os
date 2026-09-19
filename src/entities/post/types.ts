@@ -12,6 +12,7 @@ export const postSchema = z.object({
   scheduledAt: z.date().nullable(),
   sentAt: z.date().nullable(),
   campaignId: z.string().nullable(),
+  claimsUsed: z.array(z.string()),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -24,6 +25,9 @@ export interface Post {
   scheduledAt: Date | null;
   sentAt: Date | null;
   campaignId: string | null;
+  // Evidence-base claim ids this post was built on (TASK-087, ADR-017).
+  // Empty for posts generated before this column existed.
+  claimsUsed: string[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -10,6 +10,7 @@ import { useSchedulePost } from '@/features/linkedin-posts/hooks/use-schedule-po
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import {
   Card,
   CardAction,
@@ -31,7 +32,20 @@ import {
 
 const POST_STATUSES: PostStatus[] = ['DRAFT', 'SCHEDULED', 'SENT'];
 
-export function PostList({ posts }: { posts: Post[] }) {
+export function PostList({
+  posts,
+  reusedClaimIds,
+  claimTextById,
+}: {
+  posts: Post[];
+  // Reuse is meaningful across every post the owner has, not just the ones
+  // rendered in this list (e.g. campaign posts share the claim pool with
+  // standalone posts) - callers must compute the full set and pass it in.
+  reusedClaimIds: Set<string>;
+  // Claim id -> claim text, so posts show the evidence they cite instead of
+  // raw ids. Missing ids fall back to the id itself (e.g. deleted claims).
+  claimTextById: Map<string, string>;
+}) {
   if (posts.length === 0) {
     return <EmptyState message="No posts yet — generate one above." />;
   }
@@ -39,13 +53,26 @@ export function PostList({ posts }: { posts: Post[] }) {
   return (
     <div className="flex flex-col gap-3">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard
+          key={post.id}
+          post={post}
+          reusedClaimIds={reusedClaimIds}
+          claimTextById={claimTextById}
+        />
       ))}
     </div>
   );
 }
 
-export function PostCard({ post }: { post: Post }) {
+export function PostCard({
+  post,
+  reusedClaimIds,
+  claimTextById,
+}: {
+  post: Post;
+  reusedClaimIds: Set<string>;
+  claimTextById: Map<string, string>;
+}) {
   const [copied, setCopied] = useState(false);
   const [scheduledAtInput, setScheduledAtInput] = useState('');
   const scheduleMutation = useSchedulePost();
@@ -129,6 +156,21 @@ export function PostCard({ post }: { post: Post }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p className="whitespace-pre-wrap text-sm">{post.content}</p>
+
+        {post.claimsUsed.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {[...new Set(post.claimsUsed)].map((claimId) => (
+              <Badge
+                key={claimId}
+                title={claimId}
+                variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}
+              >
+                {claimTextById.get(claimId) ?? claimId}
+                {reusedClaimIds.has(claimId) ? ' · reused' : ''}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {post.status === 'DRAFT' && (
           <div className="flex items-center gap-2">

@@ -6,6 +6,10 @@ import {
   NoProfileError,
   generateCampaign,
 } from '@/features/linkedin-posts/services/generate-campaign.service';
+import {
+  ClaimValidationError,
+  NoEvidenceBaseError,
+} from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 import { getOwnerId } from '@/shared/auth/session';
 
@@ -36,8 +40,18 @@ export async function POST(request: Request) {
     );
     return NextResponse.json({ campaign, posts });
   } catch (error) {
-    if (error instanceof NoProfileError) {
+    if (
+      error instanceof NoProfileError ||
+      error instanceof NoEvidenceBaseError
+    ) {
       return NextResponse.json({ message: error.message }, { status: 422 });
+    }
+
+    if (error instanceof ClaimValidationError) {
+      return NextResponse.json(
+        { message: error.message, violations: error.violations },
+        { status: 422 },
+      );
     }
 
     return toAiErrorResponse(error, 'Failed to generate the campaign.');
