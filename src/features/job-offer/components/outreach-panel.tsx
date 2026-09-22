@@ -24,7 +24,14 @@ import {
 } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
-import { Heading, Label, Spinner, Text } from '@/shared/ui/primitives';
+import {
+  Heading,
+  HStack,
+  Label,
+  Spinner,
+  Surface,
+  Text,
+} from '@/shared/ui/primitives';
 
 const CHANNEL_ORDER: OutreachChannel[] = [
   'CONNECTION_NOTE',
@@ -240,7 +247,7 @@ export function OutreachPanel({
       )}
 
       {mutation.isSuccess && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {CHANNEL_ORDER.map((channel) => {
             const message = messagesByChannel.get(channel);
             if (!message) return null;
@@ -248,38 +255,39 @@ export function OutreachPanel({
             const overBudget = message.body.length > budget.hardMax;
 
             return (
-              <Card key={channel} size="sm">
-                <CardHeader>
-                  <CardTitle className="text-base">
+              <Surface
+                key={channel}
+                elevation="ruled"
+                padding="md"
+                className="flex flex-col gap-2 last:border-b-0"
+              >
+                <HStack justify="between" align="center">
+                  <Text size="base" weight="medium">
                     {OUTREACH_CHANNEL_LABELS[channel]}
-                  </CardTitle>
-                  <CardAction>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        handleCopy(
-                          message.subject
-                            ? `${message.subject}\n\n${message.body}`
-                            : message.body,
-                          message.id,
-                        )
-                      }
-                    >
-                      {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
-                    </Button>
-                  </CardAction>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                  {message.subject && (
-                    <p className="text-sm font-medium">{message.subject}</p>
-                  )}
-                  <p className="whitespace-pre-wrap text-sm">{message.body}</p>
-                  <Text color={overBudget ? 'destructive' : 'muted'} size="sm">
-                    {message.body.length} / {budget.hardMax} characters
                   </Text>
-                </CardContent>
-              </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleCopy(
+                        message.subject
+                          ? `${message.subject}\n\n${message.body}`
+                          : message.body,
+                        message.id,
+                      )
+                    }
+                  >
+                    {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
+                  </Button>
+                </HStack>
+                {message.subject && (
+                  <p className="text-sm font-medium">{message.subject}</p>
+                )}
+                <p className="whitespace-pre-wrap text-sm">{message.body}</p>
+                <Text color={overBudget ? 'destructive' : 'muted'} size="sm">
+                  {message.body.length} / {budget.hardMax} characters
+                </Text>
+              </Surface>
             );
           })}
         </div>
