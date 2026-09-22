@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { X } from 'lucide-react';
 
 import type { Notification } from '@/features/notification/types';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Badge, IconButton } from '@/shared/ui/primitives';
 
 function NotificationGroup({
@@ -63,11 +64,7 @@ export function NotificationList({
   const general = notifications.filter((n) => n.category === 'general');
 
   if (notifications.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        You&apos;re all caught up.
-      </p>
-    );
+    return <EmptyState message="You're all caught up." />;
   }
 
   return (

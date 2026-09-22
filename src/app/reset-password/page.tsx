@@ -4,6 +4,8 @@ import { updatePassword } from '@/shared/auth/actions';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
+import { Field } from '@/shared/ui/field';
+import { Heading } from '@/shared/ui/primitives';
 import { Input } from '@/shared/ui/input';
 
 export default async function ResetPasswordPage({
@@ -28,16 +30,14 @@ export default async function ResetPasswordPage({
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <h1 className="text-2xl font-semibold">Set a new password</h1>
+          <Heading level={4} as="h1" className="font-medium">
+            Set a new password
+          </Heading>
         </CardHeader>
         <CardContent>
           <form action={updatePassword} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium">
-                New password
-              </label>
+            <Field id="password" label="New password">
               <Input
-                id="password"
                 name="password"
                 type="password"
                 placeholder="New password"
@@ -45,13 +45,9 @@ export default async function ResetPasswordPage({
                 minLength={8}
                 required
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm new password
-              </label>
+            </Field>
+            <Field id="confirmPassword" label="Confirm new password">
               <Input
-                id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 placeholder="Confirm new password"
@@ -59,7 +55,7 @@ export default async function ResetPasswordPage({
                 minLength={8}
                 required
               />
-            </div>
+            </Field>
             <Button type="submit" className="mt-1">
               Update password
             </Button>
