@@ -8,6 +8,7 @@ function toAiUsage(row: Record<string, unknown>): AiUsage {
     id: row.id as string,
     ownerId: row.owner_id as string,
     action: row.action as string,
+    provider: (row.provider as string | null) ?? null,
     createdAt: new Date(row.created_at as string),
   };
 }
@@ -22,11 +23,19 @@ export function startOfCurrentMonth(): Date {
 }
 
 export const aiUsageService = {
-  async record(values: { ownerId: string; action: string }): Promise<AiUsage> {
+  async record(values: {
+    ownerId: string;
+    action: string;
+    provider?: string | null;
+  }): Promise<AiUsage> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('ai_usage')
-      .insert({ owner_id: values.ownerId, action: values.action })
+      .insert({
+        owner_id: values.ownerId,
+        action: values.action,
+        provider: values.provider ?? null,
+      })
       .select()
       .single();
 

@@ -1035,3 +1035,72 @@ Consequences:
   rows rather than a database-side rank/aggregate; see the `ponytail:`
   comments on `contactService.findByCompany` and `interlock.ts` for the
   ceiling.
+
+## ADR-022
+
+Date:
+
+2026-09-19
+
+Decision:
+
+Add a fourth AI adapter (`src/shared/ai/adapters/groq.ts`, reusing the
+already-installed `openai` package pointed at Groq's OpenAI-compatible base
+URL - no new SDK dependency) and give `getMeteredAiService()` an optional
+cross-provider fallback chain (TASK-089). Two ordered, comma-separated
+provider lists - `AI_FREE_PROVIDERS` (default suggestion `groq,gemini`) and
+`AI_PAID_PROVIDERS` (default suggestion `anthropic,openai`) - are read from
+env and selected by the caller's plan (`getPlanForOwner`), so a free-plan
+request can only ever walk free-tier adapters and never reaches a paid-only
+provider even after every free one has failed. On a 429/5xx/timeout
+(`isRetryableAiError` in `src/shared/ai/errors.ts`) the loop marks that
+provider in a 60s Upstash Redis cooldown (`isProviderInCooldown` /
+`setProviderCooldown` in `src/shared/rate-limit`, the same client
+`enforceRateLimit` already uses) and tries the next provider in the list; a
+non-retryable (e.g. validation) error is not retried against another
+provider. Leaving both env vars unset keeps today's exact single-`AI_PROVIDER`
+behavior with no fallback and no cooldown checks - `getAiService()` is
+unchanged for that case. `ai_usage` gained a nullable `provider` text column
+(`supabase/migrations/20260919090000_ai_usage_provider.sql`) recording which
+adapter actually served each action; still exactly one row per logical
+action regardless of how many providers were tried internally.
+
+Reason:
+
+Every one of the eleven AI feature services goes through `getAiService()`
+picking exactly one provider (ADR-011); a rate-limited or down provider
+fails all eleven with no recourse. A blind flat fallback list would let a
+free-plan owner's failed request fall through to Anthropic or OpenAI, which
+have no ongoing free API tier, and run up real cost with no paying
+customers yet - hence two plan-scoped lists instead of one. Cooldown state
+reuses the rate-limit module's existing Redis client rather than a new
+datastore, matching this project's "reuse existing services" rule and
+`enforceRateLimit`'s own fail-open posture (no Redis configured, or a
+lookup error, never blocks a provider from being tried).
+
+Alternatives Considered:
+
+- A single flat provider list shared by both plans - rejected: the explicit
+  reason this task exists is that it would let a free-plan request reach a
+  paid provider once every free one failed.
+- A dedicated cooldown table in Postgres - rejected: `ai_usage` inserts are
+  already the source of truth for usage; a cooldown is short-lived,
+  per-provider process state that Redis (already wired for rate limiting)
+  fits without a new migration path or datastore.
+- Making `getAiService()` itself plan-aware and fallback-capable - rejected:
+  it has no caller today besides `getMeteredAiService()`, and every feature
+  service already routes through the metered accessor, so the plan lookup
+  belongs where the plan is already resolved rather than threading it
+  through the lower-level factory too.
+
+Consequences:
+
+- `src/shared/ai/types.ts` now exports `AiProviderId`, the shared union of
+  all four adapter ids, read by both `service.ts` and (as a plain
+  `string | null`) `entities/ai-usage`.
+- A deploy that never sets `AI_FREE_PROVIDERS`/`AI_PAID_PROVIDERS` (e.g. an
+  environment without `GROQ_API_KEY`) behaves exactly as before this ADR -
+  the fallback chain is fully opt-in.
+- `tests/smoke/unit/metered-ai-service.test.ts` covers the fallback loop:
+  success-never-invokes-a-second-provider, retryable-vs-non-retryable
+  classification, cooldown skip, and free/paid list isolation.

@@ -2,6 +2,66 @@
 
 ## Current Sprint
 
+### Feature: TASK-089 — AI provider fallback chain (free-tier first)
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+Backend-only, no UI surface.
+
+What shipped:
+
+- `src/shared/ai/adapters/groq.ts` (new) — Groq adapter built on the
+  already-installed `openai` package pointed at Groq's OpenAI-compatible
+  base URL, no new dependency. Defaults to
+  `meta-llama/llama-4-scout-17b-16e-instruct` (one of the models Groq
+  supports structured outputs on).
+- `src/shared/ai/service.ts` — `callWithFallback` walks an ordered
+  `AiProviderId[]` selected by plan (`DEFAULT_PROVIDERS_BY_PLAN`:
+  `free → groq,gemini`; `paid → anthropic,openai`), configurable via
+  `AI_FREE_PROVIDERS`/`AI_PAID_PROVIDERS`. `FREE_ELIGIBLE_PROVIDERS`
+  structurally rejects a paid-only provider even in a custom
+  `AI_FREE_PROVIDERS` override. Skips an unconfigured or cooled-down
+  provider; retries the next provider only on `isRetryableAiError`, else
+  rethrows immediately. With neither env var set, behavior is byte-for-byte
+  today's single-`AI_PROVIDER` path (no fallback). `getMeteredAiService`
+  now records the `provider` that actually served each call, still exactly
+  one `ai_usage` row per action (TASK-059's counting model untouched).
+- `src/shared/ai/errors.ts` — `isRetryableAiError` extended past the
+  existing 429 check to 5xx and connection/timeout errors (matched by
+  message, since those SDK errors carry no `status`); a 4xx validation
+  error is never retried into another provider.
+- `src/shared/rate-limit/index.ts` — `isProviderInCooldown`/
+  `setProviderCooldown`, keyed `ai:cooldown:<provider>` in the existing
+  Upstash Redis client, default 60s TTL (`AI_PROVIDER_COOLDOWN_SECONDS`).
+  Fails open like `enforceRateLimit` when Redis isn't configured.
+- `supabase/migrations/20260919090000_ai_usage_provider.sql` (new) —
+  nullable `ai_usage.provider text`.
+- `src/entities/ai-usage/{types,service}.ts` — `AiUsage.provider` (nullable
+  for pre-migration rows); `record()` takes an optional `provider`.
+- `src/shared/ai/types.ts` — `AI_PROVIDER_IDS`/`AiProviderId` now include
+  `'groq'`; `src/shared/env.ts` validates `AI_PROVIDER` against the same
+  array plus documents `GROQ_API_KEY`/`AI_FREE_PROVIDERS`/
+  `AI_PAID_PROVIDERS`/`AI_PROVIDER_COOLDOWN_SECONDS`.
+- `.env.example` — Groq keys and the fallback-chain vars, commented out by
+  default so a fresh single-provider setup doesn't enable a chain it can't
+  serve.
+- `tests/smoke/unit/metered-ai-service.test.ts` — 9 cases covering every
+  acceptance bullet: over-quota short-circuit, single successful call tags
+  its provider, unset-env-vars parity with today, no second provider on
+  success, 429 fallthrough, non-retryable error does not fall through,
+  cooldown skip, free-plan never reaches `AI_PAID_PROVIDERS`, paid-plan
+  never reaches `AI_FREE_PROVIDERS`.
+
+Not done (explicitly out of scope per `do_not`): no LLM gateway/proxy, no
+OpenRouter/Mistral adapters, no same-provider retry or queue — only
+cross-provider fallback on top of each SDK's own default retry behavior.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 163 passed
+- `npm run build` — pass
+
 ### Feature: TASK-088 — Pro capability gating and product positioning pass
 
 Status: **done** — green on typecheck/lint/test/build. Backend gating plus

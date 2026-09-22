@@ -134,6 +134,45 @@ export function warnRateLimitSkipped(context: string): void {
   else console.warn(message);
 }
 
+const AI_COOLDOWN_PREFIX = 'ai:cooldown:';
+
+/**
+ * Whether an AI provider is currently in cooldown after a recent retryable
+ * failure (TASK-089's fallback chain in src/shared/ai/service.ts), so the
+ * caller skips it without trying. Fails open like enforceRateLimit: no
+ * Redis configured, or a lookup error, never blocks a provider from being
+ * tried.
+ */
+export async function isProviderInCooldown(provider: string): Promise<boolean> {
+  const redis = getRedis();
+  if (!redis) return false;
+  try {
+    return (await redis.get(`${AI_COOLDOWN_PREFIX}${provider}`)) != null;
+  } catch (error) {
+    console.error(
+      '[rate-limit] provider cooldown check failed, allowing provider',
+      error,
+    );
+    return false;
+  }
+}
+
+/** Marks `provider` unavailable for `ttlSeconds` (default 60) after a retryable failure. */
+export async function setProviderCooldown(
+  provider: string,
+  ttlSeconds = 60,
+): Promise<void> {
+  const redis = getRedis();
+  if (!redis) return;
+  try {
+    await redis.set(`${AI_COOLDOWN_PREFIX}${provider}`, '1', {
+      ex: ttlSeconds,
+    });
+  } catch (error) {
+    console.error('[rate-limit] failed to set provider cooldown', error);
+  }
+}
+
 const limiters = new Map<RateLimitKind, Ratelimit>();
 
 function limiterFor(kind: RateLimitKind): Ratelimit | null {

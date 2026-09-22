@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { AI_PROVIDER_IDS } from '@/shared/ai/types';
+
 // Central, Zod-validated environment access. Replaces bare `process.env.X!`
 // assertions so a missing value is a readable refusal to start rather than an
 // obscure runtime failure deep inside a request.
@@ -19,10 +21,16 @@ const serverSchema = z.object({
   STORAGE_SUPABASE_SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   // AI provider selection and per-provider keys. Optional here because the
   // adapters still read them directly; listed so this module documents them.
-  AI_PROVIDER: z.enum(['anthropic', 'openai', 'gemini']).optional(),
+  AI_PROVIDER: z.enum(AI_PROVIDER_IDS).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   GEMINI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+  // Fallback chain (TASK-089) - src/shared/ai/service.ts reads these
+  // directly; listed so this module documents them.
+  AI_FREE_PROVIDERS: z.string().min(1).optional(),
+  AI_PAID_PROVIDERS: z.string().min(1).optional(),
+  AI_PROVIDER_COOLDOWN_SECONDS: z.string().min(1).optional(),
   // Stripe — billing. Optional: an environment without billing configured
   // still boots; the webhook route asserts its own secret when it runs.
   STRIPE_SECRET_KEY: z.string().min(1).optional(),
