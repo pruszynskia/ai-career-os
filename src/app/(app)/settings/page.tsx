@@ -12,7 +12,8 @@ import { getOwnerId } from '@/shared/auth/session';
 import { getPlanForOwner } from '@/shared/billing/entitlements';
 import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Label, Text, VStack } from '@/shared/ui/primitives';
+import { Label, VStack } from '@/shared/ui/primitives';
+import { ThemeToggle } from '@/shared/ui/theme-toggle';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,10 +33,7 @@ export default async function SettingsPage() {
           <Label as="span" variant="meta">
             Appearance
           </Label>
-          <Text size="sm" color="muted">
-            Follows your system&apos;s light/dark preference. A manual toggle is
-            coming soon.
-          </Text>
+          <ThemeToggle />
         </VStack>
 
         {profile ? (
