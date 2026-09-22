@@ -11,6 +11,26 @@ export function isRateLimitError(error: unknown): boolean {
   return error instanceof Error && 'status' in error && error.status === 429;
 }
 
+// Whether a provider failure should move the fallback loop in
+// src/shared/ai/service.ts to the next provider (TASK-089) rather than
+// give up immediately. The Anthropic, OpenAI/Groq and Gemini SDKs all set
+// `status` on their error classes for an HTTP response (429 rate limit,
+// 5xx); a connection/timeout failure (e.g. openai's APIConnectionError,
+// APIConnectionTimeoutError) has no HTTP status at all, so those are
+// recognized by message instead. A validation or other 4xx status is never
+// retryable - retrying it against another provider would just repeat the
+// same bad request.
+export function isRetryableAiError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const status = 'status' in error ? error.status : undefined;
+  if (typeof status === 'number') return status === 429 || status >= 500;
+
+  return /timeout|network|ECONNRESET|ECONNREFUSED|fetch failed/i.test(
+    error.message,
+  );
+}
+
 // ponytail: only handles entitlement, rate-limit + generic fallback; each
 // route keeps its own 1-2 domain-error branches before calling this — not
 // worth a generic [ErrorClass, status][] table for that few branches per

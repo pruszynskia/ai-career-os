@@ -4251,7 +4251,7 @@ tasks:
     github:
       issue: "174"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
