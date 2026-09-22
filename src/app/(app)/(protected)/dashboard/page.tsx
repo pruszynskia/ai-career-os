@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { applicationService } from '@/entities/application/service';
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { isTerminalApplicationStatus } from '@/entities/application/types';
@@ -14,7 +16,10 @@ import { getResponseRateReadout } from '@/features/dashboard/services/response-r
 import { getOwnerId } from '@/shared/auth/session';
 import { EntitlementError } from '@/shared/billing/errors';
 import { AppPageLayout } from '@/shared/layouts';
-import { Grid } from '@/shared/ui/primitives';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent } from '@/shared/ui/card';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { Grid, VStack } from '@/shared/ui/primitives';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,17 +53,50 @@ export default async function DashboardPage() {
   const upcoming = applications.filter(
     (a) => a.status !== 'APPLIED' && !isTerminalApplicationStatus(a.status),
   );
+  // recentOffers is the account's offers with no filter, just capped at 5 -
+  // empty here means the account genuinely has zero offers, which is also
+  // the only way applications/interviews/activity can be empty (both FK to
+  // a job offer). One first-run panel replaces all four list sections
+  // rather than each showing its own empty box.
+  const hasOffers = recentOffers.length > 0;
 
   return (
     <AppPageLayout title="Dashboard">
-      <Grid cols={1} colsMd={2} gap={6}>
-        <NextPostCard post={posts[0] ?? null} />
-        <UpcomingInterviewsCard applications={upcoming} />
+      {hasOffers && (
         <ApplicationStatusBreakdownCard applications={applications} />
-        <ResponseRateCard readout={responseRateReadout} />
-        <RecentActivityCard events={recentActivity} />
-        <FavoriteOffersCard offers={favoriteOffers} />
-        <RecentOffersCard offers={recentOffers} />
+      )}
+      <Grid cols={1} colsMd={12} gap={6}>
+        <VStack gap={6} className="md:col-span-8">
+          {hasOffers ? (
+            <>
+              <UpcomingInterviewsCard applications={upcoming} />
+              <RecentActivityCard events={recentActivity} />
+            </>
+          ) : (
+            <Card>
+              <CardContent>
+                <EmptyState
+                  message="Add your first job offer to start tracking applications, interviews and activity here."
+                  action={
+                    <Button asChild size="sm">
+                      <Link href="/offers">Add your first offer</Link>
+                    </Button>
+                  }
+                />
+              </CardContent>
+            </Card>
+          )}
+          <NextPostCard post={posts[0] ?? null} />
+        </VStack>
+        <VStack gap={6} className="md:col-span-4">
+          {hasOffers && (
+            <>
+              <FavoriteOffersCard offers={favoriteOffers} />
+              <RecentOffersCard offers={recentOffers} />
+            </>
+          )}
+          <ResponseRateCard readout={responseRateReadout} />
+        </VStack>
       </Grid>
     </AppPageLayout>
   );

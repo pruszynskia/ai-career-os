@@ -1,5 +1,6 @@
 import { Surface } from '@/shared/ui/primitives/surface/surface';
 import { Text } from '@/shared/ui/primitives/typography/text';
+import { cn } from '@/shared/ui/utils';
 
 interface StatCardProps {
   label: string;
@@ -12,7 +13,11 @@ function StatCard({ label, value }: StatCardProps) {
       <Text size="xs" color="muted">
         {label}
       </Text>
-      <Text size="lg" weight="semibold">
+      <Text
+        size="lg"
+        weight="semibold"
+        className={cn(typeof value === 'number' && 'font-mono tabular-nums')}
+      >
         {value}
       </Text>
     </Surface>
