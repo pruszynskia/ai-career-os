@@ -11,3 +11,4 @@ export * from './list-row';
 export * from './async-button';
 export * from './confirm-dialog';
 export * from './field';
+export * from './theme-toggle';

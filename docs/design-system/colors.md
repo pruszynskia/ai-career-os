@@ -118,12 +118,11 @@ TASK-077's motion work to consume.
 
 ## Dark mode
 
-The `.dark` block's token values are rewritten here, but the class is not
-yet applied anywhere — wiring up dark mode (and whether it becomes the
-default theme) is TASK-067, not this task. Once activated, its palette is a
-**designed inversion** of the light ramp — every dark value above was
-independently tuned for legibility and elevation, not derived by
-auto-inverting the light tokens.
+Dark is the default theme (TASK-067) — `next-themes` applies the `.dark`
+class before first paint, and Light and System are opt-in via the toggle in
+Settings. Its palette is a **designed inversion** of the light ramp — every
+dark value above was independently tuned for legibility and elevation, not
+derived by auto-inverting the light tokens.
 
 ## Usage
 
