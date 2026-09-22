@@ -3,8 +3,7 @@
 import { useState } from 'react';
 
 import { useGenerateCampaign } from '@/features/linkedin-posts/hooks/use-generate-campaign';
-import { Spinner } from '@/shared/ui/primitives';
-import { Button } from '@/shared/ui/button';
+import { AsyncButton } from '@/shared/ui/async-button';
 import { Input } from '@/shared/ui/input';
 
 export function GenerateCampaignForm() {
@@ -65,14 +64,15 @@ export function GenerateCampaignForm() {
         </label>
       </div>
 
-      <Button
+      <AsyncButton
         type="submit"
-        disabled={mutation.isPending || !theme.trim()}
+        disabled={!theme.trim()}
+        pending={mutation.isPending}
+        pendingLabel="Generating…"
         className="self-start"
       >
-        {mutation.isPending && <Spinner size="sm" />}
-        {mutation.isPending ? 'Generating…' : 'Generate campaign'}
-      </Button>
+        Generate campaign
+      </AsyncButton>
     </form>
   );
 }

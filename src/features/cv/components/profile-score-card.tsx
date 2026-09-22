@@ -11,7 +11,7 @@ export function ProfileScoreCard({ score }: { score: ParsedProfileScore }) {
       </CardHeader>
       <CardContent>
         <VStack gap={4}>
-          <Heading level={1} as="h2">
+          <Heading level={1} as="h2" className="font-mono">
             {Math.round(score.overall)}/100
           </Heading>
           <Grid cols={2} colsMd={3} gap={3}>

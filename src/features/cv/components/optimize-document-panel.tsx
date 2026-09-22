@@ -3,9 +3,10 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 
 import type { CvDocument } from '@/entities/cv-document/types';
-import { Badge, Spinner, Text, VStack } from '@/shared/ui/primitives';
-import { Button } from '@/shared/ui/button';
+import { Badge, Text, VStack, surfaceVariants } from '@/shared/ui/primitives';
+import { AsyncButton } from '@/shared/ui/async-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { cn } from '@/shared/ui/utils';
 import { DocumentEditor } from '@/shared/ui/document-editor';
 
 interface Improvement {
@@ -43,48 +44,50 @@ export function OptimizeDocumentPanel<TImprovement extends Improvement>({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <Button
+        <AsyncButton
           variant="secondary"
           className="self-start"
-          disabled={mutation.isPending}
+          pending={mutation.isPending}
+          pendingLabel={buttonPendingLabel}
           onClick={() => mutation.mutate()}
         >
-          {mutation.isPending && <Spinner size="sm" />}
-          {mutation.isPending ? buttonPendingLabel : buttonLabel}
-        </Button>
+          {buttonLabel}
+        </AsyncButton>
 
         {mutation.isSuccess && (
           <VStack gap={3}>
-            <VStack gap={2}>
+            <div className="flex flex-col">
               {mutation.data.improvements.map((improvement, index) => (
-                <Card key={index}>
-                  <CardContent className="py-4">
-                    <VStack gap={1}>
-                      <Badge variant="secondary" className="self-start">
-                        {categoryLabel[improvement.category]}
-                      </Badge>
-                      <Text size="sm">
-                        <Text as="span" color="muted">
-                          Before:
-                        </Text>{' '}
-                        <Text as="span" className="line-through">
-                          {improvement.before}
-                        </Text>
-                      </Text>
-                      <Text size="sm">
-                        <Text as="span" color="muted">
-                          After:
-                        </Text>{' '}
-                        {improvement.after}
-                      </Text>
-                      <Text size="sm" color="muted">
-                        {improvement.rationale}
-                      </Text>
-                    </VStack>
-                  </CardContent>
-                </Card>
+                <div
+                  key={index}
+                  className={cn(
+                    surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+                    'flex flex-col gap-1 last:border-b-0',
+                  )}
+                >
+                  <Badge variant="secondary" className="self-start">
+                    {categoryLabel[improvement.category]}
+                  </Badge>
+                  <Text size="sm">
+                    <Text as="span" color="muted">
+                      Before:
+                    </Text>{' '}
+                    <Text as="span" className="line-through">
+                      {improvement.before}
+                    </Text>
+                  </Text>
+                  <Text size="sm">
+                    <Text as="span" color="muted">
+                      After:
+                    </Text>{' '}
+                    {improvement.after}
+                  </Text>
+                  <Text size="sm" color="muted">
+                    {improvement.rationale}
+                  </Text>
+                </div>
               ))}
-            </VStack>
+            </div>
             <DocumentEditor
               key={mutation.data.cvDocument.id}
               documentId={mutation.data.cvDocument.id}

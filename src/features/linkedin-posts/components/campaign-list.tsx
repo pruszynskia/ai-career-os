@@ -2,6 +2,8 @@ import type { Post } from '@/entities/post/types';
 import type { PostCampaign } from '@/entities/post-campaign/types';
 
 import { PostCard } from '@/features/linkedin-posts/components/post-list';
+import { Heading, Text, surfaceVariants } from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 
 export function CampaignList({
   campaigns,
@@ -23,12 +25,19 @@ export function CampaignList({
   return (
     <div className="flex flex-col gap-6">
       {nonEmptyCampaigns.map((campaign) => (
-        <div key={campaign.id} className="flex flex-col gap-3">
-          <div>
-            <h3 className="text-lg font-semibold">{campaign.theme}</h3>
-            <p className="text-sm text-muted-foreground">
+        <div key={campaign.id} className="flex flex-col">
+          <div
+            className={cn(
+              surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+              'flex flex-col gap-0.5 last:border-b-0',
+            )}
+          >
+            <Heading level={4} as="h3">
+              {campaign.theme}
+            </Heading>
+            <Text size="xs" color="muted">
               {campaign.createdAt.toLocaleDateString()}
-            </p>
+            </Text>
           </div>
           {posts
             .filter((post) => post.campaignId === campaign.id)
