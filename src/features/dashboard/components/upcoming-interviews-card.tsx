@@ -1,7 +1,7 @@
 import type { ApplicationBundle } from '@/entities/application/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ListRow } from '@/shared/ui/list-row';
+import { Heading, VStack } from '@/shared/ui/primitives';
 
 export function UpcomingInterviewsCard({
   applications,
@@ -9,15 +9,15 @@ export function UpcomingInterviewsCard({
   applications: ApplicationBundle[];
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upcoming interviews</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {applications.length === 0 ? (
-          <EmptyState message="No interviews in progress." className="p-6" />
-        ) : (
-          applications.map((application) => (
+    <VStack gap={2}>
+      <Heading level={4} as="h2">
+        Upcoming interviews
+      </Heading>
+      {applications.length === 0 ? (
+        <EmptyState message="No interviews in progress." />
+      ) : (
+        <div>
+          {applications.map((application) => (
             <ListRow
               key={application.id}
               href={`/offers/${application.jobOffer.id}`}
@@ -25,9 +25,9 @@ export function UpcomingInterviewsCard({
               supporting={application.jobOffer.company}
               meta={application.status}
             />
-          ))
-        )}
-      </CardContent>
-    </Card>
+          ))}
+        </div>
+      )}
+    </VStack>
   );
 }

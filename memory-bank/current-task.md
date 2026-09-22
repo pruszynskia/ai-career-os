@@ -2,6 +2,43 @@
 
 ## Current Sprint
 
+### Feature: TASK-072 — Dashboard redesign, activation-focused home
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+
+What shipped:
+
+- `src/app/(app)/(protected)/dashboard/page.tsx` — replaced the uniform
+  `Grid cols=1 colsMd=2` of seven equal cards with a full-width metric strip
+  (`ApplicationStatusBreakdownCard`) above a 12-col asymmetric grid: an
+  8-col primary column (upcoming interviews, next post) and a 4-col
+  secondary column (recent activity, favorite offers, recent offers,
+  response rate). When `recentOffers` (unfiltered, take 5) is empty — the
+  only way an account can have zero applications/interviews/activity, both
+  FK to a job offer — the whole list section is replaced by one first-run
+  `Card` + `EmptyState` pointing at `/offers`, instead of four separate
+  empty boxes.
+- `favorite-offers-card.tsx`, `recent-offers-card.tsx`,
+  `recent-activity-card.tsx`, `upcoming-interviews-card.tsx` — dropped the
+  `Card`/`CardHeader`/`CardTitle` wrapper (already on `ListRow` rows from
+  TASK-070); each is now a `Heading level={4}` label over plain `ListRow`s,
+  per the "ruled rows, not stacked cards" elevation model in
+  `ui-principles.md`.
+- `application-status-breakdown-card.tsx` — same Card-removal, `Grid
+  cols={3} colsMd={6}` for a horizontal strip instead of a boxed 2/3-col
+  grid.
+- `src/shared/ui/stat-card.tsx` — value renders `font-mono tabular-nums` so
+  counts read as scannable data per `typography.md`'s Geist Mono rule.
+- `dashboard/loading.tsx` — skeleton reshaped to a 9-tile strip plus an
+  8/4-col two-column block, matching the new layout.
+- `NextPostCard`/`ResponseRateCard` (not in this task's scope) untouched —
+  same data fetch, same components, just repositioned in the new grid.
+
+Follow-up not done here (out of scope): visual QA via the Playwright MCP
+design-review loop — the MCP server wasn't available in this session's tool
+set, so `docs/DESIGN_REVIEW_WORKFLOW.md`'s screenshot loop didn't run. Worth
+a manual pass before/at merge.
+
 ### Feature: TASK-089 — AI provider fallback chain (free-tier first)
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).

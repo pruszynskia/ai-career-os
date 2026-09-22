@@ -94,7 +94,7 @@ Props:
 | Prop | Type | Required | Notes |
 |---|---|---|---|
 | `label` | `string` | yes | Rendered via the `Text` primitive (`size="xs" color="muted"`) |
-| `value` | `number \| string` | yes | Rendered via the `Text` primitive (`size="lg" weight="semibold"`) |
+| `value` | `number \| string` | yes | Rendered via the `Text` primitive (`size="lg" weight="semibold"`); numeric values additionally get `font-mono tabular-nums`, string values render in the default typeface |
 
 ```tsx
 import { StatCard } from '@/shared/ui';
