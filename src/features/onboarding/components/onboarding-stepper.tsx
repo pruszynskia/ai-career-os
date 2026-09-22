@@ -25,12 +25,12 @@ export function OnboardingStepper({
           >
             <span
               className={cn(
-                'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
+                'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-xs tabular-nums',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-accent/15 font-medium text-foreground'
                   : isDone
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-muted text-muted-foreground',
+                    ? 'text-foreground'
+                    : 'text-muted-foreground',
               )}
             >
               {stepNumber}

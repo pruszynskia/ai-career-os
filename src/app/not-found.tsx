@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { buttonVariants } from '@/shared/ui/button';
+import { Heading, Text } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 
 // Rendered on demand, never prerendered: the production CSP in src/proxy.ts
@@ -12,12 +13,19 @@ export const dynamic = 'force-dynamic';
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="text-sm font-medium text-muted-foreground">404</p>
-      <h1 className="text-2xl font-semibold tracking-tight">Page not found</h1>
-      <p className="text-sm text-muted-foreground">
+      <Text size="sm" weight="medium" color="muted" className="font-mono">
+        404
+      </Text>
+      <Heading level={2} as="h1">
+        Page not found
+      </Heading>
+      <Text color="muted">
         The page you are looking for does not exist or has moved.
-      </p>
-      <Link href="/" className={cn(buttonVariants({ size: 'lg' }), 'mt-2')}>
+      </Text>
+      <Link
+        href="/"
+        className={cn(buttonVariants({ size: 'comfortable' }), 'mt-2')}
+      >
         Back to home
       </Link>
     </main>

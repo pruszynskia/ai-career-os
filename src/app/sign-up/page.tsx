@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { signInWithGoogle, signUp } from '@/shared/auth/actions';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
+import { Field } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
-import { Divider } from '@/shared/ui/primitives';
+import { Divider, Heading } from '@/shared/ui/primitives';
 
 export default async function SignUpPage({
   searchParams,
@@ -17,35 +18,24 @@ export default async function SignUpPage({
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <h1 className="text-2xl font-semibold">Create account</h1>
+          <Heading level={4} as="h1" className="font-medium">
+            Create account
+          </Heading>
         </CardHeader>
         <CardContent>
           <form action={signUp} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
+            <Field id="email" label="Email">
+              <Input name="email" type="email" placeholder="Email" required />
+            </Field>
+            <Field id="password" label="Password">
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Email"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
                 name="password"
                 type="password"
                 placeholder="Password"
                 minLength={8}
                 required
               />
-            </div>
+            </Field>
             <Button type="submit" className="mt-1">
               Sign up
             </Button>

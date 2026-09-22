@@ -2,6 +2,64 @@
 
 ## Current Sprint
 
+### Feature: TASK-075 — Auth, onboarding and billing screen pass
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+
+What shipped:
+
+- `sign-in/page.tsx`, `sign-up/page.tsx`, `forgot-password/page.tsx`,
+  `reset-password/page.tsx` — every raw `<label>`/`<Input>` pair replaced
+  with `Field`; the `<h1 className="text-2xl font-semibold">` in each
+  `CardHeader` replaced with `CardTitle`, matching the convention already
+  used everywhere else `Card` renders a title. No server action, redirect,
+  rate-limit or account-existence-disclosure behaviour touched; auth pages
+  stay centred per the task's own carve-out from the no-centred-layouts rule.
+- `onboarding-stepper.tsx` — the hand-rolled `rounded-full` numbered circle
+  replaced with a plain `font-mono tabular-nums` numeral, `text-accent` +
+  `font-medium` for the active step, `text-foreground` for done,
+  `text-muted-foreground` for upcoming. Step sequence, exemptions and the
+  `Text` label next to each numeral are unchanged.
+- `onboarding-panel.tsx`, `billing-panel.tsx`, `plan-badge.tsx` — read but
+  left unchanged: all three already compose `Card`/`Badge`/`Text`/`VStack`
+  fully on tokens with no raw markup to extract, so touching them would have
+  been a no-op diff.
+- `usage-meter.tsx` — the native `<progress>` element replaced with a
+  `role="progressbar"` token bar (`bg-muted` track, `bg-success` fill sized
+  via inline `width: ${percent}%`, `--success` is the palette's documented
+  "progress" status colour); the used-of-limit `Text` now renders
+  `font-mono`.
+- `notification-list.tsx` — the hand-rolled `<p className="text-sm
+  text-muted-foreground">You're all caught up.</p>` empty state replaced
+  with `EmptyState`.
+- `src/app/error.tsx` (new) — the app's first root error boundary; client
+  component, logs to `console.error`, styled with `Heading`/`Text`/`Button`
+  matching `not-found.tsx`'s layout, `reset()` wired to a "Try again" button.
+- `not-found.tsx` — restyled with the `Heading`/`Text` primitives instead of
+  raw `<h1>`/`<p>`; the CSP-nonce `force-dynamic` comment and export are
+  untouched.
+
+Playwright MCP server wasn't available in this session's tool set, so a
+`@playwright/test` chromium script was used instead against a local `npm run
+dev` to screenshot `/sign-in`, `/sign-up`, `/forgot-password` in both light
+and dark mode (forced via `localStorage.theme`, since `next-themes` here
+defaults to `dark` regardless of `prefers-color-scheme`) — all legible, Field
+labels rendering above their controls, tokens correct in both themes.
+`/reset-password`, `/onboarding`, the billing panel and the notification
+list all sit behind an authenticated session (`src/proxy.ts`'s
+`PUBLIC_PATHS` redirects everything else to `/sign-in`, including an
+unmatched route, so `/this-route-does-not-exist` couldn't be used to preview
+`not-found.tsx` either) — not screenshotted this session; worth a manual
+signed-in pass before merge.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 163 passed, no new tests (presentation-only diff, no new
+  branching logic)
+- `npm run build` — pass
+
 ### Feature: TASK-074 — Documents, posts and profile screen pass
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).
@@ -1095,3 +1153,4 @@ Validation:
 - 2026-09-22: TASK-067 (dark mode default theme) merged via PR #197, merge commit 33f4fbb7c8318b4243cbf21aa700edef7f351a9a.
 - 2026-09-22: TASK-072 (dashboard redesign, activation-focused home) merged via PR #198, merge commit ce1be5d6ec56e41228a29e16079c547442af3ad4.
 - 2026-09-22: TASK-074 (documents, posts and profile screen pass) merged via PR #199, merge commit 5555d43e5dedc49fe936268a728561597d803fa0.
+- 2026-09-22: TASK-075 blocked twice by deploy-review (max 2 fix rounds) on a WCAG 1.4.3 contrast failure in the onboarding stepper's active-step numeral (`text-accent` amber at 2.04:1). Fixed manually: numeral moved to `text-foreground`, active state marked with a `bg-accent/15` background wash instead — matches globals.css:180's existing rule that `--accent` (amber, 2.04:1) must never carry contrast-bearing text/borders, only decorative fills. Also fixed: `usage-meter.tsx` Prettier formatting, and its bar no longer disappears at `limit <= 0` (renders a full neutral bar with a valid `aria-valuemax=1` instead of an empty div). Confirmed `onboarding-panel.tsx`/`billing-panel.tsx`/`plan-badge.tsx`/auth-page Card shells are a legitimate no-op — already on Card/Button/Field/Badge primitives. All validation green (163/163 tests).
