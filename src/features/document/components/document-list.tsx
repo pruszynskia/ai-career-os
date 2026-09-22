@@ -5,9 +5,9 @@ import { useState } from 'react';
 import type { CvDocument } from '@/entities/cv-document/types';
 import { CV_DOCUMENT_KIND_LABEL } from '@/entities/cv-document/types';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
-import { Badge } from '@/shared/ui/primitives/feedback/badge';
+import { Badge, surfaceVariants } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { cn } from '@/shared/ui/utils';
 import { DocumentEditor } from '@/shared/ui/document-editor';
 import { EmptyState } from '@/shared/ui/empty-state';
 
@@ -41,56 +41,58 @@ export function DocumentList({ documents }: { documents: CvDocument[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col">
       {documents.map((document) => (
-        <Card key={document.id}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Badge variant="secondary">{documentLabel(document)}</Badge>
-              <span className="text-sm font-normal text-muted-foreground">
-                {document.updatedAt.toLocaleDateString()}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {editingId === document.id ? (
-              <DocumentEditor
-                key={document.id}
-                documentId={document.id}
-                content={document.content}
-                downloadFilename={documentFilename(document)}
-                onSaved={() => setEditingId(null)}
-              />
-            ) : (
-              <>
-                <p className="line-clamp-3 whitespace-pre-wrap text-sm">
-                  {document.content}
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingId(document.id)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      downloadTextFile(
-                        documentFilename(document),
-                        document.content,
-                      )
-                    }
-                  >
-                    Download
-                  </Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div
+          key={document.id}
+          className={cn(
+            surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+            'flex flex-col gap-3 last:border-b-0',
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{documentLabel(document)}</Badge>
+            <span className="text-sm text-muted-foreground">
+              {document.updatedAt.toLocaleDateString()}
+            </span>
+          </div>
+          {editingId === document.id ? (
+            <DocumentEditor
+              key={document.id}
+              documentId={document.id}
+              content={document.content}
+              downloadFilename={documentFilename(document)}
+              onSaved={() => setEditingId(null)}
+            />
+          ) : (
+            <>
+              <p className="line-clamp-3 whitespace-pre-wrap text-sm">
+                {document.content}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingId(document.id)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    downloadTextFile(
+                      documentFilename(document),
+                      document.content,
+                    )
+                  }
+                >
+                  Download
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       ))}
     </div>
   );

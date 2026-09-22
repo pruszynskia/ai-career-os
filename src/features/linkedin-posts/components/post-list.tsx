@@ -10,15 +10,8 @@ import { useSchedulePost } from '@/features/linkedin-posts/hooks/use-schedule-po
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/primitives/feedback/badge';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui/card';
+import { Badge, surfaceVariants } from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
@@ -51,7 +44,7 @@ export function PostList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col">
       {posts.map((post) => (
         <PostCard
           key={post.id}
@@ -112,9 +105,14 @@ export function PostCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <div
+      className={cn(
+        surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+        'flex flex-col gap-3 last:border-b-0',
+      )}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
           <Select value={post.status} onValueChange={handleStatusChange}>
             <SelectTrigger aria-label="Post status">
               <SelectValue />
@@ -127,14 +125,14 @@ export function PostCard({
               ))}
             </SelectContent>
           </Select>
-        </CardTitle>
-        <CardDescription>
-          {post.createdAt.toLocaleDateString()}
-          {post.scheduledAt &&
-            ` · scheduled for ${post.scheduledAt.toLocaleDateString()}`}
-          {post.sentAt && ` · sent ${post.sentAt.toLocaleDateString()}`}
-        </CardDescription>
-        <CardAction className="flex gap-2">
+          <span className="text-sm text-muted-foreground">
+            {post.createdAt.toLocaleDateString()}
+            {post.scheduledAt &&
+              ` · scheduled for ${post.scheduledAt.toLocaleDateString()}`}
+            {post.sentAt && ` · sent ${post.sentAt.toLocaleDateString()}`}
+          </span>
+        </div>
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy'}
           </Button>
@@ -152,62 +150,61 @@ export function PostCard({
             pending={deleteMutation.isPending}
             onConfirm={handleDelete}
           />
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <p className="whitespace-pre-wrap text-sm">{post.content}</p>
+        </div>
+      </div>
 
-        {post.claimsUsed.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {[...new Set(post.claimsUsed)].map((claimId) => (
-              <Badge
-                key={claimId}
-                title={claimId}
-                variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}
-              >
-                {claimTextById.get(claimId) ?? claimId}
-                {reusedClaimIds.has(claimId) ? ' · reused' : ''}
-              </Badge>
-            ))}
-          </div>
-        )}
+      <p className="whitespace-pre-wrap text-sm">{post.content}</p>
 
-        {post.status === 'DRAFT' && (
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              className="w-auto"
-              value={scheduledAtInput}
-              onChange={(event) => setScheduledAtInput(event.target.value)}
-              disabled={scheduleMutation.isPending}
-            />
-            <AsyncButton
-              type="button"
-              size="sm"
-              disabled={!scheduledAtInput}
-              pending={scheduleMutation.isPending}
-              pendingLabel="Scheduling…"
-              onClick={handleSchedule}
+      {post.claimsUsed.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {[...new Set(post.claimsUsed)].map((claimId) => (
+            <Badge
+              key={claimId}
+              title={claimId}
+              variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}
             >
-              Schedule
-            </AsyncButton>
-          </div>
-        )}
+              {claimTextById.get(claimId) ?? claimId}
+              {reusedClaimIds.has(claimId) ? ' · reused' : ''}
+            </Badge>
+          ))}
+        </div>
+      )}
 
-        {post.status === 'SCHEDULED' && (
+      {post.status === 'DRAFT' && (
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            className="w-auto"
+            value={scheduledAtInput}
+            onChange={(event) => setScheduledAtInput(event.target.value)}
+            disabled={scheduleMutation.isPending}
+          />
           <AsyncButton
             type="button"
             size="sm"
-            variant="outline"
-            className="self-start"
-            pending={markSentMutation.isPending}
-            pendingLabel="Marking…"
-            onClick={handleMarkSent}
+            disabled={!scheduledAtInput}
+            pending={scheduleMutation.isPending}
+            pendingLabel="Scheduling…"
+            onClick={handleSchedule}
           >
-            Mark as sent
+            Schedule
           </AsyncButton>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+
+      {post.status === 'SCHEDULED' && (
+        <AsyncButton
+          type="button"
+          size="sm"
+          variant="outline"
+          className="self-start"
+          pending={markSentMutation.isPending}
+          pendingLabel="Marking…"
+          onClick={handleMarkSent}
+        >
+          Mark as sent
+        </AsyncButton>
+      )}
+    </div>
   );
 }

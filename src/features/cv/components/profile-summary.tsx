@@ -1,5 +1,12 @@
 import type { ParsedProfile } from '@/entities/profile/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import {
+  Badge,
+  Heading,
+  Text,
+  VStack,
+  surfaceVariants,
+} from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 
 type ProfileSummaryData = Pick<
   ParsedProfile,
@@ -8,103 +15,101 @@ type ProfileSummaryData = Pick<
 
 export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm">{profile.summary}</p>
-        </CardContent>
-      </Card>
+    <VStack gap={6}>
+      <VStack gap={1}>
+        <Heading level={4} as="h2">
+          Summary
+        </Heading>
+        <Text size="lg">{profile.summary}</Text>
+      </VStack>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Skills</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-wrap gap-2">
-            {profile.skills.map((skill) => (
-              <li
-                key={skill}
-                className="rounded-lg bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
-              >
-                {skill}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <VStack gap={2}>
+        <Heading level={4} as="h2">
+          Skills
+        </Heading>
+        <ul className="flex flex-wrap gap-2">
+          {profile.skills.map((skill) => (
+            <li key={skill}>
+              <Badge variant="secondary">{skill}</Badge>
+            </li>
+          ))}
+        </ul>
+      </VStack>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Experience</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col gap-4">
-            {profile.experience.map((role, index) => (
-              <li key={`${role.company}-${role.title}-${index}`}>
-                <p className="text-sm font-medium">
-                  {role.title} · {role.company}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {role.startDate} – {role.endDate ?? 'Present'}
-                </p>
-                <p className="mt-1 text-sm">{role.description}</p>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <VStack gap={2}>
+        <Heading level={4} as="h2">
+          Experience
+        </Heading>
+        <ul className="flex flex-col">
+          {profile.experience.map((role, index) => (
+            <li
+              key={`${role.company}-${role.title}-${index}`}
+              className={cn(
+                surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+                'flex flex-col gap-1 last:border-b-0',
+              )}
+            >
+              <Text size="sm" weight="medium">
+                {role.title} · {role.company}
+              </Text>
+              <Text size="xs" color="muted">
+                {role.startDate} – {role.endDate ?? 'Present'}
+              </Text>
+              <Text size="sm">{role.description}</Text>
+            </li>
+          ))}
+        </ul>
+      </VStack>
 
       {profile.projects.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Projects</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="flex flex-col gap-4">
-              {profile.projects.map((project, index) => {
-                const href =
-                  project.url && /^https?:\/\//i.test(project.url)
-                    ? project.url
-                    : null;
-                return (
-                  <li key={`${project.name}-${index}`}>
-                    <p className="text-sm font-medium">
-                      {href ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline underline-offset-2"
-                        >
-                          {project.name}
-                        </a>
-                      ) : (
-                        project.name
-                      )}
-                    </p>
-                    <p className="mt-1 text-sm">{project.description}</p>
-                    {project.technologies.length > 0 && (
-                      <ul className="mt-2 flex flex-wrap gap-2">
-                        {project.technologies.map((tech) => (
-                          <li
-                            key={tech}
-                            className="rounded-lg bg-secondary px-2.5 py-1 text-xs text-secondary-foreground"
-                          >
-                            {tech}
-                          </li>
-                        ))}
-                      </ul>
+        <VStack gap={2}>
+          <Heading level={4} as="h2">
+            Projects
+          </Heading>
+          <ul className="flex flex-col">
+            {profile.projects.map((project, index) => {
+              const href =
+                project.url && /^https?:\/\//i.test(project.url)
+                  ? project.url
+                  : null;
+              return (
+                <li
+                  key={`${project.name}-${index}`}
+                  className={cn(
+                    surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+                    'flex flex-col gap-1 last:border-b-0',
+                  )}
+                >
+                  <Text size="sm" weight="medium">
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {project.name}
+                      </a>
+                    ) : (
+                      project.name
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
+                  </Text>
+                  <Text size="sm">{project.description}</Text>
+                  {project.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {project.technologies.map((tech) => (
+                        <Badge key={tech} variant="outline">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </VStack>
       )}
-    </div>
+    </VStack>
   );
 }

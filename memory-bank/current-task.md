@@ -2,6 +2,48 @@
 
 ## Current Sprint
 
+### Feature: TASK-074 — Documents, posts and profile screen pass
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+
+What shipped:
+
+- `document-list.tsx` — Card-per-document replaced with a `surfaceVariants({
+  elevation: 'ruled' })` row (master/previous `Badge`, inline
+  `DocumentEditor` toggle unchanged); added `documents/loading.tsx`
+  (previously had no loading state), skeleton matching the ruled-row list.
+- `post-list.tsx` — `PostCard` (still exported, still the single component
+  `campaign-list.tsx` reuses) converted from `Card` to the same ruled-row
+  pattern. Status select, copy, edit (draft), delete, schedule (draft) and
+  mark-sent (scheduled) actions all stayed inline on the row — it had room,
+  so no trailing menu was needed.
+- `campaign-list.tsx` — raw `<h3>` replaced with `Heading level={4} as="h3"`;
+  campaign theme + date now sit in a `ruled`-elevation header row above the
+  (now ruled) `PostCard` rows for that campaign.
+- `profile-summary.tsx` — four stacked `Card`s replaced with a real
+  hierarchy: Summary as plain lead text, Skills as `Badge` chips, Experience
+  and Projects as ruled rows — no `rounded-full` hand-rolled chips remained
+  in this file to begin with (they were already `rounded-lg`).
+- `profile-score-card.tsx` — score `Heading` now renders `font-mono`
+  (Geist Mono), matching the type-scale rule for numeric/score data
+  elsewhere (`StatCard`, dashboard).
+- `optimize-document-panel.tsx` — submit button converted to `AsyncButton`;
+  the improvements list (`Card` nested inside the panel's `Card`) is now a
+  ruled-row list.
+- `generate-post-form.tsx`, `generate-campaign-form.tsx` — inline
+  `isPending` spinner conditionals replaced with `AsyncButton`.
+
+Not touched: `posts/page.tsx` and `profile/page.tsx` needed no edits (the
+Card/heading/chip changes all live in the components they render);
+`edit-post-dialog.tsx` and `DocumentEditor` are out of this task's scope and
+keep their existing API/markup.
+
+Follow-up not done here (out of scope / tooling limit): visual QA via the
+Playwright MCP design-review loop — the MCP server wasn't available in this
+session's tool set, so `docs/DESIGN_REVIEW_WORKFLOW.md`'s screenshot loop
+didn't run. Worth a manual light/dark pass on `/documents`, `/posts` and
+`/profile` before merge.
+
 ### Feature: TASK-072 — Dashboard redesign, activation-focused home
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).
