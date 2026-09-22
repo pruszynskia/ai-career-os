@@ -1,5 +1,7 @@
 # Current Tasks
 
+- 2026-09-22: TASK-075 merged via PR #200, commit 2a9efae91284a995e9acefe76096432a7e881c6d.
+
 ## Current Sprint
 
 ### Feature: TASK-075 — Auth, onboarding and billing screen pass
