@@ -5383,7 +5383,7 @@ tasks:
     github:
       issue: "155"
       project_item: null
-    status: in_progress
+    status: done
     priority: P2
     estimate: M
     milestone: "Design System Overhaul"
