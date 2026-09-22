@@ -53,7 +53,7 @@ tasks:
     github:
       issue: "1"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: XS
     milestone: MVP
@@ -265,7 +265,7 @@ tasks:
     github:
       issue: "4"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: S
     milestone: MVP
@@ -339,7 +339,7 @@ tasks:
     github:
       issue: "5"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: M
     milestone: MVP
@@ -409,7 +409,7 @@ tasks:
     github:
       issue: "6"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: MVP
@@ -478,7 +478,7 @@ tasks:
     github:
       issue: "7"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: MVP
@@ -540,7 +540,7 @@ tasks:
     github:
       issue: "8"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: MVP
@@ -610,7 +610,7 @@ tasks:
     github:
       issue: "9"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: MVP
@@ -682,7 +682,7 @@ tasks:
     github:
       issue: "10"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: MVP
@@ -740,7 +740,7 @@ tasks:
     github:
       issue: "11"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: MVP
@@ -806,7 +806,7 @@ tasks:
     github:
       issue: "12"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: MVP
@@ -870,7 +870,7 @@ tasks:
     github:
       issue: "13"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: MVP
@@ -934,7 +934,7 @@ tasks:
     github:
       issue: "14"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: MVP
@@ -996,7 +996,7 @@ tasks:
     github:
       issue: "15"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: MVP
@@ -1056,7 +1056,7 @@ tasks:
     github:
       issue: "31"
       project_item: null
-    status: todo
+    status: done
     priority: P0
     estimate: L
     milestone: "Stage 0 - MVP Stabilization"
@@ -1987,7 +1987,7 @@ tasks:
     github:
       issue: "62"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 2 - Core Value"
@@ -2062,7 +2062,7 @@ tasks:
     github:
       issue: "63"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 2 - Core Value"
@@ -2134,7 +2134,7 @@ tasks:
     github:
       issue: "64"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 2 - Core Value"
@@ -2204,7 +2204,7 @@ tasks:
     github:
       issue: "106"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 2 - Core Value"
@@ -2287,7 +2287,7 @@ tasks:
     github:
       issue: "107"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 2 - Core Value"
@@ -2365,7 +2365,7 @@ tasks:
     github:
       issue: "108"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 2 - Core Value"
@@ -2443,7 +2443,7 @@ tasks:
     github:
       issue: "109"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 2 - Core Value"
@@ -2517,7 +2517,7 @@ tasks:
     github:
       issue: "65"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -2578,7 +2578,7 @@ tasks:
     github:
       issue: "66"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 1 - Product Refinement"
@@ -2647,7 +2647,7 @@ tasks:
     github:
       issue: "79"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -2717,7 +2717,7 @@ tasks:
     github:
       issue: "80"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -2785,7 +2785,7 @@ tasks:
     github:
       issue: "81"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 1 - Product Refinement"
@@ -2871,7 +2871,7 @@ tasks:
     github:
       issue: "67"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 1 - Product Refinement"
@@ -2946,7 +2946,7 @@ tasks:
     github:
       issue: "68"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -3009,7 +3009,7 @@ tasks:
     github:
       issue: "82"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -3077,7 +3077,7 @@ tasks:
     github:
       issue: "83"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 1 - Product Refinement"
@@ -3150,7 +3150,7 @@ tasks:
     github:
       issue: "69"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 1 - Product Refinement"
@@ -3232,7 +3232,7 @@ tasks:
     github:
       issue: "70"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 1 - Product Refinement"
@@ -3307,7 +3307,7 @@ tasks:
     github:
       issue: "84"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: XS
     milestone: "Stage 1 - Product Refinement"
@@ -3356,7 +3356,7 @@ tasks:
     github:
       issue: "71"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 1 - Product Refinement"
@@ -3429,7 +3429,7 @@ tasks:
     github:
       issue: "85"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -3498,7 +3498,7 @@ tasks:
     github:
       issue: "72"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -3559,7 +3559,7 @@ tasks:
     github:
       issue: "73"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Stage 1 - Product Refinement"
@@ -3620,7 +3620,7 @@ tasks:
     github:
       issue: "86"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 1 - Product Refinement"
@@ -3693,7 +3693,7 @@ tasks:
     github:
       issue: "145"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P1
     estimate: L
     milestone: "Monetization Milestone"
@@ -3779,7 +3779,7 @@ tasks:
     github:
       issue: "117"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: S
     milestone: "Monetization Milestone"
@@ -3846,7 +3846,7 @@ tasks:
     github:
       issue: "118"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Monetization Milestone"
@@ -3923,7 +3923,7 @@ tasks:
     github:
       issue: "119"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Monetization Milestone"
@@ -4021,7 +4021,7 @@ tasks:
     github:
       issue: "120"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Monetization Milestone"
@@ -4093,7 +4093,7 @@ tasks:
     github:
       issue: "121"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Monetization Milestone"
@@ -4168,7 +4168,7 @@ tasks:
     github:
       issue: "122"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Monetization Milestone"
@@ -4337,7 +4337,7 @@ tasks:
     github:
       issue: "123"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Monetization Milestone"
@@ -4419,7 +4419,7 @@ tasks:
     github:
       issue: "124"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Monetization Milestone"
@@ -4498,7 +4498,7 @@ tasks:
     github:
       issue: "125"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Monetization Milestone"
@@ -4582,7 +4582,7 @@ tasks:
     github:
       issue: "146"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -4672,7 +4672,7 @@ tasks:
     github:
       issue: "147"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P2
     estimate: S
     milestone: "Monetization Milestone"
@@ -4748,7 +4748,7 @@ tasks:
     github:
       issue: "148"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P1
     estimate: S
     milestone: "Monetization Milestone"
@@ -4819,7 +4819,7 @@ tasks:
     github:
       issue: "149"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Overhaul"
@@ -4910,7 +4910,7 @@ tasks:
     github:
       issue: "150"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Overhaul"
@@ -5000,7 +5000,7 @@ tasks:
     github:
       issue: "151"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -5091,7 +5091,7 @@ tasks:
     github:
       issue: "152"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -5188,7 +5188,7 @@ tasks:
     github:
       issue: "153"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -5279,7 +5279,7 @@ tasks:
     github:
       issue: "154"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -5383,7 +5383,7 @@ tasks:
     github:
       issue: "155"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P2
     estimate: M
     milestone: "Design System Overhaul"
@@ -5472,7 +5472,7 @@ tasks:
     github:
       issue: "156"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -5567,7 +5567,7 @@ tasks:
     github:
       issue: "157"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P2
     estimate: M
     milestone: "Design System Overhaul"
@@ -5658,7 +5658,7 @@ tasks:
     github:
       issue: "158"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P2
     estimate: M
     milestone: "Design System Overhaul"
@@ -5752,7 +5752,7 @@ tasks:
     github:
       issue: "159"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -5843,7 +5843,7 @@ tasks:
     github:
       issue: "160"
       project_item: null
-    status: todo
+    status: in_progress
     priority: P2
     estimate: M
     milestone: "Design System Overhaul"
@@ -5940,7 +5940,7 @@ tasks:
     github:
       issue: "162"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -6036,7 +6036,7 @@ tasks:
     github:
       issue: "163"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -6137,7 +6137,7 @@ tasks:
     github:
       issue: "164"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -6226,7 +6226,7 @@ tasks:
     github:
       issue: "165"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -6321,7 +6321,7 @@ tasks:
     github:
       issue: "166"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -6410,7 +6410,7 @@ tasks:
     github:
       issue: "167"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -6510,7 +6510,7 @@ tasks:
     github:
       issue: "168"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: L
     milestone: "Stage 3 - Evidence and Signal"
@@ -6609,7 +6609,7 @@ tasks:
     github:
       issue: "169"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -6702,7 +6702,7 @@ tasks:
     github:
       issue: "170"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -6786,7 +6786,7 @@ tasks:
     github:
       issue: "171"
       project_item: null
-    status: todo
+    status: done
     priority: P2
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"
@@ -6877,7 +6877,7 @@ tasks:
     github:
       issue: "172"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Stage 3 - Evidence and Signal"

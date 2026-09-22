@@ -1012,3 +1012,5 @@ Validation:
 - `npm run build` — pass; `/` is `ƒ` (dynamic), `/pricing` is `○` (static)
 - Playwright design-review loop not run (non-interactive) — needs a visual
   pass on `/` and `/pricing` during review.
+
+- 2026-09-22: TASK-067 (dark mode default theme) merged via PR #197, merge commit 33f4fbb7c8318b4243cbf21aa700edef7f351a9a.
