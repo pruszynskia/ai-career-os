@@ -1104,3 +1104,74 @@ Consequences:
 - `tests/smoke/unit/metered-ai-service.test.ts` covers the fallback loop:
   success-never-invokes-a-second-provider, retryable-vs-non-retryable
   classification, cooldown skip, and free/paid list isolation.
+
+## ADR-023
+
+Date:
+
+2026-09-23
+
+Decision:
+
+Supersede ADR-018's warm-neutral ramp / amber signal accent with
+**Midnight Mint**: a near-black/near-white neutral ramp (no warm or cool
+tint) and a single teal accent (`#2DD4BF` dark / `#0F766E` light,
+`--primary`) carrying every primary-action, link, focus-ring, selection and
+progress meaning that was previously split across `--accent` (amber) and
+`--ring` (neutral-inverse). `--info`/`--info-foreground` are retired (no
+blue in the system) along with `--signal-gold` and the `--chart-step-1..5`
+ramp; `--warning`/`--destructive` keep their existing urgency/destructive
+roles. The radius scale gains a 12px `radius.lg` step reserved for dialogs
+and product frames only (`dialog.tsx`), one step above the 8px cap ADR-018
+set. Archivo is dropped entirely — every heading level now renders Geist
+Sans, differentiated by size and weight instead of a second typeface. The
+full token set is vendored at `docs/design-system/tokens.json` (TASK-090),
+with `docs/design-system/colors.md`, `typography.md` and `ui-principles.md`
+rewritten against it and `scripts/check-tokens.py` added as a runnable
+WCAG-contrast and CSS-variable-name gate over it. This ADR is docs-and-
+scripts only — `src/app/globals.css` and every component keep ADR-018's
+values until TASK-091 rewrites them.
+
+Reason:
+
+53 mockup boards produced during the redesign settled on a single teal
+accent and a true near-black/near-white neutral ramp instead of ADR-018's
+warm-tinted neutrals and amber accent — the amber `--accent` also failed
+the WCAG 2.1 SC 1.4.11 3:1 non-text-contrast floor in light mode (2.04:1),
+which the teal `--primary` passes in both themes (5.47:1 light, 10.39:1
+dark). Collapsing `--accent` and `--ring` into one teal `--primary` removes
+a two-token split that had no real distinction in practice. Archivo never
+established a second-typeface identity strong enough to justify the extra
+font load and the `font-heading`/`font-sans` split it forced on every
+heading call site.
+
+Alternatives Considered:
+
+- Keep the amber accent for non-text interaction states and add teal only
+  as a new status colour — rejected: reproduces ADR-018's two-accent split
+  (a colour meaning two things) that this ADR exists to remove, and the
+  mockups never use amber for anything but urgency.
+- Keep Archivo for h1 only, drop it from h2/h3 — rejected: a single
+  typeface throughout is simpler to reason about than a partial split, and
+  none of the 53 mockup boards use a second face at any heading level.
+- Cap radius at 8px and add a one-off `rounded-xl` override on dialogs
+  instead of a token step — rejected: `tokens.json` already models every
+  other size as a named step; a bare Tailwind override with no token behind
+  it is exactly the kind of undocumented one-off `ui-principles.md`'s
+  guardrail checklist exists to catch.
+
+Consequences:
+
+- `docs/design-system/colors.md`, `typography.md` and `ui-principles.md`
+  are rewritten against Midnight Mint; every ADR-018/Archivo/amber/
+  warm-neutral reference in those three files is gone.
+- `ARCHITECTURE.md`'s design-system citation now names this ADR instead of
+  ADR-018/ADR-010.
+- `npm run check-tokens` (`scripts/check-tokens.py`) contrast-checks
+  `tokens.json`'s own values (always PASS, since the vendored set is
+  designed to pass) and separately lists which of its CSS variable names
+  are still missing from `src/app/globals.css` — that list stays non-empty
+  until TASK-091 rewrites it, expected since this ADR does not touch `src/`.
+- The guardrail checklist's radius grep changes from a flat "nothing above
+  8px" rule to "12px only on `dialog.tsx`", so a future `rounded-xl` call
+  site anywhere else remains a caught spec bug, not a silently allowed one.

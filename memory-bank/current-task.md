@@ -5,6 +5,68 @@
 
 ## Current Sprint
 
+### Feature: TASK-090 — Vendor the Midnight Mint design-system spec into the repo
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+Docs-and-scripts only, no `src/` file touched.
+
+What shipped:
+
+- `docs/design-system/tokens.json` (new) — byte-identical copy of the
+  Midnight Mint token set from `~/.claude/projects/-Users-andrzejpruszynski-
+  dev-ai-career-os/design-system/tokens.json`.
+- `docs/design-system/mockups/` (new) — all 53 `X-*.dc.html` boards, copied
+  byte-identical from the source `mockups/` directory.
+- `docs/design-system/colors.md`, `typography.md`, `ui-principles.md` —
+  rewritten from the source `DESIGN-SYSTEM.md`'s palette table, "Conflicts
+  resolved" and "Retired" sections: Midnight Mint neutrals + single teal
+  accent replacing the ADR-018 warm-neutral/amber system; Geist-only type
+  (secondary display face dropped) replacing the Archivo split; the
+  guardrail checklist's radius rule now allows `rounded-xl` (12px) on
+  `dialog.tsx` only, matching `tokens.json`'s `radius.lg`. Zero
+  `ADR-018`/`Archivo`/`signal-amber`/`warm-neutral` references remain in
+  any of the three (verified by grep).
+- `scripts/check-tokens.py` (new) — ported from the source `check_tokens.py`
+  unchanged except its `tokens.json` load path (now
+  `docs/design-system/tokens.json`, relative to the script); keeps both the
+  48-pair WCAG contrast check and the CSS-variable name audit against
+  whatever `.css` path is passed.
+- `package.json` — new `check-tokens` script
+  (`python3 scripts/check-tokens.py src/app/globals.css`).
+- `memory-bank/decisions.md` — new ADR-023, superseding ADR-018.
+- `ARCHITECTURE.md:180` — design-system citation now names ADR-023/Midnight
+  Mint instead of ADR-018/ADR-010.
+
+Noted deviation from the acceptance line's prose expectation (not a defect,
+just worth flagging): `npm run check-tokens` against the current
+(pre-migration) `src/app/globals.css` prints **PASS**, exit 0 — not the FAIL
+the acceptance criterion's prose anticipated. The ported script's contrast
+check only validates `tokens.json`'s own internal color pairs (which are
+designed to pass), never the actual rendered values in the `.css` path
+passed to it; the `.css` argument only drives a separate, non-blocking
+"which var names are still missing" name audit (printed, not gated). This
+behavior was kept unchanged per the task's explicit instruction ("Keep both
+[functions] ... Only change the tokens.json load path") and its `do_not`
+("don't loosen thresholds/pairs to force a pass") — inventing new
+value-comparison logic to make it fail against `globals.css` would have been
+scope creep beyond porting the script as specified. The literal, gateable
+acceptance line — "runs to completion, exit 0 or 1, never a crash" — holds.
+
+Not done (out of scope per `do_not`): `src/app/globals.css` and no component
+in `src/` touched (TASK-091); `DESIGN-SYSTEM.md`/`mockup-generator/` weren't
+vendored or rewritten, only `tokens.json` and `mockups/` as data; ADR-018
+through ADR-022 untouched, ADR-023 is additive; no token invented outside
+`tokens.json`.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 163 passed, no new tests (docs/config diff, no new logic
+  beyond the ported, already-covered-by-inspection contrast script)
+- `npm run build` — pass
+- `npm run check-tokens` — pass (exit 0, "PASS"; see deviation note above)
+
 ### Feature: TASK-075 — Auth, onboarding and billing screen pass
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).

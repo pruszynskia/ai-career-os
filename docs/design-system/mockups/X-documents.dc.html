@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Documents</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.th{--bg:#0A0E14;--side:#000000;--panel:#12161E;--raised:#161B24;--sunk:#07090D;--hover:#1C1F26;--line:#1C1F26;--line2:#2D3642;--tx:#E8ECF1;--tx2:#AEB6C2;--mu:#818B99;--pr:#2DD4BF;--onpr:#042F2E;--acc:#2DD4BF;--accbg:#0B2A28;--t1:#2DD4BF;--t2:#0D9488;--t3:#5B6778;--t4:#2D3642;--warn:#F5B452;--warnbg:#2A2211;--bad:#F87171;--badbg:#2A1215;--bar:#2DD4BF;--shadow:0 16px 48px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.4);--scrim:rgba(0,0,0,.62);font-family:Geist,system-ui,sans-serif;font-size:13px;line-height:18px;color:var(--tx);background:var(--bg);-webkit-font-smoothing:antialiased;overflow:hidden;position:relative}
+.th.lt{--bg:#FFFFFF;--side:#F6F7F9;--panel:#FFFFFF;--raised:#FFFFFF;--sunk:#F2F4F6;--hover:#F4F5F7;--line:#E6E8EC;--line2:#D2D6DC;--tx:#0A0E14;--tx2:#2D3642;--mu:#5B6472;--pr:#0F766E;--onpr:#FFFFFF;--acc:#0F766E;--accbg:#E6F7F5;--t1:#14B8A6;--t2:#0F766E;--t3:#8A94A3;--t4:#D2D6DC;--warn:#B45309;--warnbg:#FEF4E6;--bad:#C2261D;--badbg:#FDECEC;--bar:#0F766E;--shadow:0 16px 48px rgba(10,14,20,.16),0 2px 6px rgba(10,14,20,.08);--scrim:rgba(10,14,20,.32)}
+.th *{box-sizing:border-box}
+.th a{color:inherit;text-decoration:none}
+.th button,.th input,.th textarea,.th select{font:inherit;color:inherit}
+.th button{cursor:pointer;background:transparent}
+.th :focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+.th h1,.th h2,.th h3,.th p{margin:0}
+.i{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+.mu{color:var(--mu)}.t2{color:var(--tx2)}.acc{color:var(--acc)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.kbd{font-family:'Geist Mono',ui-monospace,monospace;font-size:10.5px;line-height:15px;min-width:15px;text-align:center;padding:0 3px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;color:var(--mu);display:inline-block}
+.row{display:flex;align-items:center}.col{display:flex;flex-direction:column}.grow{flex-grow:1;min-width:0}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app{display:flex}
+.side{width:232px;flex-shrink:0;display:flex;flex-direction:column;gap:18px;padding:14px 10px 12px;background:var(--side);border-right:1px solid var(--line)}
+.sec{font-size:12px;font-weight:500;color:var(--mu);padding:0 8px 4px}
+.nav{display:flex;align-items:center;gap:9px;height:30px;padding:0 8px;border-radius:6px;color:var(--tx2);font-size:13px;font-weight:500}
+.nav:hover{background:var(--hover);color:var(--tx)}
+.nav.on{background:var(--hover);color:var(--tx)}
+.nav .c{margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:var(--mu)}
+.main{flex-grow:1;min-width:0;display:flex;flex-direction:column}
+.top{height:52px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px 0 24px;border-bottom:1px solid var(--line)}
+.crumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)}
+.crumb b{color:var(--tx);font-weight:600}
+.body{flex-grow:1;min-height:0;overflow:hidden}
+.page{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
+.h1{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.02em}
+.h2{font-size:13px;line-height:20px;font-weight:600;letter-spacing:-.005em}
+.h3{font-size:13px;font-weight:600}
+.sub{font-size:13px;color:var(--tx2)}
+.card{background:transparent;border:1px solid var(--line2);border-radius:8px}
+.th.lt .card{border-color:var(--line)}
+.ch{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 16px}
+.cb{padding:4px 16px 16px}
+.btn{height:30px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line2);border-radius:7px;background:var(--panel);color:var(--tx);font-size:12.5px;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.pr{border-color:var(--pr);background:var(--pr);color:var(--onpr)}
+.btn.q{border-color:transparent;background:transparent;color:var(--tx2)}
+.btn.q:hover{background:var(--hover)}
+.btn.dg{border-color:var(--bad);background:transparent;color:var(--bad)}
+.btn.dgf{border-color:var(--bad);background:var(--bad);color:#140404}
+.th.lt .btn.dgf{color:#FFFFFF}
+.btn.sm{height:26px;padding:0 9px;font-size:12px}
+.btn.lg{height:38px;padding:0 16px;font-size:14px;border-radius:8px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn .kbd{border-color:currentColor;color:inherit;opacity:.55}
+.ib{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--tx2);position:relative}
+.ib:hover{background:var(--hover)}
+.field{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:12.5px;font-weight:500;color:var(--tx2)}
+.help{font-size:12px;color:var(--mu);line-height:17px}
+.in{height:34px;padding:0 10px;border:1px solid var(--line2);border-radius:7px;background:var(--sunk);color:var(--tx);font-size:13px;width:100%}
+.th.lt .in{background:#FFFFFF}
+.in::placeholder,.ta::placeholder{color:var(--mu)}
+.ta{padding:10px;border:1px solid var(--line2);border-radius:7px;background:var(--sunk);color:var(--tx);font-size:13px;line-height:20px;width:100%;resize:none}
+.th.lt .ta{background:#FFFFFF}
+.selx{height:34px;padding:0 10px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line2);border-radius:7px;background:var(--sunk);font-size:13px;width:100%;text-align:left}
+.th.lt .selx{background:#FFFFFF}
+.drop{border:1px dashed var(--line2);border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px;background:var(--sunk)}
+.th.lt .drop{background:var(--side)}
+.seg{display:inline-flex;padding:2px;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:var(--mu);font-size:12.5px;font-weight:500}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--panel);color:var(--tx);box-shadow:0 0 0 1px var(--line2)}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line)}
+.tabs button{height:40px;padding:0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--mu);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--acc);color:var(--tx)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border:1px solid var(--line2);border-radius:5px;font-size:12px;color:var(--tx2);white-space:nowrap}
+.tag.ok{border-color:transparent;padding:0;height:auto;color:var(--acc)}
+.tag.wn{border-color:transparent;padding:0;height:auto;color:var(--warn)}
+.tag.bd{border-color:transparent;padding:0;height:auto;color:var(--bad)}
+.tag.on{border-color:var(--tx2);color:var(--tx);background:var(--hover)}
+.btn.dgq{border-color:transparent;background:transparent;color:var(--bad)}
+.fl{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--warn);white-space:nowrap}
+.fl.n{color:var(--acc)}
+.sq{width:6px;height:6px;border-radius:1px;flex-shrink:0;display:inline-block}
+.t1{background:var(--t1)}.t2b{background:var(--t2)}.t3{background:var(--t3)}.t4{background:var(--t4)}.t5{border:1px dashed var(--mu)}
+.mb{display:flex;align-items:center;gap:8px}
+.mb .t{flex-grow:1;height:3px;border-radius:2px;background:var(--line2)}
+.th.lt .mb .t{background:var(--line)}
+.mb .t span{display:block;height:3px;border-radius:2px;background:var(--bar)}
+.mb.acc .t span{background:var(--acc)}
+.tr{display:grid;align-items:center;height:36px;padding:0 16px;border-bottom:1px solid var(--line);font-size:13px}
+.tr:hover{background:var(--hover)}
+.tr.sel{background:var(--hover)}
+.thd{display:grid;align-items:center;height:30px;padding:0 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mu)}
+.gh{height:36px;display:flex;align-items:center;gap:9px;padding:0 16px 0 10px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.th.lt .gh{background:var(--side)}
+.star{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--line2);padding:0}
+.star{opacity:0}.tr:hover .star,.star.on,.star:focus-visible{opacity:1}.star.on{color:var(--tx2)}.star.on svg{fill:currentColor}
+.li{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 16px;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li:hover{background:var(--hover)}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:9px;font-size:13px;line-height:19px}
+.banner.wn{background:var(--warnbg);color:var(--tx)}
+.banner.nt{background:transparent;border:1px solid var(--line2);color:var(--tx2)}
+.banner.bd{background:var(--badbg);color:var(--tx)}
+.banner.ok{background:var(--accbg);color:var(--tx)}
+.sk{display:block;border-radius:6px;background:var(--hover)}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--raised);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.dh{padding:18px 20px 0;display:flex;flex-direction:column;gap:6px}
+.dbx{padding:16px 20px}
+.df{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+.pop{position:absolute;background:var(--raised);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow)}
+.doc{background:var(--sunk);border:1px solid var(--line2);border-radius:10px;padding:22px 26px;font-size:13px;line-height:21px;color:var(--tx2)}
+.th.lt .doc{background:#FFFFFF}
+.kpi{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 22px;border-left:1px solid var(--line)}
+.kpi:first-child{border-left:0;padding-left:0}
+.kpi .v{font-family:'Geist Mono',monospace;font-size:21px;line-height:26px;font-weight:500;font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line2);overflow:hidden}
+.th.lt .meter{background:var(--line)}
+.meter span{display:block;height:6px;background:var(--acc)}
+.w30{width:30%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
+.mtab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:500;color:var(--mu)}
+</style>
+</helmet>
+<div class="th {{mode}}" style="width: 1440px; height: 960px;">
+<div class="app" style="height: 100%;"><nav aria-label="Main" class="side">
+<div class="row" style="height: 28px; padding: 0 8px; gap: 9px;"><span class="row" style="gap: 9px;"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" style="flex-shrink: 0;"><rect width="20" height="20" rx="5.5" style="fill: var(--tx);"></rect><path d="M13.4 7.3a4.2 4.2 0 1 0 0 5.4" style="fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round;"></path></svg><span style="font-size: 14px; font-weight: 600; letter-spacing: -.015em;">Career OS</span></span><span class="grow"></span><span style="width: 22px; height: 22px; border-radius: 50%; background: var(--hover); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--tx2);">AP</span></div>
+<button type="button" class="row" style="height: 30px; gap: 8px; padding: 0 6px 0 8px; border: 1px solid var(--line2); border-radius: 7px; background: var(--panel); color: var(--mu); font-size: 12.5px; text-align: left;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><span class="grow">Search or jump to…</span></button>
+<div class="col" style="gap: 1px;"><a href="#" class="nav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM14 4v3h6V4zM4 20h6v-3H4z"></path></svg>Dashboard</a><a href="#" class="nav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Offers<span class="c">34</span></a><a href="#" class="nav on" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>Documents</a><a href="#" class="nav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>Posts</a></div>
+<div class="col" style="gap: 1px;"><span class="sec">Views</span><a href="#" class="nav">All offers<span class="c">34</span></a><a href="#" class="nav">Tracked<span class="c">21</span></a><a href="#" class="nav">Favorites<span class="c">5</span></a><a href="#" class="nav">Needs action<span class="c" style="color: var(--warn);">3</span></a></div>
+<div class="col" style="margin-top: auto; gap: 10px;">
+<div class="col" style="gap: 7px; padding: 0 8px 6px;"><div class="row mu" style="font-size: 12px;"><span class="grow">Free plan · <span class="num">7 of 10</span> AI actions</span></div><div class="meter" style="height: 3px;"><span class="w70" style="height: 3px;"></span></div><a href="#" class="t2" style="font-size: 12px;">Upgrade to Pro</a></div>
+<div class="col" style="gap: 1px;"><a href="#" class="nav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Profile</a><a href="#" class="nav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"></path></svg>Settings</a></div>
+</div>
+</nav><div class="main"><header class="top"><div class="crumb"><b>Documents</b></div><span class="grow"></span>
+<button type="button" class="ib" aria-label="Notifications (2 require action)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10 21h4"></path></svg><span style="position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 2px var(--bg);"></span></button>
+<button type="button" class="btn pr"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M12 5v14M5 12h14"></path></svg>Add offer</button></header><div class="body"><div class="page" style="height: 100%;">
+<div class="row" style="gap: 16px; align-items: flex-end;"><div class="col grow" style="gap: 4px;"><h1 class="h1">Documents</h1><p class="sub">Every CV and cover letter you've uploaded or generated, newest first.</p></div><div class="row" style="gap: 8px;"><button type="button" class="btn "><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M12 20V8"></path><path d="m7 13 5-5 5 5"></path><path d="M5 4h14"></path></svg>Upload CV</button></div></div>
+<div class="row grow" style="gap: 20px; align-items: stretch; min-height: 0;">
+<section class="card" aria-label="Documents" style="width: 400px; flex-shrink: 0; overflow: hidden;"><div class="ch"><h2 class="h2">All documents</h2><span class="num mu" style="font-size: 12px;">7</span><span class="grow"></span><button type="button" class="btn sm q">Newest first<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px; color: var(--mu);"><path d="m6 9 6 6 6-6"></path></svg></button></div><div class="col" style="gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line);"><label class="row" style="height: 30px; gap: 7px; padding: 0 8px; border: 1px solid var(--line2); border-radius: 7px; background: var(--sunk); color: var(--mu);"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search documents</span><input type="text" placeholder="Search by name or offer" style="flex-grow: 1; min-width: 0; border: 0; background: transparent; font-size: 12.5px; outline: none;"></label><div class="seg" role="tablist" aria-label="Document type" style="align-self: flex-start;"><button type="button" role="tab" aria-selected="true">All <span class="num mu">7</span></button><button type="button" role="tab" aria-selected="false">CVs <span class="num mu">5</span></button><button type="button" role="tab" aria-selected="false">Cover letters <span class="num mu">2</span></button></div><div class="row" style="gap: 6px; flex-wrap: wrap;" role="group" aria-label="Kind"><button type="button" class="tag on" aria-pressed="true" style="height: 26px;">Master</button><button type="button" class="tag on" aria-pressed="true" style="height: 26px;">Tailored</button><button type="button" class="tag on" aria-pressed="true" style="height: 26px;">Optimized</button><button type="button" class="tag" aria-pressed="false" style="height: 26px;"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px;"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Any offer<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px; color: var(--mu);"><path d="m6 9 6 6 6-6"></path></svg></button></div><label class="row t2" style="gap: 7px; font-size: 12.5px;"><input type="checkbox" checked style="accent-color: var(--acc);">Show previous versions</label></div><a href="#" class="li" style="background: var(--accbg); box-shadow: inset 2px 0 0 var(--acc);"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Master CV</span><span class="row" style="gap: 8px;"><span class="tag ok" style="height: 20px; font-size: 11px;">Master</span><span class="num mu" style="font-size: 11.5px;">Updated 22 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Senior Frontend Engineer · Brightwave</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Tailored</span><span class="num mu" style="font-size: 11.5px;">Updated 22 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Frontend Engineer (Next.js) · Globex</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Tailored</span><span class="num mu" style="font-size: 11.5px;">Updated 21 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Optimized CV</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Optimized</span><span class="num mu" style="font-size: 11.5px;">Updated 15 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Cover letter</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Cover Letter</span><span class="num mu" style="font-size: 11.5px;">Updated 10 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Optimized cover letter</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Optimized Cover Letter</span><span class="num mu" style="font-size: 11.5px;">Updated 10 Sep</span></span></span></a><a href="#" class="li"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 17px; height: 17px; color: var(--tx2);"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path><path d="M9 14h6M9 17h4"></path></svg><span class="col grow" style="gap: 3px; min-width: 0;"><span class="ell" style="font-weight: 500;">Master CV</span><span class="row" style="gap: 8px;"><span class="tag " style="height: 20px; font-size: 11px;">Master (previous)</span><span class="num mu" style="font-size: 11.5px;">Updated 2 Sep</span></span></span></a></section>
+<section class="card col grow" aria-label="Master CV" style="min-width: 0;"><div class="ch"><h2 class="h2">Master CV</h2><span class="tag ok" style="height: 20px; font-size: 11px;">Master</span><span class="grow"></span><button type="button" class="btn sm"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="m13 7 4 4"></path></svg>Edit</button><button type="button" class="btn sm"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><path d="M12 4v12"></path><path d="m7 11 5 5 5-5"></path><path d="M5 20h14"></path></svg>Download</button></div><div class="grow" style="padding: 16px;"><div class="doc" style="white-space: pre-line; height: 100%;"><b style="color: var(--tx); font-size: 17px;">Andrzej Pruszyński</b>
+Senior Frontend Developer (React / TypeScript)
+Wrocław, Poland · Remote · linkedin.com/in/andrzej-pruszynski
+
+<b style="color: var(--tx);">Summary</b>
+Senior Frontend Developer in enterprise e-commerce with 3.5 years of commercial React and TypeScript. Designs the workflow, guardrails and tooling around AI coding agents rather than just using them.
+
+<b style="color: var(--tx);">Experience</b>
+<b style="color: var(--tx2); font-weight: 600;">Senior Frontend Developer · TD SYNNEX</b>  <span class="num mu">Mar 2023 – Sep 2025</span>
+– Acting team lead for over a year on a frontend-only team.
+– Restructured the Create Order Flow so two developers could build it in parallel, and implemented about 80% of it.
+– Introduced feature flags so frontend work could proceed while the backend was incomplete.
+
+<b style="color: var(--tx2); font-weight: 600;">Frontend Developer (Freelance) · Xentropy.ai</b>  <span class="num mu">May 2024 – Nov 2024</span>
+<b style="color: var(--tx2); font-weight: 600;">Frontend Developer · Stellarity</b>  <span class="num mu">Feb 2022 – Jan 2023</span>
+
+<b style="color: var(--tx);">Skills</b>
+React · TypeScript · Next.js · React Router · React Query · Zustand · GraphQL · Playwright · Cypress · Adobe Experience Manager</div></div></section>
+</div></div></div></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"light": {"editor": "boolean", "default": false}, "$preview": {"width": 1440, "height": 960}}'>
+class Component extends DCLogic {
+renderVals() {
+return { mode: (this.props.light ?? false) ? 'lt' : '' };
+}
+}
+</script>
+</body>
+</html>

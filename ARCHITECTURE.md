@@ -176,9 +176,9 @@ Icons:
 
 Lucide React
 
-Palette, typography and UI principles (warm-neutral ramp, neutral-inverse
-primary and amber signal accent — ADR-018, superseding ADR-010 — expressed
-as tokens in `src/app/globals.css`):
+Palette, typography and UI principles (Midnight Mint — near-black/near-white
+neutrals and a single teal accent — ADR-023, superseding ADR-018 —
+expressed as tokens in `src/app/globals.css`):
 
 - [docs/design-system/colors.md](docs/design-system/colors.md)
 - [docs/design-system/typography.md](docs/design-system/typography.md)

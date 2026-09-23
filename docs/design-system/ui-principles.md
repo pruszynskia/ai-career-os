@@ -2,8 +2,8 @@
 
 ## Brand direction
 
-See [`colors.md`](./colors.md) for the palette itself (warm-neutral ramp,
-neutral-inverse primary, single amber signal accent — ADR-018). The
+See [`colors.md`](./colors.md) for the palette itself (Midnight Mint —
+near-black/near-white neutrals, a single teal accent — ADR-023). The
 takeaway for layout/component decisions: colour is not how this product
 creates hierarchy or separation. Structure, spacing and the elevation model
 below do that job.
@@ -53,19 +53,20 @@ token — `shadow-md` on the plain `--popover`/`border` combination only.
   `Input`, `Textarea` and `Select`'s trigger. `size="comfortable"` (32px,
   the previous default) is reserved for primary/standalone actions, not
   the default for in-app density.
-- 6px radius (`rounded-lg`, i.e. `--radius`) everywhere a control needs a
-  radius. Nothing above 8px anywhere in the app — `rounded-xl`/`2xl`/`3xl`/
-  `4xl` are all banned; if a design calls for a bigger radius, that's a
-  spec bug, not a new call site.
-- Focus rings stay on `--ring` (the neutral-inverse `--primary`), not the
-  amber `--accent` — the accent fails the WCAG 2.1 SC 1.4.11 3:1
-  non-text-contrast floor against the light-mode background (measured
-  2.04:1, see `colors.md`'s contrast table and ADR-018). A focus indicator
-  that's invisible in light mode is not an acceptable trade for brand
-  colour.
+- 6px radius (`rounded-lg`, i.e. `--radius`) is the default everywhere a
+  control needs a radius (buttons, inputs, selects, chips). `rounded-xl`
+  (12px, `tokens.json`'s `radius.lg`) is allowed on dialogs and product
+  frames only (`dialog.tsx`) — `rounded-2xl`/`3xl`/`4xl` stay banned. If a
+  design calls for a bigger radius anywhere else, that's a spec bug, not a
+  new call site.
+- Focus rings stay on `--ring` (an alias of the teal `--primary` accent —
+  see `colors.md`), which passes the WCAG 2.1 SC 1.4.11 3:1 non-text-
+  contrast floor against every background token in both themes (see
+  `colors.md`'s contrast table). A focus indicator that fails in either
+  theme is not an acceptable trade for brand colour.
 - `Badge` is a small mono, uppercase, 2px-radius label (`success`,
-  `warning`, `info`, `destructive`, plus `default`/`secondary`/`outline`),
-  not a pill — status text, not a button.
+  `warning`, `destructive`, plus `default`/`secondary`/`outline`), not a
+  pill — status text, not a button.
 
 ## Layouts
 
@@ -88,7 +89,7 @@ the defaults within a few features, so it's a grep, not a suggestion.
 |---|---|---|
 | No gradients | "Explicitly avoid" above | `grep -rn "gradient" src --include="*.tsx" --include="*.css"` → no matches |
 | No `backdrop-blur` | "Explicitly avoid" above | `grep -rn "backdrop-blur" src --include="*.tsx"` → no matches |
-| No radius above 8px | Radius scale caps at `--radius-lg`/6px; nothing calls for more | `grep -rEn "rounded-(xl|2xl|3xl|4xl)\b" src --include="*.tsx"` → no matches |
+| No radius above 12px, and `rounded-xl` only on dialogs | Radius scale caps at `radius.lg`/12px (`tokens.json`), reserved for dialogs/product frames | `grep -rEn "rounded-(2xl|3xl|4xl)\b" src --include="*.tsx"` → no matches; `grep -rln "rounded-xl" src --include="*.tsx"` → only `dialog.tsx` |
 | `rounded-full` only on genuinely circular elements | Pill shapes on rectangular controls read as generic AI-product chrome | `grep -rln "rounded-full" src --include="*.tsx"` → only `Avatar.tsx` |
 | No raw Tailwind palette colour | Colour comes from `colors.md`'s semantic tokens only | `grep -rEn "(bg|text|border|ring|fill|stroke)-(red|blue|green|yellow|purple|pink|indigo|orange|teal|cyan|lime|emerald|sky|violet|fuchsia|rose|amber|slate|gray|zinc|neutral|stone)-[0-9]+" src --include="*.tsx"` → no matches |
 | Shadow only on true overlays | Elevation model above — no shadow on an inline `Card` | `grep -rln "shadow-" src --include="*.tsx"` → only `dialog.tsx`, `Popover.tsx`, `Select.tsx` (and any future toast/tooltip/dropdown) |
