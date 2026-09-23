@@ -6974,7 +6974,7 @@ tasks:
   ###############################################################################
   - id: TASK-090
     github:
-      issue: null
+      issue: "203"
       project_item: null
     status: todo
     priority: P1
@@ -6983,20 +6983,7 @@ tasks:
     depends_on: []
     title: Vendor the Midnight Mint design-system spec into the repo
     goal: >
-      The Midnight Mint redesign only exists outside the repo right now -
-      `tokens.json`, `DESIGN-SYSTEM.md`, 53 `.dc.html` mockup boards and the
-      Python generator that built them all live under
-      `~/.claude/projects/-Users-andrzejpruszynski-dev-ai-career-os/design-system/`,
-      and `docs/design-system/colors.md`/`typography.md`/`ui-principles.md`
-      still document the superseded ADR-018 warm-neutral/amber system that
-      `ARCHITECTURE.md:180` also still cites. Every later Design System
-      Redesign task needs a repo path to cite, not a claude.ai artifact link,
-      so this task copies the spec in, rewrites the three docs against the
-      new tokens, vendors the mockups, wires a runnable contrast/name gate
-      (`scripts/check-tokens.py`), and records the decision as an ADR that
-      supersedes ADR-018 the same way ADR-018 recorded superseding ADR-010.
-      This task touches no application code - `src/app/globals.css` is
-      untouched until TASK-091.
+      The Midnight Mint redesign only exists outside the repo right now - `tokens.json`, `DESIGN-SYSTEM.md`, 53 `.dc.html` mockup boards and the Python generator that built them all live under `~/.claude/projects/-Users-andrzejpruszynski-dev-ai-career-os/design-system/`, and `docs/design-system/colors.md`/`typography.md`/`ui-principles.md` still document the superseded ADR-018 warm-neutral/amber system that `ARCHITECTURE.md:180` also still cites. Every later Design System Redesign task needs a repo path to cite, not a claude.ai artifact link, so this task copies the spec in, rewrites the three docs against the new tokens, vendors the mockups, wires a runnable contrast/name gate (`scripts/check-tokens.py`), and records the decision as an ADR that supersedes ADR-018 the same way ADR-018 recorded superseding ADR-010. This task touches no application code - `src/app/globals.css` is untouched until TASK-091.
 
     scope:
       - docs/design-system/tokens.json
@@ -7008,7 +6995,6 @@ tasks:
       - package.json
       - ARCHITECTURE.md
       - memory-bank/decisions.md
-
     deliverables:
       - docs/design-system/tokens.json, an exact copy of the design-system tokens.json (color, typography, space, size, radius, elevation, motion, zIndex, breakpoint, opacity)
       - docs/design-system/colors.md rewritten from DESIGN-SYSTEM.md's palette table and "Conflicts resolved" section - Midnight Mint neutrals + teal accent, replacing the ADR-018 warm-neutral/amber content line for line
@@ -7019,7 +7005,6 @@ tasks:
       - A "check-tokens" script in package.json's scripts block running scripts/check-tokens.py against src/app/globals.css
       - ADR-023 in memory-bank/decisions.md, in the same Date/Decision/Alternatives/Consequences shape as ADR-018 through ADR-022, recording that Midnight Mint supersedes ADR-018 (which itself superseded ADR-010)
       - ARCHITECTURE.md:180's "amber signal accent — ADR-018, superseding ADR-010" line updated to cite ADR-023 and Midnight Mint
-
     tasks:
       - Copy tokens.json, DESIGN-SYSTEM.md's content basis, the mockups/ directory (53 files) and mockup-generator/ reference material from ~/.claude/projects/-Users-andrzejpruszynski-dev-ai-career-os/design-system/ into docs/design-system/ (tokens.json and mockups/ land in the repo; DESIGN-SYSTEM.md itself is the source the three .md files below are rewritten from, not vendored verbatim)
       - Rewrite docs/design-system/colors.md against DESIGN-SYSTEM.md §2's colour-role table and the "Retired" list (--accent as amber, --info, --signal-gold, chart step ramp, Archivo), replacing every ADR-018 warm-neutral/amber reference and every OKLCH hue-75 value with the Midnight Mint hex values and their CSS var names from tokens.json
@@ -7029,7 +7014,6 @@ tasks:
       - "Add a check-tokens entry to package.json's scripts block (python3 scripts/check-tokens.py src/app/globals.css), alongside the existing lint/typecheck/test scripts"
       - Add ADR-023 to memory-bank/decisions.md after ADR-022 (line 1039), following the Date/Decision/Alternatives Considered/Consequences shape every prior ADR uses, explicitly stating it supersedes ADR-018
       - Fix ARCHITECTURE.md:180's design-system citation to name ADR-023 in place of ADR-018/ADR-010
-
     acceptance:
       - docs/design-system/tokens.json exists and is byte-identical to the source design-system/tokens.json
       - docs/design-system/mockups/ contains all 53 X-*.dc.html files present in the source mockups/ directory
@@ -7087,13 +7071,12 @@ tasks:
       - Rewrite DESIGN-SYSTEM.md itself or the mockup-generator/ Python source - vendor mockups/ and tokens.json as data, don't reshape the generator
       - Renumber or edit ADR-018 through ADR-022 - ADR-023 is additive
       - Invent a design token not present in tokens.json
-
   ###############################################################################
   # TASK-091
   ###############################################################################
   - id: TASK-091
     github:
-      issue: null
+      issue: "204"
       project_item: null
     status: todo
     priority: P1
@@ -7103,24 +7086,7 @@ tasks:
       - TASK-090
     title: Rewrite globals.css to Midnight Mint tokens and drop Archivo
     goal: >
-      `src/app/globals.css`'s `:root`/`.dark`/`@theme inline` blocks still
-      encode the superseded ADR-018 warm-neutral ramp and amber `--accent`
-      (`--signal-amber` etc. at L144-160, aliased into `--accent` at L175 and
-      L239), `--info`/`--signal-info` (L148-149, L179-180, L243-244), the
-      retired `--signal-gold`/`--chart-step-1..5` ramp (L146, L156-160), and
-      an Archivo `--font-heading`/`--font-display` chain (L46-47) that
-      `src/app/layout.tsx` loads alongside Geist (L3, L7-20, L41). This task
-      replaces every one of those with the Midnight Mint values from
-      `docs/design-system/tokens.json` (vendored by TASK-090), drops Archivo
-      entirely, repoints the three real `font-heading` class usages in
-      `Heading.tsx` (levels 1-3) to `font-sans`, and retargets the three call
-      sites that read the old amber `--accent` now that `--accent` no longer
-      means "signal colour" - `sidebar.tsx:108`'s active-nav `border-accent`,
-      `Text.tsx`'s `color="accent"` variant (its one caller is
-      `outreach-panel.tsx:211`), and `onboarding-stepper.tsx`'s active-step
-      `bg-accent/15`. `npm run check-tokens` (added in TASK-090) is the
-      acceptance gate - it must report zero contrast failures once this
-      lands.
+      `src/app/globals.css`'s `:root`/`.dark`/`@theme inline` blocks still encode the superseded ADR-018 warm-neutral ramp and amber `--accent` (`--signal-amber` etc. at L144-160, aliased into `--accent` at L175 and L239), `--info`/`--signal-info` (L148-149, L179-180, L243-244), the retired `--signal-gold`/`--chart-step-1..5` ramp (L146, L156-160), and an Archivo `--font-heading`/`--font-display` chain (L46-47) that `src/app/layout.tsx` loads alongside Geist (L3, L7-20, L41). This task replaces every one of those with the Midnight Mint values from `docs/design-system/tokens.json` (vendored by TASK-090), drops Archivo entirely, repoints the three real `font-heading` class usages in `Heading.tsx` (levels 1-3) to `font-sans`, and retargets the three call sites that read the old amber `--accent` now that `--accent` no longer means "signal colour" - `sidebar.tsx:108`'s active-nav `border-accent`, `Text.tsx`'s `color="accent"` variant (its one caller is `outreach-panel.tsx:211`), and `onboarding-stepper.tsx`'s active-step `bg-accent/15`. `npm run check-tokens` (added in TASK-090) is the acceptance gate - it must report zero contrast failures once this lands.
 
     scope:
       - src/app/globals.css
@@ -7131,7 +7097,6 @@ tasks:
       - src/widgets/nav/sidebar.tsx
       - src/shared/ui/primitives/typography/text/Text.tsx
       - src/features/onboarding/components/onboarding-stepper.tsx
-
     deliverables:
       - globals.css's `:root`/`.dark` blocks rewritten to the exact CSS variable names and dark/light values in docs/design-system/tokens.json's `color` object (background.*, border.*, text.*, accent.* aliased to --primary*, status.*, tier.*, data.* aliased to --chart-fill/--chart-track), with --signal-amber/--signal-gold/--signal-info/--chart-step-1..5/--info/--info-foreground removed
       - --font-heading/--font-display removed from @theme inline; Archivo dropped from layout.tsx's font imports, the archivo variable and the html className
@@ -7139,7 +7104,6 @@ tasks:
       - The stale font-heading comments in dialog.tsx (~L130) and card.tsx (~L39-41) updated to no longer describe a display-face threshold that no longer exists
       - sidebar.tsx:108, Text.tsx's accent color variant and onboarding-stepper.tsx's active-step highlight retargeted to a Midnight Mint token (not left pointing at a var that now means something else), chosen and verified against docs/design-system/mockups/
       - npm run check-tokens passing (0 contrast failures, both themes) against the rewritten globals.css
-
     tasks:
       - Replace globals.css's Tier-1/Tier-2 :root and .dark blocks (currently L130-264) with the Midnight Mint values from docs/design-system/tokens.json's color object, using each entry's own "css" field as the variable name (--background, --sidebar, --surface-sunken, --popover, --muted, --border, --border-default, --input, --border-strong, --foreground, --foreground-secondary, --muted-foreground, --primary, --primary-hover, --primary-pressed, --primary-foreground, --primary-subtle, --warning, --warning-foreground, --warning-subtle, --destructive, --destructive-hover, --destructive-subtle, --destructive-foreground, --success, --tier-1..5, --chart-fill, --chart-track), removing --info/--info-foreground entirely since tokens.json's Retired list drops them
       - Update the @theme inline block's --color-* wiring (L74-110) to match the new variable set, removing --color-info/--color-info-foreground and adding entries for any newly-introduced var not already aliased (e.g. --color-border-default, --color-foreground-secondary, --color-primary-hover, if consumed as Tailwind utilities)
@@ -7150,7 +7114,6 @@ tasks:
       - "Retarget Text.tsx's accent color variant (color: 'accent' resolving to text-accent) and its one caller (outreach-panel.tsx:211) to a token that is still valid as body text per docs/design-system/colors.md's contrast table (text-accent/text-primary fails WCAG in one theme per the old rules - verify the Midnight Mint equivalent passes before using it)"
       - Retarget onboarding-stepper.tsx's active-step `bg-accent/15` to the equivalent Midnight Mint highlight, matching docs/design-system/mockups/X-onb1.dc.html's stepper
       - Run `npm run check-tokens` and fix any reported contrast failure or CSS-variable name mismatch until it reports PASS in both themes
-
     acceptance:
       - npm run check-tokens exits 0 and prints "PASS" for both dark and light
       - grep -rn "font-heading" src returns no matches
@@ -7213,7 +7176,7 @@ tasks:
   ###############################################################################
   - id: TASK-092
     github:
-      issue: null
+      issue: "205"
       project_item: null
     status: todo
     priority: P1
@@ -7223,19 +7186,7 @@ tasks:
       - TASK-091
     title: Button family - variant rename, size rename and every call site
     goal: >
-      src/shared/ui/button.tsx's buttonVariants cva today has variant default/outline/secondary/ghost/destructive/link
-      and size default(28)/comfortable(32)/xs/sm/lg(36)/icon variants; DESIGN-SYSTEM.md \S4.1 renames this to
-      primary/secondary/quiet/danger+danger-outline+danger-quiet/link at heights sm 28/md 32/lg 40/touch 48. This is
-      not a pure rename: the button already has a variant called "secondary" (8 files, 12 occurrences, e.g.
-      offer-detail.tsx L279/330/390/444, outreach-panel.tsx L200, document-editor.tsx L47) which collides with the new
-      name for today's "outline" (23 files, 31 occurrences, e.g. who-you-know-panel.tsx, offer-filters.tsx). Both must
-      be resolved together or the rename silently repaints the wrong buttons. Also restyle IconButton
-      (src/shared/ui/primitives/interaction/icon-button/IconButton.tsx, currently sizes xs/sm/default/lg mapped to
-      icon-xs/icon-sm/icon/icon-lg) to sm 28/md 32/touch 44 and add the 6px warning-dot badge variant DESIGN-SYSTEM.md
-      \S4.2 specifies (canvas ring 2px, top-right inset 6px) - the notification bell that will consume it does not
-      exist yet (lands in TASK-102), so this task only has to add the prop and render it correctly in isolation.
-      AsyncButton (src/shared/ui/async-button.tsx) wraps Button and must keep working with the new variant/size names
-      and gets the min-width-holds-during-pending behaviour \S4.1 requires.
+      src/shared/ui/button.tsx's buttonVariants cva today has variant default/outline/secondary/ghost/destructive/link and size default(28)/comfortable(32)/xs/sm/lg(36)/icon variants; DESIGN-SYSTEM.md \S4.1 renames this to primary/secondary/quiet/danger+danger-outline+danger-quiet/link at heights sm 28/md 32/lg 40/touch 48. This is not a pure rename: the button already has a variant called "secondary" (8 files, 12 occurrences, e.g. offer-detail.tsx L279/330/390/444, outreach-panel.tsx L200, document-editor.tsx L47) which collides with the new name for today's "outline" (23 files, 31 occurrences, e.g. who-you-know-panel.tsx, offer-filters.tsx). Both must be resolved together or the rename silently repaints the wrong buttons. Also restyle IconButton (src/shared/ui/primitives/interaction/icon-button/IconButton.tsx, currently sizes xs/sm/default/lg mapped to icon-xs/icon-sm/icon/icon-lg) to sm 28/md 32/touch 44 and add the 6px warning-dot badge variant DESIGN-SYSTEM.md \S4.2 specifies (canvas ring 2px, top-right inset 6px) - the notification bell that will consume it does not exist yet (lands in TASK-102), so this task only has to add the prop and render it correctly in isolation. AsyncButton (src/shared/ui/async-button.tsx) wraps Button and must keep working with the new variant/size names and gets the min-width-holds-during-pending behaviour \S4.1 requires.
 
     scope:
       - src/shared/ui/button.tsx
@@ -7305,7 +7256,7 @@ tasks:
   ###############################################################################
   - id: TASK-093
     github:
-      issue: null
+      issue: "206"
       project_item: null
     status: todo
     priority: P1
@@ -7315,17 +7266,7 @@ tasks:
       - TASK-091
     title: Inputs, Field, Select restyle and Label meta retirement into SectionLabel
     goal: >
-      src/shared/ui/input.tsx and src/shared/ui/textarea.tsx are already close to spec (h-7/h-8 = 28/32) but need the
-      new md/lg/touch scale (32/40/48) and the sunken/white background + border-input rule from DESIGN-SYSTEM.md
-      \S4.4. src/shared/ui/primitives/interaction/select/Select.tsx's selectTriggerVariants has the same
-      default(28)/comfortable(32) sizing to rename. src/shared/ui/field.tsx composes Label + control + help/error and
-      needs the 6px gap and updated label weight from \S4.4. Label.tsx's `variant: { form, meta }` cva has a `meta`
-      variant used at exactly 6 sites - src/app/(app)/settings/page.tsx L33/L43, src/app/(marketing)/page.tsx L61,
-      src/features/marketing/components/pricing-table.tsx L62, src/shared/ui/page-header.tsx L21, and
-      src/widgets/nav/sidebar.tsx L88 - all confirmed by grep. \S4.4 says "Label variant=\"meta\" is removed - use
-      SectionLabel", so this task retires the meta variant and replaces its 6 call sites with a new SectionLabel
-      component (12/500 muted sentence case, no mono/uppercase - a behaviour change from today's uppercase mono meta
-      style).
+      src/shared/ui/input.tsx and src/shared/ui/textarea.tsx are already close to spec (h-7/h-8 = 28/32) but need the new md/lg/touch scale (32/40/48) and the sunken/white background + border-input rule from DESIGN-SYSTEM.md \S4.4. src/shared/ui/primitives/interaction/select/Select.tsx's selectTriggerVariants has the same default(28)/comfortable(32) sizing to rename. src/shared/ui/field.tsx composes Label + control + help/error and needs the 6px gap and updated label weight from \S4.4. Label.tsx's `variant: { form, meta }` cva has a `meta` variant used at exactly 6 sites - src/app/(app)/settings/page.tsx L33/L43, src/app/(marketing)/page.tsx L61, src/features/marketing/components/pricing-table.tsx L62, src/shared/ui/page-header.tsx L21, and src/widgets/nav/sidebar.tsx L88 - all confirmed by grep. \S4.4 says "Label variant=\"meta\" is removed - use SectionLabel", so this task retires the meta variant and replaces its 6 call sites with a new SectionLabel component (12/500 muted sentence case, no mono/uppercase - a behaviour change from today's uppercase mono meta style).
 
     scope:
       - src/shared/ui/input.tsx
@@ -7402,7 +7343,7 @@ tasks:
   ###############################################################################
   - id: TASK-094
     github:
-      issue: null
+      issue: "207"
       project_item: null
     status: todo
     priority: P1
@@ -7412,17 +7353,7 @@ tasks:
       - TASK-091
     title: Tag, status text, TierMarker, StageRing and Meter
     goal: >
-      src/shared/ui/primitives/feedback/badge/Badge.tsx's badgeVariants has 7 coloured variants
-      (default/secondary/outline/destructive/success/warning/info) used at 18 call sites across 14 files, including
-      src/features/job-offer/components/recommended-action-badge.tsx which maps RecommendedAction to
-      success/info/warning/outline Badge colours. DESIGN-SYSTEM.md \S4.8 retires the coloured-badge pattern: Tag
-      becomes neutral-only (24/20 height, border-default, no uppercase/mono) and status is instead carried by
-      `Text color="success|warning|destructive"` at 12/500 with no box. This task renames Badge to Tag (keeping a
-      `Badge` re-export so the 18 existing call sites keep compiling until TASK-122's cleanup removes it), retargets
-      Text's colour variant for the new status usage, and adds three genuinely new components the plan calls for:
-      TierMarker (replacing recommended-action-badge.tsx's coloured badges with a --tier-1..4 square + text label),
-      StageRing (application/entities), and Meter (score/usage bars). --tier-1..4 and --chart-track/--chart-fill are
-      TASK-091's job to land in globals.css; this task only consumes them.
+      src/shared/ui/primitives/feedback/badge/Badge.tsx's badgeVariants has 7 coloured variants (default/secondary/outline/destructive/success/warning/info) used at 18 call sites across 14 files, including src/features/job-offer/components/recommended-action-badge.tsx which maps RecommendedAction to success/info/warning/outline Badge colours. DESIGN-SYSTEM.md \S4.8 retires the coloured-badge pattern: Tag becomes neutral-only (24/20 height, border-default, no uppercase/mono) and status is instead carried by `Text color="success|warning|destructive"` at 12/500 with no box. This task renames Badge to Tag (keeping a `Badge` re-export so the 18 existing call sites keep compiling until TASK-122's cleanup removes it), retargets Text's colour variant for the new status usage, and adds three genuinely new components the plan calls for: TierMarker (replacing recommended-action-badge.tsx's coloured badges with a --tier-1..4 square + text label), StageRing (application/entities), and Meter (score/usage bars). --tier-1..4 and --chart-track/--chart-fill are TASK-091's job to land in globals.css; this task only consumes them.
 
     scope:
       - src/shared/ui/primitives/feedback/badge/Badge.tsx
@@ -7499,7 +7430,7 @@ tasks:
   ###############################################################################
   - id: TASK-095
     github:
-      issue: null
+      issue: "208"
       project_item: null
     status: todo
     priority: P1
@@ -7509,14 +7440,7 @@ tasks:
       - TASK-091
     title: SegmentedControl and Tabs on Radix ToggleGroup/Tabs
     goal: >
-      Neither a SegmentedControl nor a Tabs component exists in src today (confirmed by grep - no segmented-control.tsx
-      or tabs.tsx under src/shared/ui, and no ToggleGroup/Tabs usage anywhere in src). The plan's "open check" assumed
-      package.json might be missing @radix-ui/react-tabs / @radix-ui/react-toggle-group as separate packages, but the
-      repo already depends on the unified "radix-ui" meta-package (package.json, "radix-ui": "^1.6.5"), and
-      `require('radix-ui')` already exports both `Tabs` and `ToggleGroup` - the same way Select.tsx already imports
-      `{ Select as SelectPrimitive } from 'radix-ui'` and Popover.tsx presumably does the same. No new dependency is
-      needed; this task builds both components directly on the existing radix-ui package, the same import pattern
-      Select.tsx already uses.
+      Neither a SegmentedControl nor a Tabs component exists in src today (confirmed by grep - no segmented-control.tsx or tabs.tsx under src/shared/ui, and no ToggleGroup/Tabs usage anywhere in src). The plan's "open check" assumed package.json might be missing @radix-ui/react-tabs / @radix-ui/react-toggle-group as separate packages, but the repo already depends on the unified "radix-ui" meta-package (package.json, "radix-ui": "^1.6.5"), and `require('radix-ui')` already exports both `Tabs` and `ToggleGroup` - the same way Select.tsx already imports `{ Select as SelectPrimitive } from 'radix-ui'` and Popover.tsx presumably does the same. No new dependency is needed; this task builds both components directly on the existing radix-ui package, the same import pattern Select.tsx already uses.
 
     scope:
       - src/shared/ui/segmented-control.tsx
@@ -7575,7 +7499,7 @@ tasks:
   ###############################################################################
   - id: TASK-096
     github:
-      issue: null
+      issue: "209"
       project_item: null
     status: todo
     priority: P1
@@ -7585,19 +7509,7 @@ tasks:
       - TASK-091
     title: Surfaces - Card outlined, ListRow, StatCard and PageHeader/AppPageLayout
     goal: >
-      src/shared/ui/card.tsx's Card wraps surfaceVariants({ elevation: 'raised' }) from
-      src/shared/ui/primitives/surface/surface/Surface.tsx, which today renders `rounded-lg border border-border
-      bg-card` - a filled card. DESIGN-SYSTEM.md \S4.12 restyles this to "outlined": transparent background, 1px
-      border-default, radius 8, plus CardHeader min-height 44 with no bottom border and CardContent padding 4/16/16.
-      src/shared/ui/stat-card.tsx currently wraps its label/value in `<Surface padding="sm" elevation="raised">` -
-      i.e. it is boxed today - but \S4.15 specifies "No box": label 12 muted above a 22/500 tabular value, laid out in
-      a strip separated by vertical dividers, so this task removes StatCard's Surface wrapper entirely rather than
-      restyling it. src/shared/ui/list-row.tsx already has the right props shape (leading/title/supporting/meta) and
-      needs its row height (48, mobile 56) and divider treatment confirmed against \S4.14. src/shared/ui/page-header.tsx
-      and src/shared/layouts/app-page-layout/AppPageLayout.tsx (which just composes PageHeader + VStack) both use
-      `Label variant="meta"` at page-header.tsx L21 - that call site moves to SectionLabel as part of TASK-093, so
-      this task depends on that rename having landed via TASK-091's dependency chain being satisfied, and should use
-      SectionLabel directly rather than the old Label variant if TASK-093 has already landed when this is implemented.
+      src/shared/ui/card.tsx's Card wraps surfaceVariants({ elevation: 'raised' }) from src/shared/ui/primitives/surface/surface/Surface.tsx, which today renders `rounded-lg border border-border bg-card` - a filled card. DESIGN-SYSTEM.md \S4.12 restyles this to "outlined": transparent background, 1px border-default, radius 8, plus CardHeader min-height 44 with no bottom border and CardContent padding 4/16/16. src/shared/ui/stat-card.tsx currently wraps its label/value in `<Surface padding="sm" elevation="raised">` - i.e. it is boxed today - but \S4.15 specifies "No box": label 12 muted above a 22/500 tabular value, laid out in a strip separated by vertical dividers, so this task removes StatCard's Surface wrapper entirely rather than restyling it. src/shared/ui/list-row.tsx already has the right props shape (leading/title/supporting/meta) and needs its row height (48, mobile 56) and divider treatment confirmed against \S4.14. src/shared/ui/page-header.tsx and src/shared/layouts/app-page-layout/AppPageLayout.tsx (which just composes PageHeader + VStack) both use `Label variant="meta"` at page-header.tsx L21 - that call site moves to SectionLabel as part of TASK-093, so this task depends on that rename having landed via TASK-091's dependency chain being satisfied, and should use SectionLabel directly rather than the old Label variant if TASK-093 has already landed when this is implemented.
 
     scope:
       - src/shared/ui/card.tsx
@@ -7666,7 +7578,7 @@ tasks:
   ###############################################################################
   - id: TASK-097
     github:
-      issue: null
+      issue: "210"
       project_item: null
     status: todo
     priority: P1
@@ -7676,15 +7588,7 @@ tasks:
       - TASK-094
     title: GridTable - Head, Row, GroupHeader and "Show N more"
     goal: >
-      No grid-table.tsx exists in src today (confirmed by grep for GridTable/grid-table across src) - every current
-      tabular list (offers, upcoming interviews, fit-report criteria) renders through ad-hoc div/flex layouts in
-      their respective feature components. DESIGN-SYSTEM.md \S4.13 specifies a new CSS-grid-based table primitive
-      with a fixed header row (32, 12px muted), body rows (36, 13px, border-subtle bottom, padding x 16), a tier-aware
-      GroupHeader (36, sunken bg, chevron + TierMarker + 13/600 label + count + muted meta), and a "Show N more"
-      affordance row (30, 12 muted). It is named as the consumer of TASK-094's TierMarker in its GroupHeader, which is
-      why it depends on 094 rather than only on 091 like the other component tasks. This task builds the primitive
-      only - Offers list (TASK-105), dashboard Upcoming interviews (TASK-104) and Fit report criteria (TASK-109) wire
-      real data into it later.
+      No grid-table.tsx exists in src today (confirmed by grep for GridTable/grid-table across src) - every current tabular list (offers, upcoming interviews, fit-report criteria) renders through ad-hoc div/flex layouts in their respective feature components. DESIGN-SYSTEM.md \S4.13 specifies a new CSS-grid-based table primitive with a fixed header row (32, 12px muted), body rows (36, 13px, border-subtle bottom, padding x 16), a tier-aware GroupHeader (36, sunken bg, chevron + TierMarker + 13/600 label + count + muted meta), and a "Show N more" affordance row (30, 12 muted). It is named as the consumer of TASK-094's TierMarker in its GroupHeader, which is why it depends on 094 rather than only on 091 like the other component tasks. This task builds the primitive only - Offers list (TASK-105), dashboard Upcoming interviews (TASK-104) and Fit report criteria (TASK-109) wire real data into it later.
 
     scope:
       - src/shared/ui/grid-table.tsx
@@ -7740,7 +7644,7 @@ tasks:
   ###############################################################################
   - id: TASK-098
     github:
-      issue: null
+      issue: "211"
       project_item: null
     status: todo
     priority: P1
@@ -7750,20 +7654,7 @@ tasks:
       - TASK-091
     title: Overlays restyle and new Banner - Dialog, ConfirmDialog, Popover, Toaster
     goal: >
-      src/shared/ui/dialog.tsx (170 lines), src/shared/ui/confirm-dialog.tsx (80 lines) and
-      src/shared/ui/primitives/interaction/popover/Popover.tsx (48 lines) all need restyling per DESIGN-SYSTEM.md's
-      overlay table: Dialog gets scrim --scrim, radius 12, widths sm 440/md 520/lg 640, header padding 20 20 0 with a
-      13-sized close IconButton sm, footer with `quiet` Cancel + one primary/danger action right-aligned; ConfirmDialog
-      gets sm 440, a question-form title, and its confirm button forced to the new `danger` variant naming the action;
-      Popover/menu gets radius 8 with 32px item rows, and the notifications panel specifically gets a 380 width header
-      44 with 7px warning-dot rows (the visual spec for TASK-092's warning-dot, consumed for real once TASK-102 builds
-      the notification-center trigger). src/app/providers.tsx's ThemedToaster (L8-19) currently passes `richColors`
-      and `position="top-right"` to sonner's Toaster - both must go: DESIGN-SYSTEM.md's toast row says "Drop
-      richColors" and "Position bottom-right (mobile bottom-centre)". This task also adds the new Banner component
-      (src/shared/ui/banner.tsx does not exist yet) with neutral/warning/danger/success tones, used later by TASK-103's
-      duplicate-offer banner, TASK-109's divergence banner, TASK-111's interlock banner and TASK-118's
-      checkout=cancelled banner (create-checkout-session.service.ts:92 sets that query param today and nothing reads
-      it - out of scope here, TASK-118 wires the read).
+      src/shared/ui/dialog.tsx (170 lines), src/shared/ui/confirm-dialog.tsx (80 lines) and src/shared/ui/primitives/interaction/popover/Popover.tsx (48 lines) all need restyling per DESIGN-SYSTEM.md's overlay table: Dialog gets scrim --scrim, radius 12, widths sm 440/md 520/lg 640, header padding 20 20 0 with a 13-sized close IconButton sm, footer with `quiet` Cancel + one primary/danger action right-aligned; ConfirmDialog gets sm 440, a question-form title, and its confirm button forced to the new `danger` variant naming the action; Popover/menu gets radius 8 with 32px item rows, and the notifications panel specifically gets a 380 width header 44 with 7px warning-dot rows (the visual spec for TASK-092's warning-dot, consumed for real once TASK-102 builds the notification-center trigger). src/app/providers.tsx's ThemedToaster (L8-19) currently passes `richColors` and `position="top-right"` to sonner's Toaster - both must go: DESIGN-SYSTEM.md's toast row says "Drop richColors" and "Position bottom-right (mobile bottom-centre)". This task also adds the new Banner component (src/shared/ui/banner.tsx does not exist yet) with neutral/warning/danger/success tones, used later by TASK-103's duplicate-offer banner, TASK-109's divergence banner, TASK-111's interlock banner and TASK-118's checkout=cancelled banner (create-checkout-session.service.ts:92 sets that query param today and nothing reads it - out of scope here, TASK-118 wires the read).
 
     scope:
       - src/shared/ui/dialog.tsx
@@ -7833,7 +7724,7 @@ tasks:
   ###############################################################################
   - id: TASK-099
     github:
-      issue: null
+      issue: "212"
       project_item: null
     status: todo
     priority: P1
@@ -7843,16 +7734,7 @@ tasks:
       - TASK-091
     title: Empty state, Skeleton, Spinner restyle and new LockedPanel
     goal: >
-      src/shared/ui/empty-state.tsx, src/shared/ui/primitives/feedback/skeleton/Skeleton.tsx and
-      src/shared/ui/primitives/feedback/spinner/Spinner.tsx are all small, already-close-to-spec components:
-      Skeleton is `animate-pulse rounded-md bg-muted` (needs bg-hover per \S "Skeleton blocks bg hover, radius 6",
-      text-line height 10/radius 3, aria-busy on the container + sr-only loading text) and Spinner is a cva'd Loader2
-      already sized xs/sm/md/lg (matches AsyncButton's `<Spinner size="sm" />` usage - no size rename needed here,
-      unlike Button). No LockedPanel exists anywhere in src (confirmed by grep) - DESIGN-SYSTEM.md \S6 specifies it as
-      a muted Skeleton behind a small raised card with a lock icon, one sentence, and an "Upgrade to Pro" action, used
-      later for the Free-gated fit report and tailoring report (TASK-109/110), whose gating logic already exists via
-      requirePlan in src/shared/billing/entitlements.ts (landed in TASK-088) - this task only builds the presentational
-      shell, not new gating logic.
+      src/shared/ui/empty-state.tsx, src/shared/ui/primitives/feedback/skeleton/Skeleton.tsx and src/shared/ui/primitives/feedback/spinner/Spinner.tsx are all small, already-close-to-spec components: Skeleton is `animate-pulse rounded-md bg-muted` (needs bg-hover per \S "Skeleton blocks bg hover, radius 6", text-line height 10/radius 3, aria-busy on the container + sr-only loading text) and Spinner is a cva'd Loader2 already sized xs/sm/md/lg (matches AsyncButton's `<Spinner size="sm" />` usage - no size rename needed here, unlike Button). No LockedPanel exists anywhere in src (confirmed by grep) - DESIGN-SYSTEM.md \S6 specifies it as a muted Skeleton behind a small raised card with a lock icon, one sentence, and an "Upgrade to Pro" action, used later for the Free-gated fit report and tailoring report (TASK-109/110), whose gating logic already exists via requirePlan in src/shared/billing/entitlements.ts (landed in TASK-088) - this task only builds the presentational shell, not new gating logic.
 
     scope:
       - src/shared/ui/empty-state.tsx
@@ -7916,7 +7798,7 @@ tasks:
   ###############################################################################
   - id: TASK-100
     github:
-      issue: null
+      issue: "213"
       project_item: null
     status: todo
     priority: P1
@@ -7928,18 +7810,7 @@ tasks:
       - TASK-094
     title: Desktop app shell - sidebar, top bar and stage counts
     goal: >
-      `src/app/(app)/layout.tsx` renders only `<Sidebar>` + `<Screen>` - no top bar, no breadcrumb, no
-      search trigger exists anywhere in the app. `src/widgets/nav/sidebar.tsx` is a flat two-group nav
-      (`NAV_GROUPS`: Workspace / Account) that toggles `w-56`/`w-14`, marks the active link with
-      `border-accent` (the amber accent TASK-091 retires), and labels each group with
-      `Label variant="meta"` (retired by TASK-093 in favour of SectionLabel). There is no per-stage
-      breakdown anywhere in the nav and no aggregation query for it - `applicationService` only exposes
-      `findMany`. Rebuild the shell to the vendored `docs/design-system/mockups/X-dlg-add.dc.html` chrome
-      (232px sidebar with wordmark, "Search or jump to..." trigger, nav list, avatar; 52px top bar with a
-      primary action) plus the REDESIGN-PLAN's stage sub-nav and plan-line Meter, add the small stage-count
-      query the sidebar needs, and collapse the sidebar to icons at 768-1279 per tokens.json's tablet rule
-      (no `md:` branches exist in the shell today - this task adds the first ones, scoped only to this
-      breakpoint).
+      `src/app/(app)/layout.tsx` renders only `<Sidebar>` + `<Screen>` - no top bar, no breadcrumb, no search trigger exists anywhere in the app. `src/widgets/nav/sidebar.tsx` is a flat two-group nav (`NAV_GROUPS`: Workspace / Account) that toggles `w-56`/`w-14`, marks the active link with `border-accent` (the amber accent TASK-091 retires), and labels each group with `Label variant="meta"` (retired by TASK-093 in favour of SectionLabel). There is no per-stage breakdown anywhere in the nav and no aggregation query for it - `applicationService` only exposes `findMany`. Rebuild the shell to the vendored `docs/design-system/mockups/X-dlg-add.dc.html` chrome (232px sidebar with wordmark, "Search or jump to..." trigger, nav list, avatar; 52px top bar with a primary action) plus the REDESIGN-PLAN's stage sub-nav and plan-line Meter, add the small stage-count query the sidebar needs, and collapse the sidebar to icons at 768-1279 per tokens.json's tablet rule (no `md:` branches exist in the shell today - this task adds the first ones, scoped only to this breakpoint).
 
     scope:
       - src/app/(app)/layout.tsx
@@ -8013,7 +7884,7 @@ tasks:
   ###############################################################################
   - id: TASK-101
     github:
-      issue: null
+      issue: "214"
       project_item: null
     status: todo
     priority: P2
@@ -8024,15 +7895,7 @@ tasks:
       - TASK-100
     title: Jump dialog - search offers, companies and pages
     goal: >
-      TASK-100 renders the sidebar's "Search or jump to..." trigger inert. The repo already has the
-      search primitive this dialog needs: `jobOfferService.findMany` (src/entities/job-offer/service.ts
-      L70-103) accepts a `query` filter built through `buildSearchOrFilter`
-      (src/shared/utils/offer-search.ts), which does a title/company `ilike` OR-filter - the same
-      mechanism `offer-filters.tsx`'s search input already drives on `/offers`. No jump-dialog mockup was
-      vendored in `docs/design-system/mockups/` (the 53 boards cover pages and other dialogs only), so this
-      task builds from the REDESIGN-PLAN's owner decision - "opens a new jump dialog (offers/companies via
-      existing search + page names), keyboard-free, navigate on select" - and TASK-098's Dialog primitive,
-      not a board.
+      TASK-100 renders the sidebar's "Search or jump to..." trigger inert. The repo already has the search primitive this dialog needs: `jobOfferService.findMany` (src/entities/job-offer/service.ts L70-103) accepts a `query` filter built through `buildSearchOrFilter` (src/shared/utils/offer-search.ts), which does a title/company `ilike` OR-filter - the same mechanism `offer-filters.tsx`'s search input already drives on `/offers`. No jump-dialog mockup was vendored in `docs/design-system/mockups/` (the 53 boards cover pages and other dialogs only), so this task builds from the REDESIGN-PLAN's owner decision - "opens a new jump dialog (offers/companies via existing search + page names), keyboard-free, navigate on select" - and TASK-098's Dialog primitive, not a board.
 
     scope:
       - src/widgets/nav/jump-dialog.tsx
@@ -8097,7 +7960,7 @@ tasks:
   ###############################################################################
   - id: TASK-102
     github:
-      issue: null
+      issue: "215"
       project_item: null
     status: todo
     priority: P2
@@ -8108,14 +7971,7 @@ tasks:
       - TASK-100
     title: Notifications popover restyle
     goal: >
-      `src/widgets/notification-center/notification-center.tsx` already implements the full popover -
-      Popover/PopoverContent from shared/ui/primitives, a Badge count of `category === 'action-required'`
-      notifications, localStorage dismissal via `useSyncExternalStore`, and `NotificationList` rendering
-      the dismiss rows - so this is a restyle, not new behaviour. It currently renders the Badge as a
-      `-top-1 -right-1` absolute count, has no explicit popover width, and no header. Match it to
-      `docs/design-system/mockups/X-pop-notifications.dc.html` and the token system's 7px warning-dot
-      size, replacing the count Badge with a header Tag reading "N need action" and sizing the popover to
-      380px.
+      `src/widgets/notification-center/notification-center.tsx` already implements the full popover - Popover/PopoverContent from shared/ui/primitives, a Badge count of `category === 'action-required'` notifications, localStorage dismissal via `useSyncExternalStore`, and `NotificationList` rendering the dismiss rows - so this is a restyle, not new behaviour. It currently renders the Badge as a `-top-1 -right-1` absolute count, has no explicit popover width, and no header. Match it to `docs/design-system/mockups/X-pop-notifications.dc.html` and the token system's 7px warning-dot size, replacing the count Badge with a header Tag reading "N need action" and sizing the popover to 380px.
 
     scope:
       - src/widgets/notification-center/notification-center.tsx
@@ -8170,7 +8026,7 @@ tasks:
   ###############################################################################
   - id: TASK-103
     github:
-      issue: null
+      issue: "216"
       project_item: null
     status: todo
     priority: P1
@@ -8181,15 +8037,7 @@ tasks:
       - TASK-100
     title: Add offer dialog - move the inline form off the offers page
     goal: >
-      `src/features/job-offer/components/add-offer-form.tsx` renders as an inline `Card` at the top of
-      `/offers` (src/app/(app)/(protected)/offers/page.tsx L57, right above OfferFilters), and its
-      duplicate-handling UI is a hand-rolled `bg-warning` div with "Keep both" / "Delete this one" buttons
-      (add-offer-form.tsx L110-149) - both already work, they just aren't a Dialog or a Banner yet. Move
-      the form into a Dialog opened from the new top bar's primary-action slot (TASK-100), matching
-      `docs/design-system/mockups/X-dlg-add.dc.html` (520px dialog, "Paste URL"/"Paste text" segmented
-      control, same copy), and replace the inline duplicate div with TASK-098's Banner component. The form
-      itself (mode toggle, mutation, duplicate state) must stay usable standalone, since TASK-120's
-      onboarding step 3 reuses it outside any dialog.
+      `src/features/job-offer/components/add-offer-form.tsx` renders as an inline `Card` at the top of `/offers` (src/app/(app)/(protected)/offers/page.tsx L57, right above OfferFilters), and its duplicate-handling UI is a hand-rolled `bg-warning` div with "Keep both" / "Delete this one" buttons (add-offer-form.tsx L110-149) - both already work, they just aren't a Dialog or a Banner yet. Move the form into a Dialog opened from the new top bar's primary-action slot (TASK-100), matching `docs/design-system/mockups/X-dlg-add.dc.html` (520px dialog, "Paste URL"/"Paste text" segmented control, same copy), and replace the inline duplicate div with TASK-098's Banner component. The form itself (mode toggle, mutation, duplicate state) must stay usable standalone, since TASK-120's onboarding step 3 reuses it outside any dialog.
 
     scope:
       - src/features/job-offer/components/add-offer-form.tsx
@@ -8252,7 +8100,7 @@ tasks:
   ###############################################################################
   - id: TASK-104
     github:
-      issue: null
+      issue: "217"
       project_item: null
     status: todo
     priority: P1
@@ -8266,24 +8114,7 @@ tasks:
       - TASK-100
     title: Dashboard restyle — pipeline strip, Needs attention, response rate
     goal: >
-      `src/app/(app)/(protected)/dashboard/page.tsx` currently renders a plain
-      Grid of six boxed cards (ApplicationStatusBreakdownCard, FavoriteOffersCard,
-      NextPostCard, RecentActivityCard, RecentOffersCard, ResponseRateCard) with
-      no pipeline overview and no reuse of the follow-up/pending-connection
-      nudges `deriveFollowUpNudge`/`derivePendingRequestNudge` already compute in
-      `src/features/notification/services/derive-nudges.ts` (served to the
-      notification popover via `get-notifications.service.ts`, TASK-086) — the
-      dashboard has never surfaced them itself. Rebuild the dashboard per
-      `docs/design-system/mockups/X-dashboard.dc.html` and
-      `X-dashboard-empty.dc.html`: a pipeline strip with StageRings (TASK-094)
-      per application status plus a Closed lane, a Needs attention list that
-      calls the same nudge derivation the notification center uses, Upcoming
-      interviews as a GridTable (TASK-097) instead of UpcomingInterviewsCard's
-      current list, and the response-rate card switching between its
-      byFitBand/byCallbackBand/byChannel groups with a SegmentedControl
-      (TASK-095) instead of the current single fixed grouping. The data
-      (`getResponseRateReadout`, `applicationService`, `jobOfferService`) already
-      exists — this is a layout and component-reuse task, not a new data task.
+      `src/app/(app)/(protected)/dashboard/page.tsx` currently renders a plain Grid of six boxed cards (ApplicationStatusBreakdownCard, FavoriteOffersCard, NextPostCard, RecentActivityCard, RecentOffersCard, ResponseRateCard) with no pipeline overview and no reuse of the follow-up/pending-connection nudges `deriveFollowUpNudge`/`derivePendingRequestNudge` already compute in `src/features/notification/services/derive-nudges.ts` (served to the notification popover via `get-notifications.service.ts`, TASK-086) — the dashboard has never surfaced them itself. Rebuild the dashboard per `docs/design-system/mockups/X-dashboard.dc.html` and `X-dashboard-empty.dc.html`: a pipeline strip with StageRings (TASK-094) per application status plus a Closed lane, a Needs attention list that calls the same nudge derivation the notification center uses, Upcoming interviews as a GridTable (TASK-097) instead of UpcomingInterviewsCard's current list, and the response-rate card switching between its byFitBand/byCallbackBand/byChannel groups with a SegmentedControl (TASK-095) instead of the current single fixed grouping. The data (`getResponseRateReadout`, `applicationService`, `jobOfferService`) already exists — this is a layout and component-reuse task, not a new data task.
 
     scope:
       - src/app/(app)/(protected)/dashboard/page.tsx
@@ -8359,7 +8190,7 @@ tasks:
   ###############################################################################
   - id: TASK-105
     github:
-      issue: null
+      issue: "218"
       project_item: null
     status: todo
     priority: P1
@@ -8374,21 +8205,7 @@ tasks:
       - TASK-100
     title: Offers list restyle — KPI strip, recommendation-mix Meter, tier-grouped GridTable
     goal: >
-      `src/app/(app)/(protected)/offers/page.tsx` renders `UnifiedOfferList`
-      (`src/widgets/unified-offer-list/unified-offer-list.tsx`, 150 lines) with a
-      plain filter bar and flat list — no KPI summary, no recommendation-mix
-      breakdown, and offer rows use `Badge` for status/tier (18 `<Badge`
-      call sites across the app per the redesign plan, several in this widget).
-      Rebuild the list screen per `docs/design-system/mockups/X-offers.dc.html`
-      and `X-loading.dc.html`: a KPI strip (in progress, response rate, median
-      first reply, needs action — response rate and median reuse
-      `response-rate-readout.service.ts`'s existing fields), a recommendation-mix
-      Meter (TASK-094) built from the same `RecommendedAction` tiers
-      `recommended-action-badge.tsx` already renders, a toolbar adding sort/
-      group-by/List-Board SegmentedControl to the existing search+filter
-      (`offer-filters.tsx`), and the offer rows moved into a tier-grouped
-      GridTable with Tag/plain status text replacing every Badge in this
-      screen's path.
+      `src/app/(app)/(protected)/offers/page.tsx` renders `UnifiedOfferList` (`src/widgets/unified-offer-list/unified-offer-list.tsx`, 150 lines) with a plain filter bar and flat list — no KPI summary, no recommendation-mix breakdown, and offer rows use `Badge` for status/tier (18 `<Badge` call sites across the app per the redesign plan, several in this widget). Rebuild the list screen per `docs/design-system/mockups/X-offers.dc.html` and `X-loading.dc.html`: a KPI strip (in progress, response rate, median first reply, needs action — response rate and median reuse `response-rate-readout.service.ts`'s existing fields), a recommendation-mix Meter (TASK-094) built from the same `RecommendedAction` tiers `recommended-action-badge.tsx` already renders, a toolbar adding sort/ group-by/List-Board SegmentedControl to the existing search+filter (`offer-filters.tsx`), and the offer rows moved into a tier-grouped GridTable with Tag/plain status text replacing every Badge in this screen's path.
 
     scope:
       - src/app/(app)/(protected)/offers/page.tsx
@@ -8457,7 +8274,7 @@ tasks:
   ###############################################################################
   - id: TASK-106
     github:
-      issue: null
+      issue: "219"
       project_item: null
     status: todo
     priority: P2
@@ -8467,16 +8284,7 @@ tasks:
       - TASK-105
     title: Offer preview pane on the offers list
     goal: >
-      Today, selecting an offer row in `unified-offer-list.tsx` navigates
-      straight to `/offers/[id]` — there is no preview affordance, so checking
-      several offers means round-tripping the full detail page repeatedly. Add a
-      344px preview pane that opens on row select without leaving the list
-      (collapsing to a drawer at the 768–1279 tablet breakpoint per
-      tokens.json's existing tablet rules, same pattern TASK-100's sidebar
-      collapse and TASK-113's documents split view use), with a link through to
-      the full `/offers/[id]` detail page. This task only adds the pane to the
-      list screen TASK-105 just restyled; it does not touch the detail page
-      itself (TASK-108).
+      Today, selecting an offer row in `unified-offer-list.tsx` navigates straight to `/offers/[id]` — there is no preview affordance, so checking several offers means round-tripping the full detail page repeatedly. Add a 344px preview pane that opens on row select without leaving the list (collapsing to a drawer at the 768–1279 tablet breakpoint per tokens.json's existing tablet rules, same pattern TASK-100's sidebar collapse and TASK-113's documents split view use), with a link through to the full `/offers/[id]` detail page. This task only adds the pane to the list screen TASK-105 just restyled; it does not touch the detail page itself (TASK-108).
 
     scope:
       - src/widgets/unified-offer-list/unified-offer-list.tsx
@@ -8531,7 +8339,7 @@ tasks:
   ###############################################################################
   - id: TASK-107
     github:
-      issue: null
+      issue: "220"
       project_item: null
     status: todo
     priority: P1
@@ -8543,18 +8351,7 @@ tasks:
       - TASK-100
     title: Offers board restyle — flat cards, sunken Closed lane, drop toast
     goal: >
-      `src/widgets/application-board/application-board.tsx` (286 lines) already
-      renders drag-and-drop columns by application status and calls
-      `toast.error` (sonner, already a dependency — `providers.tsx` L14 sets
-      richColors, which TASK-098 retires) on a failed drop, but has no styling
-      pass for flat cards, no visually sunken/dimmed Closed lane, no "+N more"
-      truncation per column, and no success toast on a valid drop. Restyle it
-      per `docs/design-system/mockups/X-offers-board.dc.html`: flat (no nested
-      Card-in-Card) offer cards, a visually sunken Closed lane grouping the
-      terminal statuses, a "+N more" affordance when a column exceeds its
-      visible row count, and a toast confirming a successful drag-drop move
-      (owner-approved addition, not in the mockup itself per the redesign
-      plan's "Owner decisions").
+      `src/widgets/application-board/application-board.tsx` (286 lines) already renders drag-and-drop columns by application status and calls `toast.error` (sonner, already a dependency — `providers.tsx` L14 sets richColors, which TASK-098 retires) on a failed drop, but has no styling pass for flat cards, no visually sunken/dimmed Closed lane, no "+N more" truncation per column, and no success toast on a valid drop. Restyle it per `docs/design-system/mockups/X-offers-board.dc.html`: flat (no nested Card-in-Card) offer cards, a visually sunken Closed lane grouping the terminal statuses, a "+N more" affordance when a column exceeds its visible row count, and a toast confirming a successful drag-drop move (owner-approved addition, not in the mockup itself per the redesign plan's "Owner decisions").
 
     scope:
       - src/widgets/application-board/application-board.tsx
@@ -8610,7 +8407,7 @@ tasks:
   ###############################################################################
   - id: TASK-108
     github:
-      issue: null
+      issue: "221"
       project_item: null
     status: todo
     priority: P1
@@ -8624,24 +8421,7 @@ tasks:
       - TASK-100
     title: Offer detail shell — sticky header, Tabs, 320 rail
     goal: >
-      `src/features/job-offer/components/offer-detail.tsx` (471 lines) is a
-      single long scroll today, not a tabbed shell: a sticky 320px sidebar card
-      (favorite/edit/match/track-application actions) beside one continuous
-      column containing Fit report, Tailored CV, the Outreach panel
-      (`outreach-panel.tsx`), Cover letter, and application notes/timeline —
-      all always rendered together. Rebuild it per the `offer-*` mockup family
-      (`X-offer-fit.dc.html`, `X-offer-cv.dc.html`, `X-offer-letter.dc.html`,
-      `X-offer-outreach.dc.html`, `X-offer-app.dc.html`, all sharing the same
-      shell chrome): a sticky header (company/title/meta, favorite star, edit,
-      a stage control with StageRing), a Tabs strip (TASK-095) for Fit report /
-      Tailored CV / Outreach / Cover letter / Application with a count badge,
-      and a 320px rail (match + callback score, an application mini-card,
-      "about this offer"). The five section bodies that already exist
-      (FitReport, the tailored-CV DocumentEditor block, OutreachPanel, the
-      cover-letter DocumentEditor block, ApplicationNotes/ApplicationTimeline)
-      move under their respective tab unchanged — TASK-109 through TASK-112
-      restyle those bodies individually; this task only builds the shell they
-      sit in and the routing between tabs.
+      `src/features/job-offer/components/offer-detail.tsx` (471 lines) is a single long scroll today, not a tabbed shell: a sticky 320px sidebar card (favorite/edit/match/track-application actions) beside one continuous column containing Fit report, Tailored CV, the Outreach panel (`outreach-panel.tsx`), Cover letter, and application notes/timeline — all always rendered together. Rebuild it per the `offer-*` mockup family (`X-offer-fit.dc.html`, `X-offer-cv.dc.html`, `X-offer-letter.dc.html`, `X-offer-outreach.dc.html`, `X-offer-app.dc.html`, all sharing the same shell chrome): a sticky header (company/title/meta, favorite star, edit, a stage control with StageRing), a Tabs strip (TASK-095) for Fit report / Tailored CV / Outreach / Cover letter / Application with a count badge, and a 320px rail (match + callback score, an application mini-card, "about this offer"). The five section bodies that already exist (FitReport, the tailored-CV DocumentEditor block, OutreachPanel, the cover-letter DocumentEditor block, ApplicationNotes/ApplicationTimeline) move under their respective tab unchanged — TASK-109 through TASK-112 restyle those bodies individually; this task only builds the shell they sit in and the routing between tabs.
 
     scope:
       - src/features/job-offer/components/offer-detail.tsx
@@ -8709,7 +8489,7 @@ tasks:
   ###############################################################################
   - id: TASK-109
     github:
-      issue: null
+      issue: "222"
       project_item: null
     status: todo
     priority: P1
@@ -8722,23 +8502,7 @@ tasks:
       - TASK-108
     title: Fit report tab restyle — grouped GridTable, divergence Banner, LockedPanel on Free
     goal: >
-      `src/features/job-offer/components/fit-report.tsx` (147 lines) renders
-      the nine `fitCriterionKeys` from `src/entities/job-offer/types.ts` as one
-      flat `ListRow` list with no grouping, shows the match/callback divergence
-      as a plain muted `Text` line, and the Free-tier gate in
-      `offer-detail.tsx` (L356-366) is a generic `EmptyState` with an upgrade
-      button rather than the dedicated LockedPanel TASK-099 adds. Restyle per
-      `X-offer-fit.dc.html` (Pro) and `X-offer-free.dc.html` (Free): group the
-      nine criteria into "from the offer" (technicalMatch, seniorityMatch,
-      coreStack, industry, workMode, salary, architectureExperience —
-      mechanically computed vs. AI-judged is not the split; per the mockup key
-      these two groups are offer-facts vs. preference-facts) rendered as a
-      GridTable (TASK-097) with a Meter (TASK-094) per criterion instead of the
-      current `ListRow` list, the divergence line as a Banner (TASK-098), and
-      missing/absent-but-true skills side-by-side instead of stacked. On Free,
-      replace `offer-detail.tsx`'s current EmptyState gate with LockedPanel
-      (TASK-099) — the gating logic itself (`canViewFitDetail`,
-      `meetsPlan(plan, 'pro')` in `offers/[id]/page.tsx`) is unchanged.
+      `src/features/job-offer/components/fit-report.tsx` (147 lines) renders the nine `fitCriterionKeys` from `src/entities/job-offer/types.ts` as one flat `ListRow` list with no grouping, shows the match/callback divergence as a plain muted `Text` line, and the Free-tier gate in `offer-detail.tsx` (L356-366) is a generic `EmptyState` with an upgrade button rather than the dedicated LockedPanel TASK-099 adds. Restyle per `X-offer-fit.dc.html` (Pro) and `X-offer-free.dc.html` (Free): group the nine criteria into "from the offer" (technicalMatch, seniorityMatch, coreStack, industry, workMode, salary, architectureExperience — mechanically computed vs. AI-judged is not the split; per the mockup key these two groups are offer-facts vs. preference-facts) rendered as a GridTable (TASK-097) with a Meter (TASK-094) per criterion instead of the current `ListRow` list, the divergence line as a Banner (TASK-098), and missing/absent-but-true skills side-by-side instead of stacked. On Free, replace `offer-detail.tsx`'s current EmptyState gate with LockedPanel (TASK-099) — the gating logic itself (`canViewFitDetail`, `meetsPlan(plan, 'pro')` in `offers/[id]/page.tsx`) is unchanged.
 
     scope:
       - src/features/job-offer/components/fit-report.tsx
@@ -8797,7 +8561,7 @@ tasks:
   ###############################################################################
   - id: TASK-110
     github:
-      issue: null
+      issue: "223"
       project_item: null
     status: todo
     priority: P1
@@ -8808,22 +8572,7 @@ tasks:
       - TASK-108
     title: Tailored CV and cover letter tabs restyle — keyword rows, AI action meta, LockedPanel
     goal: >
-      The Tailored CV tab body in `offer-detail.tsx` (L385-417) is a
-      "Generate tailored CV" button plus a `DocumentEditor` and, when
-      `tailoringReportNode` exists, `TailoringReport`
-      (`src/features/document/components/tailoring-report.tsx`) rendered in a
-      fixed side column — with no restyled keyword-coverage rows. The Cover
-      letter tab body (L439-462) is a "Generate cover letter" button plus a
-      bare `DocumentEditor`, with no Regenerate/Edit/Download action row or AI
-      action metadata. On Free, the tailoring report gate is `offer-detail-panel.tsx`'s
-      inline `EmptyState` (L90-97) reusing the same upgrade-button pattern as
-      the fit gate. Restyle both tabs per `X-offer-cv.dc.html` and
-      `X-offer-letter.dc.html`: keyword rows showing covered/missed status text
-      plus an evidence line (from `TailoringReport`'s existing data), a cover
-      letter header with Regenerate/Edit/Download actions and AI action
-      metadata (model/date, matching the pattern already used elsewhere for AI
-      action provenance), and LockedPanel (TASK-099) replacing the Free-tier
-      EmptyState.
+      The Tailored CV tab body in `offer-detail.tsx` (L385-417) is a "Generate tailored CV" button plus a `DocumentEditor` and, when `tailoringReportNode` exists, `TailoringReport` (`src/features/document/components/tailoring-report.tsx`) rendered in a fixed side column — with no restyled keyword-coverage rows. The Cover letter tab body (L439-462) is a "Generate cover letter" button plus a bare `DocumentEditor`, with no Regenerate/Edit/Download action row or AI action metadata. On Free, the tailoring report gate is `offer-detail-panel.tsx`'s inline `EmptyState` (L90-97) reusing the same upgrade-button pattern as the fit gate. Restyle both tabs per `X-offer-cv.dc.html` and `X-offer-letter.dc.html`: keyword rows showing covered/missed status text plus an evidence line (from `TailoringReport`'s existing data), a cover letter header with Regenerate/Edit/Download actions and AI action metadata (model/date, matching the pattern already used elsewhere for AI action provenance), and LockedPanel (TASK-099) replacing the Free-tier EmptyState.
 
     scope:
       - src/features/document/components/tailoring-report.tsx
@@ -8882,7 +8631,7 @@ tasks:
   ###############################################################################
   - id: TASK-111
     github:
-      issue: null
+      issue: "224"
       project_item: null
     status: todo
     priority: P2
@@ -8894,21 +8643,7 @@ tasks:
       - TASK-108
     title: Outreach tab restyle — who-you-know ListRows, 3-col channel cards, interlock Banner
     goal: >
-      `src/features/contact/components/who-you-know-panel.tsx` (rendered via
-      `renderWhoYouKnow` in offer-detail.tsx) and
-      `src/features/job-offer/components/outreach-panel.tsx` (342 lines) render
-      contacts and the three outreach channels
-      (`OUTREACH_CHANNEL_LABELS`/`CHANNEL_ORDER` — CONNECTION_NOTE,
-      DIRECT_MESSAGE, EMAIL) with unrestyled markup and no visible interlock
-      warning styling — `interlockWarning` is passed through but not
-      highlighted as a Banner. Restyle per `X-offer-outreach.dc.html`: the
-      who-you-know panel as ListRows with initials avatars and a Select for
-      picking a contact, the three channels as side-by-side cards each showing
-      subject, character count against `CHANNEL_BUDGETS`
-      (`src/shared/ai/outreach-validator.ts`) and a visible "Mark as sent"
-      action (already wired via `useMarkOutreachSent`), the interlock warning
-      as a Banner (TASK-098), and the follow-up draft
-      (`useDraftFollowUp`/`followUp=1` deep link) as its own card.
+      `src/features/contact/components/who-you-know-panel.tsx` (rendered via `renderWhoYouKnow` in offer-detail.tsx) and `src/features/job-offer/components/outreach-panel.tsx` (342 lines) render contacts and the three outreach channels (`OUTREACH_CHANNEL_LABELS`/`CHANNEL_ORDER` — CONNECTION_NOTE, DIRECT_MESSAGE, EMAIL) with unrestyled markup and no visible interlock warning styling — `interlockWarning` is passed through but not highlighted as a Banner. Restyle per `X-offer-outreach.dc.html`: the who-you-know panel as ListRows with initials avatars and a Select for picking a contact, the three channels as side-by-side cards each showing subject, character count against `CHANNEL_BUDGETS` (`src/shared/ai/outreach-validator.ts`) and a visible "Mark as sent" action (already wired via `useMarkOutreachSent`), the interlock warning as a Banner (TASK-098), and the follow-up draft (`useDraftFollowUp`/`followUp=1` deep link) as its own card.
 
     scope:
       - src/features/contact/components/who-you-know-panel.tsx
@@ -8967,7 +8702,7 @@ tasks:
   ###############################################################################
   - id: TASK-112
     github:
-      issue: null
+      issue: "225"
       project_item: null
     status: todo
     priority: P2
@@ -8978,16 +8713,7 @@ tasks:
       - TASK-108
     title: Application tab restyle — notes and status history with StageRing
     goal: >
-      `src/features/application/components/application-notes.tsx` and
-      `application-timeline.tsx` render inside the Application tab
-      (composed via offer-detail-panel.tsx's `applicationNotes`/
-      `applicationTimeline` render props) with no restyle pass yet — the
-      timeline shows `ApplicationStatusEvent` entries without the StageRing
-      indicator TASK-094 adds. Restyle per `X-offer-app.dc.html`: each status
-      history entry gets a StageRing matching its `ApplicationStatus`, and the
-      notes editor is restyled to the current design tokens. This is a pure
-      restyle — `applicationService`/`applicationStatusEventService` and the
-      notes-save mutation are unchanged.
+      `src/features/application/components/application-notes.tsx` and `application-timeline.tsx` render inside the Application tab (composed via offer-detail-panel.tsx's `applicationNotes`/ `applicationTimeline` render props) with no restyle pass yet — the timeline shows `ApplicationStatusEvent` entries without the StageRing indicator TASK-094 adds. Restyle per `X-offer-app.dc.html`: each status history entry gets a StageRing matching its `ApplicationStatus`, and the notes editor is restyled to the current design tokens. This is a pure restyle — `applicationService`/`applicationStatusEventService` and the notes-save mutation are unchanged.
 
     scope:
       - src/features/application/components/application-notes.tsx
@@ -9038,7 +8764,7 @@ tasks:
   ###############################################################################
   - id: TASK-113
     github:
-      issue: null
+      issue: "226"
       project_item: null
     status: todo
     priority: P2
@@ -9051,16 +8777,7 @@ tasks:
       - TASK-100
     title: Documents screen as a split list/reader view
     goal: >
-      `src/app/(app)/(protected)/documents/page.tsx` renders `DocumentList` (`src/features/document/components/document-list.tsx`,
-      99 lines) as a single flat stack - one ruled Surface row per document, each showing a `Badge` kind label
-      (`documentLabel()`, handling the "Master (previous)"/"Cover Letter (previous)" cases from a demoted `isMaster`
-      flag) and inline expand-to-`DocumentEditor` on Edit, with a plain Download button calling `downloadTextFile`.
-      There is no type filter, no search and no way to separate current documents from old versions except reading
-      each row's label. `listDocuments()` (`src/features/document/services/list-documents.service.ts`, 10 lines)
-      already returns every `CvDocument` with `kind`/`isMaster`/`jobOfferId` intact, so this is a pure layout and
-      filtering task - restyle into the mockup's split view: a 400px list pane with type Tabs, kind Tags, a search
-      input and a previous-versions toggle, and a reader pane on the right showing the selected document with
-      Edit/Download, replacing the inline-expand pattern.
+      `src/app/(app)/(protected)/documents/page.tsx` renders `DocumentList` (`src/features/document/components/document-list.tsx`, 99 lines) as a single flat stack - one ruled Surface row per document, each showing a `Badge` kind label (`documentLabel()`, handling the "Master (previous)"/"Cover Letter (previous)" cases from a demoted `isMaster` flag) and inline expand-to-`DocumentEditor` on Edit, with a plain Download button calling `downloadTextFile`. There is no type filter, no search and no way to separate current documents from old versions except reading each row's label. `listDocuments()` (`src/features/document/services/list-documents.service.ts`, 10 lines) already returns every `CvDocument` with `kind`/`isMaster`/`jobOfferId` intact, so this is a pure layout and filtering task - restyle into the mockup's split view: a 400px list pane with type Tabs, kind Tags, a search input and a previous-versions toggle, and a reader pane on the right showing the selected document with Edit/Download, replacing the inline-expand pattern.
 
     scope:
       - src/app/(app)/(protected)/documents/page.tsx
@@ -9128,7 +8845,7 @@ tasks:
   ###############################################################################
   - id: TASK-114
     github:
-      issue: null
+      issue: "227"
       project_item: null
     status: todo
     priority: P2
@@ -9142,17 +8859,7 @@ tasks:
       - TASK-100
     title: Posts screen as a composer rail with filtered, claim-tagged rows
     goal: >
-      `posts/page.tsx` currently stacks five independent components top to bottom - `GenerateCampaignForm`,
-      `CampaignList`, `GeneratePostForm`, `PlanPostsButton`, then `PostList` - with no shared rail, no filter and
-      no counts; `PostList` (`src/features/linkedin-posts/components/post-list.tsx`, 210 lines) renders every
-      standalone post unfiltered. Reuse is already computed correctly - `findReusedClaimIds()` runs over every
-      post (standalone and campaign) and `PostCard` already renders each `claimsUsed` id as a `Badge` with
-      `variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}` and a `' · reused'` suffix (post-list.tsx
-      L158-171) - so the reused-claim logic itself needs no change, only its Badge→Tag rendering. `edit-post-dialog.tsx`
-      (72 lines) is a bare Textarea with Save/Cancel and no character counter and no claim Tag. This task
-      consolidates the generate/campaign/plan controls into a 360px composer rail with Single/Campaign Tabs and an
-      AI-actions card, adds status Tabs with counts above the post rows, and adds the reused-claim Tag and a
-      character counter to the edit dialog.
+      `posts/page.tsx` currently stacks five independent components top to bottom - `GenerateCampaignForm`, `CampaignList`, `GeneratePostForm`, `PlanPostsButton`, then `PostList` - with no shared rail, no filter and no counts; `PostList` (`src/features/linkedin-posts/components/post-list.tsx`, 210 lines) renders every standalone post unfiltered. Reuse is already computed correctly - `findReusedClaimIds()` runs over every post (standalone and campaign) and `PostCard` already renders each `claimsUsed` id as a `Badge` with `variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}` and a `' · reused'` suffix (post-list.tsx L158-171) - so the reused-claim logic itself needs no change, only its Badge→Tag rendering. `edit-post-dialog.tsx` (72 lines) is a bare Textarea with Save/Cancel and no character counter and no claim Tag. This task consolidates the generate/campaign/plan controls into a 360px composer rail with Single/Campaign Tabs and an AI-actions card, adds status Tabs with counts above the post rows, and adds the reused-claim Tag and a character counter to the edit dialog.
 
     scope:
       - src/app/(app)/(protected)/posts/page.tsx
@@ -9226,7 +8933,7 @@ tasks:
   ###############################################################################
   - id: TASK-115
     github:
-      issue: null
+      issue: "228"
       project_item: null
     status: todo
     priority: P2
@@ -9238,14 +8945,7 @@ tasks:
       - TASK-100
     title: Profile screen as a two-column layout with CV rail
     goal: >
-      `profile/page.tsx` stacks eight components in a single column - `CvUploadForm`, `CoverLetterUploadForm`,
-      `OptimizeCoverLetterPanel`, `ImportConnectionsForm`, then conditionally `ProfileScoreCard`, `ProfileSummary`,
-      `EvidenceReview` and `OptimizeCvPanel` - with no visual grouping between "upload/optimize" controls and the
-      actual profile content. This is a pure layout task: split into a main column (ProfileSummary, EvidenceReview)
-      and a 380px right rail (ProfileScoreCard, the upload forms, OptimizeCvPanel/OptimizeCoverLetterPanel), and
-      restyle `EvidenceReview` (`src/features/profile/components/evidence-review.tsx`, built in TASK-078 for the
-      ADR-017 evidence base - confirm/flag/exclude actions on FLAGGED/high-risk claims) onto the new Surface/Tag
-      primitives. No data or service changes - profileService.findUnique and every component prop stay the same.
+      `profile/page.tsx` stacks eight components in a single column - `CvUploadForm`, `CoverLetterUploadForm`, `OptimizeCoverLetterPanel`, `ImportConnectionsForm`, then conditionally `ProfileScoreCard`, `ProfileSummary`, `EvidenceReview` and `OptimizeCvPanel` - with no visual grouping between "upload/optimize" controls and the actual profile content. This is a pure layout task: split into a main column (ProfileSummary, EvidenceReview) and a 380px right rail (ProfileScoreCard, the upload forms, OptimizeCvPanel/OptimizeCoverLetterPanel), and restyle `EvidenceReview` (`src/features/profile/components/evidence-review.tsx`, built in TASK-078 for the ADR-017 evidence base - confirm/flag/exclude actions on FLAGGED/high-risk claims) onto the new Surface/Tag primitives. No data or service changes - profileService.findUnique and every component prop stay the same.
 
     scope:
       - src/app/(app)/(protected)/profile/page.tsx
@@ -9306,7 +9006,7 @@ tasks:
   ###############################################################################
   - id: TASK-116
     github:
-      issue: null
+      issue: "229"
       project_item: null
     status: todo
     priority: P2
@@ -9319,15 +9019,7 @@ tasks:
       - TASK-098
     title: Settings screen as sub-nav with a card per section
     goal: >
-      `settings/page.tsx` is a single `VStack` of five sections - Appearance (a `Label variant="meta"` plus
-      `ThemeToggle`), Job preferences (`JobPreferencesForm`), Billing (`BillingPanel`), AI usage (`UsageMeter`) and
-      Danger zone (`DangerZone`) - with no navigation between them and each section header rendered with the
-      `Label variant="meta"` pattern TASK-093 replaces with SectionLabel. Every section's logic already works -
-      `getPlanForOwner`, `aiUsageService.countForOwnerSince`, `subscriptionService.findByOwnerId` and
-      `DangerZone`'s export/delete flow (`src/features/account/components/danger-zone.tsx`, using `ConfirmDialog`
-      with a type-DELETE-to-confirm input) are all unchanged. This is a pure layout/restyle task: add a 180px
-      sub-nav down the left, one Card per section on the right, switch Appearance to the new SegmentedControl for
-      theme choice, and restyle `DangerZone`'s `ConfirmDialog` onto the new dialog primitives from TASK-098.
+      `settings/page.tsx` is a single `VStack` of five sections - Appearance (a `Label variant="meta"` plus `ThemeToggle`), Job preferences (`JobPreferencesForm`), Billing (`BillingPanel`), AI usage (`UsageMeter`) and Danger zone (`DangerZone`) - with no navigation between them and each section header rendered with the `Label variant="meta"` pattern TASK-093 replaces with SectionLabel. Every section's logic already works - `getPlanForOwner`, `aiUsageService.countForOwnerSince`, `subscriptionService.findByOwnerId` and `DangerZone`'s export/delete flow (`src/features/account/components/danger-zone.tsx`, using `ConfirmDialog` with a type-DELETE-to-confirm input) are all unchanged. This is a pure layout/restyle task: add a 180px sub-nav down the left, one Card per section on the right, switch Appearance to the new SegmentedControl for theme choice, and restyle `DangerZone`'s `ConfirmDialog` onto the new dialog primitives from TASK-098.
 
     scope:
       - src/app/(app)/settings/page.tsx
@@ -9386,7 +9078,7 @@ tasks:
   ###############################################################################
   - id: TASK-117
     github:
-      issue: null
+      issue: "230"
       project_item: null
     status: todo
     priority: P1
@@ -9399,45 +9091,29 @@ tasks:
       - TASK-097
     title: Landing page rebuild on Midnight Mint
     goal: >
-      `src/app/(marketing)/page.tsx` is the last unstyled marketing surface: it still numbers its two promise rows
-      `01`/`02` with a `font-mono` span and opens with a `Label variant="meta"` mono eyebrow ("One verified record of
-      your job search") - both retired by TASK-091/TASK-094 (meta label is gone, font-mono is triage-only). Rebuild the
-      page per `docs/design-system/mockups/X-landing.dc.html` (screens_d version): hero, live product frames, a 3-col
-      value grid, an evidence section, an FAQ, and a closing CTA, replacing the current hero/promise-list/pricing-teaser
-      structure. Product screenshots are explicitly out - the owner decision (REDESIGN-PLAN.md "Owner decisions") is
-      that the frames render real shared components (dashboard/offer list/fit-report pieces already built in TASK-096/
-      TASK-097/TASK-104-113) with fixed sample data baked in, not images, so they never go stale.
+      `src/app/(marketing)/page.tsx` is the last unstyled marketing surface: it still numbers its two promise rows `01`/`02` with a `font-mono` span and opens with a `Label variant="meta"` mono eyebrow ("One verified record of your job search") - both retired by TASK-091/TASK-094 (meta label is gone, font-mono is triage-only). Rebuild the page per `docs/design-system/mockups/X-landing.dc.html` (screens_d version): hero, live product frames, a 3-col value grid, an evidence section, an FAQ, and a closing CTA, replacing the current hero/promise-list/pricing-teaser structure. Product screenshots are explicitly out - the owner decision (REDESIGN-PLAN.md "Owner decisions") is that the frames render real shared components (dashboard/offer list/fit-report pieces already built in TASK-096/ TASK-097/TASK-104-113) with fixed sample data baked in, not images, so they never go stale.
 
     scope:
       - src/app/(marketing)/page.tsx
       - src/features/marketing/components/
     deliverables:
       - Hero section with no mono eyebrow label and no `01`/`02` padStart numbering anywhere on the page
-      - One or more "live product frame" components rendering real shared components (Card/ListRow/GridTable/TierMarker
-        etc. from TASK-096/097) with hardcoded sample data, not screenshots or images
+      - One or more "live product frame" components rendering real shared components (Card/ListRow/GridTable/TierMarker etc. from TASK-096/097) with hardcoded sample data, not screenshots or images
       - A 3-column value grid replacing the current two-item PROMISE_POINTS list
       - An evidence/proof section and an FAQ section (new content, per the mockup)
       - A closing CTA section distinct from the hero CTA
-      - Existing behaviour preserved - signed-in visitors still redirect to /dashboard (the `if (user) redirect(...)`
-        check in page.tsx stays)
+      - Existing behaviour preserved - signed-in visitors still redirect to /dashboard (the `if (user) redirect(...)` check in page.tsx stays)
     tasks:
-      - Read `docs/design-system/mockups/X-landing.dc.html` for section order/copy structure and cross-check colours/
-        spacing against `docs/design-system/tokens.json` (tokens win where they differ)
-      - Replace the `Label variant="meta"` eyebrow and the `PROMISE_POINTS.map` numbered-row block in page.tsx with the
-        new hero and value-grid sections built from TASK-096 Surface/Card and TASK-094 Tag/Text primitives
-      - Build the live product frame(s) as small marketing-scoped components under `src/features/marketing/components/`
-        that import real shared components and pass literal sample props - no network calls, no Supabase client, so the
-        page stays statically renderable up to the auth check
-      - Add the evidence and FAQ sections as static content blocks using TASK-096 Surface/Card and existing Text/Heading
-        primitives
-      - Keep `PRO_CAPABILITY_NAMES`-derived copy (`proCapabilityListCapitalized`) or fold its meaning into the new value
-        grid so the Pro-vs-Free promise from TASK-088 is not lost
+      - Read `docs/design-system/mockups/X-landing.dc.html` for section order/copy structure and cross-check colours/ spacing against `docs/design-system/tokens.json` (tokens win where they differ)
+      - Replace the `Label variant="meta"` eyebrow and the `PROMISE_POINTS.map` numbered-row block in page.tsx with the new hero and value-grid sections built from TASK-096 Surface/Card and TASK-094 Tag/Text primitives
+      - Build the live product frame(s) as small marketing-scoped components under `src/features/marketing/components/` that import real shared components and pass literal sample props - no network calls, no Supabase client, so the page stays statically renderable up to the auth check
+      - Add the evidence and FAQ sections as static content blocks using TASK-096 Surface/Card and existing Text/Heading primitives
+      - Keep `PRO_CAPABILITY_NAMES`-derived copy (`proCapabilityListCapitalized`) or fold its meaning into the new value grid so the Pro-vs-Free promise from TASK-088 is not lost
       - Update `metadata` only if the new hero copy changes the page's headline claim
     acceptance:
       - grep for `font-mono` and for `Label` `variant="meta"` in `src/app/(marketing)/page.tsx` returns no matches
       - grep for `padStart` in `src/app/(marketing)/page.tsx` returns no matches
-      - Page renders a live product frame built from real TASK-096/097 components with static sample data, not an
-        `<img>`/`next/image` product screenshot
+      - Page renders a live product frame built from real TASK-096/097 components with static sample data, not an `<img>`/`next/image` product screenshot
       - Page contains a 3-column value grid, an evidence section, an FAQ section and a closing CTA distinct from the hero
       - Signed-in visit to `/` still redirects to `/dashboard` (existing `supabase.auth.getUser()` check unchanged)
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
@@ -9480,7 +9156,7 @@ tasks:
   ###############################################################################
   - id: TASK-118
     github:
-      issue: null
+      issue: "231"
       project_item: null
     status: todo
     priority: P1
@@ -9491,42 +9167,25 @@ tasks:
       - TASK-098
     title: Pricing page restyle, signed-in header and checkout-cancelled banner
     goal: >
-      `src/features/billing/services/create-checkout-session.service.ts:92` sets
-      `cancel_url: \`${origin}/pricing?checkout=cancelled\`` but nothing on `src/app/(marketing)/pricing/page.tsx` or
-      `PricingTable` reads the `checkout` search param, so a user who backs out of Stripe checkout lands on pricing with
-      no acknowledgement anything happened. There is only one pricing route - `plans-free`/`plans-redirect`/`plans-pro`
-      in the mockup boards are the three states `PricingTable` already renders conditionally (signed-out CTA to
-      `/sign-up`, signed-in-free CTA via `CheckoutButton`, signed-in-pro "Current plan"/"Included" disabled buttons),
-      not separate routes - restyle that one component's three branches. Also add a marketing header variant with
-      "Go to dashboard" for signed-in visitors, since the current page has no header/nav at all.
+      `src/features/billing/services/create-checkout-session.service.ts:92` sets `cancel_url: \`${origin}/pricing?checkout=cancelled\`` but nothing on `src/app/(marketing)/pricing/page.tsx` or `PricingTable` reads the `checkout` search param, so a user who backs out of Stripe checkout lands on pricing with no acknowledgement anything happened. There is only one pricing route - `plans-free`/`plans-redirect`/`plans-pro` in the mockup boards are the three states `PricingTable` already renders conditionally (signed-out CTA to `/sign-up`, signed-in-free CTA via `CheckoutButton`, signed-in-pro "Current plan"/"Included" disabled buttons), not separate routes - restyle that one component's three branches. Also add a marketing header variant with "Go to dashboard" for signed-in visitors, since the current page has no header/nav at all.
 
     scope:
       - src/app/(marketing)/pricing/page.tsx
       - src/features/marketing/components/pricing-table.tsx
       - src/features/marketing/components/
     deliverables:
-      - Restyled pricing page and PricingTable matching `docs/design-system/mockups/X-pricing.dc.html`,
-        `X-plans-free.dc.html`, `X-plans-redirect.dc.html` and `X-plans-pro.dc.html` for the three PricingTable states
-      - Pricing page reads `?checkout=cancelled` from `searchParams` and renders the new Banner (TASK-098) instead of
-        silently ignoring it
-      - A signed-in marketing header/nav element showing "Go to dashboard" linking to `/dashboard`, rendered on the
-        pricing page (and reusable if the marketing layout gains a header)
+      - Restyled pricing page and PricingTable matching `docs/design-system/mockups/X-pricing.dc.html`, `X-plans-free.dc.html`, `X-plans-redirect.dc.html` and `X-plans-pro.dc.html` for the three PricingTable states
+      - Pricing page reads `?checkout=cancelled` from `searchParams` and renders the new Banner (TASK-098) instead of silently ignoring it
+      - A signed-in marketing header/nav element showing "Go to dashboard" linking to `/dashboard`, rendered on the pricing page (and reusable if the marketing layout gains a header)
     tasks:
-      - Convert `PricingPage` in `src/app/(marketing)/pricing/page.tsx` to read a `checkout` search param (an optional
-        string on the page's searchParams promise type) and render a Banner (TASK-098) when it equals 'cancelled',
-        e.g. Checkout cancelled - your plan hasn't changed
-      - Restyle `PricingTable`'s Card/CardHeader/CardContent and the three signed-in branches (current-plan disabled,
-        included disabled, CheckoutButton) per the mockup boards, using TASK-096 Surface/Card and TASK-092 Button variants
-      - Add a small signed-in marketing header component checking `supabase.auth.getUser()` and rendering "Go to
-        dashboard" (Link to `/dashboard`) when signed in; place it above the pricing content
-      - Confirm `CheckoutButton` (`src/features/marketing/components/checkout-button.tsx`) still compiles unchanged
-        unless its visual props need updating for the new Button variants
+      - Convert `PricingPage` in `src/app/(marketing)/pricing/page.tsx` to read a `checkout` search param (an optional string on the page's searchParams promise type) and render a Banner (TASK-098) when it equals 'cancelled', e.g. Checkout cancelled - your plan hasn't changed
+      - Restyle `PricingTable`'s Card/CardHeader/CardContent and the three signed-in branches (current-plan disabled, included disabled, CheckoutButton) per the mockup boards, using TASK-096 Surface/Card and TASK-092 Button variants
+      - Add a small signed-in marketing header component checking `supabase.auth.getUser()` and rendering "Go to dashboard" (Link to `/dashboard`) when signed in; place it above the pricing content
+      - Confirm `CheckoutButton` (`src/features/marketing/components/checkout-button.tsx`) still compiles unchanged unless its visual props need updating for the new Button variants
     acceptance:
-      - Visiting `/pricing?checkout=cancelled` renders a Banner communicating the cancellation; visiting `/pricing`
-        with no query param renders no such banner
+      - Visiting `/pricing?checkout=cancelled` renders a Banner communicating the cancellation; visiting `/pricing` with no query param renders no such banner
       - A signed-in visit to `/pricing` shows a "Go to dashboard" link to `/dashboard`
-      - PricingTable's three signed-in states (current plan / included / checkout CTA) render with TASK-092 button
-        variants and TASK-096 Card styling, matching the plans-free/plans-redirect/plans-pro mockup boards
+      - PricingTable's three signed-in states (current plan / included / checkout CTA) render with TASK-092 button variants and TASK-096 Card styling, matching the plans-free/plans-redirect/plans-pro mockup boards
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Checkout-cancelled bug fixed and verified via the query param; pricing restyled in both themes
@@ -9568,7 +9227,7 @@ tasks:
   ###############################################################################
   - id: TASK-119
     github:
-      issue: null
+      issue: "232"
       project_item: null
     status: todo
     priority: P1
@@ -9580,13 +9239,7 @@ tasks:
       - TASK-098
     title: Auth and system pages restyle, field-level reset error, global-error.tsx
     goal: >
-      The auth pages (`src/app/sign-in/page.tsx`, `sign-up/page.tsx`, `forgot-password/page.tsx`,
-      `reset-password/page.tsx`) and the two system pages (`src/app/not-found.tsx`, `src/app/error.tsx`) predate the
-      design system and use raw `role="alert"` paragraphs for error states - no `aria-invalid` attribute exists
-      anywhere in `src` today (confirmed by grep). `reset-password/page.tsx` renders its password-mismatch error as a
-      generic paragraph below the form rather than as a field-level error on the offending input. `src/app/global-error.tsx`
-      does not exist (only the route-scoped `src/app/error.tsx` does) - Next.js requires a separate root-level
-      `global-error.tsx` to catch errors thrown by the root layout itself, which `error.tsx` cannot do.
+      The auth pages (`src/app/sign-in/page.tsx`, `sign-up/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx`) and the two system pages (`src/app/not-found.tsx`, `src/app/error.tsx`) predate the design system and use raw `role="alert"` paragraphs for error states - no `aria-invalid` attribute exists anywhere in `src` today (confirmed by grep). `reset-password/page.tsx` renders its password-mismatch error as a generic paragraph below the form rather than as a field-level error on the offending input. `src/app/global-error.tsx` does not exist (only the route-scoped `src/app/error.tsx` does) - Next.js requires a separate root-level `global-error.tsx` to catch errors thrown by the root layout itself, which `error.tsx` cannot do.
 
     scope:
       - src/app/sign-in/page.tsx
@@ -9597,30 +9250,19 @@ tasks:
       - src/app/error.tsx
       - src/app/global-error.tsx
     deliverables:
-      - All four auth pages restyled per their mockup boards (`X-signin`, `X-signup`, `X-forgot`, `X-reset`), using
-        TASK-092 Button, TASK-093 Field/Input and TASK-098 Banner for error/status states
-      - reset-password mismatch rendered as a field-level error on the "Confirm new password" input, with
-        `aria-invalid="true"` on that input when the error is present, replacing the current bottom-of-form paragraph
+      - All four auth pages restyled per their mockup boards (`X-signin`, `X-signup`, `X-forgot`, `X-reset`), using TASK-092 Button, TASK-093 Field/Input and TASK-098 Banner for error/status states
+      - reset-password mismatch rendered as a field-level error on the "Confirm new password" input, with `aria-invalid="true"` on that input when the error is present, replacing the current bottom-of-form paragraph
       - not-found.tsx and error.tsx restyled per `X-404.dc.html` / `X-error.dc.html`
-      - New `src/app/global-error.tsx` (must define its own `<html>`/`<body>` per Next.js convention, since it replaces
-        the root layout on a root-level error)
+      - New `src/app/global-error.tsx` (must define its own `<html>`/`<body>` per Next.js convention, since it replaces the root layout on a root-level error)
     tasks:
-      - Restyle sign-in/sign-up/forgot-password forms with TASK-093 Field/Input and TASK-092 Button, using TASK-098
-        Banner for any top-of-form status message they currently render as a raw paragraph
-      - In `reset-password/page.tsx`, change the `error === 'mismatch'` branch to set `aria-invalid` and an inline
-        error message on the "Confirm new password" `Field`/`Input` instead of the current `role="alert"` paragraph;
-        keep the other error case (`error` present but not `'mismatch'`) as a form-level Banner since it isn't tied to
-        one field
-      - Restyle `not-found.tsx` and `error.tsx` per their mockup boards, keeping `not-found.tsx`'s existing
-        `export const dynamic = 'force-dynamic'` CSP-nonce comment and behaviour intact
-      - Create `src/app/global-error.tsx` as a client component with its own `<html><body>`, following the same
-        structure as `error.tsx` (log the error, offer a reset/retry action) since it has no parent layout to rely on
+      - Restyle sign-in/sign-up/forgot-password forms with TASK-093 Field/Input and TASK-092 Button, using TASK-098 Banner for any top-of-form status message they currently render as a raw paragraph
+      - In `reset-password/page.tsx`, change the `error === 'mismatch'` branch to set `aria-invalid` and an inline error message on the "Confirm new password" `Field`/`Input` instead of the current `role="alert"` paragraph; keep the other error case (`error` present but not `'mismatch'`) as a form-level Banner since it isn't tied to one field
+      - Restyle `not-found.tsx` and `error.tsx` per their mockup boards, keeping `not-found.tsx`'s existing `export const dynamic = 'force-dynamic'` CSP-nonce comment and behaviour intact
+      - Create `src/app/global-error.tsx` as a client component with its own `<html><body>`, following the same structure as `error.tsx` (log the error, offer a reset/retry action) since it has no parent layout to rely on
     acceptance:
       - grep for `aria-invalid` in `src/app/reset-password/page.tsx` finds it wired to the mismatch condition
-      - Submitting mismatched passwords on `/reset-password` shows the error on the confirm-password field, not as a
-        standalone paragraph
-      - src/app/global-error.tsx exists, renders its own `<html>`/`<body>`, and defines a default export accepting
-        `error`/`reset` props per the Next.js global-error contract
+      - Submitting mismatched passwords on `/reset-password` shows the error on the confirm-password field, not as a standalone paragraph
+      - src/app/global-error.tsx exists, renders its own `<html>`/`<body>`, and defines a default export accepting `error`/`reset` props per the Next.js global-error contract
       - not-found.tsx and error.tsx render via TASK-096/098 primitives matching their mockup boards, in both themes
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
@@ -9665,7 +9307,7 @@ tasks:
   ###############################################################################
   - id: TASK-120
     github:
-      issue: null
+      issue: "233"
       project_item: null
     status: todo
     priority: P1
@@ -9678,49 +9320,28 @@ tasks:
       - TASK-103
     title: Onboarding layout and steps 1/3/done restyle
     goal: >
-      `src/app/(app)/onboarding/page.tsx` renders `OnboardingPanel` inside `AppPageLayout`, which itself sits under
-      `src/app/(app)/layout.tsx` - so onboarding currently shows the full app Sidebar, even though every onboarding
-      mockup board (`X-onb1`, `X-onb3`, `X-onb-done`) has none. Give onboarding its own route layout without the
-      sidebar, a 64px header showing "Step X of 3", and stepper circles replacing the current text-label
-      `OnboardingStepper` (`src/features/onboarding/components/onboarding-stepper.tsx`). Step 3 already reuses
-      `AddOfferForm` (`src/features/job-offer/components/add-offer-form.tsx`, the same component TASK-103 moves into a
-      dialog on the offers page) - that wiring exists in `OnboardingPanel` today and only needs restyling, not
-      rebuilding. Add a new "all set" step rendered before the redirect to `/dashboard`, which does not exist today
-      (the panel currently finishes straight to `completeOnboarding`).
+      `src/app/(app)/onboarding/page.tsx` renders `OnboardingPanel` inside `AppPageLayout`, which itself sits under `src/app/(app)/layout.tsx` - so onboarding currently shows the full app Sidebar, even though every onboarding mockup board (`X-onb1`, `X-onb3`, `X-onb-done`) has none. Give onboarding its own route layout without the sidebar, a 64px header showing "Step X of 3", and stepper circles replacing the current text-label `OnboardingStepper` (`src/features/onboarding/components/onboarding-stepper.tsx`). Step 3 already reuses `AddOfferForm` (`src/features/job-offer/components/add-offer-form.tsx`, the same component TASK-103 moves into a dialog on the offers page) - that wiring exists in `OnboardingPanel` today and only needs restyling, not rebuilding. Add a new "all set" step rendered before the redirect to `/dashboard`, which does not exist today (the panel currently finishes straight to `completeOnboarding`).
 
     scope:
       - src/app/(app)/onboarding/
       - src/widgets/onboarding-panel/onboarding-panel.tsx
       - src/features/onboarding/components/onboarding-stepper.tsx
     deliverables:
-      - Onboarding route rendered under its own layout with no Sidebar - either a new route group/layout for
-        `/onboarding` or a conditional render in `(app)/layout.tsx` - with a 64px header showing "Step X of 3"
-      - OnboardingStepper rebuilt as circular step indicators (per `X-onb1.dc.html`) instead of the current
-        numbered-square + text-label row
-      - Step 3 (plan/CV/add-first-offer flow) restyled per `X-onb1.dc.html`/`X-onb3.dc.html`, still using
-        `AddOfferForm` for the add-offer step
-      - A new "all set" step (`X-onb-done.dc.html`) shown after the add-offer step and before `completeOnboarding`
-        redirects to `/dashboard`, replacing the current "Finish" button that completes onboarding directly from step 3
+      - Onboarding route rendered under its own layout with no Sidebar - either a new route group/layout for `/onboarding` or a conditional render in `(app)/layout.tsx` - with a 64px header showing "Step X of 3"
+      - OnboardingStepper rebuilt as circular step indicators (per `X-onb1.dc.html`) instead of the current numbered-square + text-label row
+      - Step 3 (plan/CV/add-first-offer flow) restyled per `X-onb1.dc.html`/`X-onb3.dc.html`, still using `AddOfferForm` for the add-offer step
+      - A new "all set" step (`X-onb-done.dc.html`) shown after the add-offer step and before `completeOnboarding` redirects to `/dashboard`, replacing the current "Finish" button that completes onboarding directly from step 3
     tasks:
-      - Decide and implement the sidebar-free layout - either a layout file scoped to `(app)/onboarding` (Next.js route
-        groups allow a nested layout to override, but `(app)/layout.tsx` already renders Sidebar+Screen around
-        `children` for every route under it - the clean fix is moving `onboarding/` out from under `(app)/layout.tsx`
-        into its own top-level route/layout, since it does not want the app shell at all) with a 64px header showing
-        `Step {step} of 3`
-      - Rebuild `OnboardingStepper` to render circle indicators (numbered or dot, current/done/upcoming states) per
-        `X-onb1.dc.html`, keeping its `role="list"`/`role="listitem"`/`aria-current="step"` accessibility structure
-      - Restyle `OnboardingPanel`'s Card/step content with TASK-093 Field/Input styling (via `PricingTable`,
-        `CvUploadForm`, `AddOfferForm` already used per step) and TASK-092 Button variants for Back/Next/Skip
-      - Add a 4th "all set" step - bump `LAST_STEP`/step clamp handling so step 4 renders a summary/confirmation view
-        per `X-onb-done.dc.html`, and move the `completeOnboarding` form submit to that step instead of step 3
+      - Decide and implement the sidebar-free layout - either a layout file scoped to `(app)/onboarding` (Next.js route groups allow a nested layout to override, but `(app)/layout.tsx` already renders Sidebar+Screen around `children` for every route under it - the clean fix is moving `onboarding/` out from under `(app)/layout.tsx` into its own top-level route/layout, since it does not want the app shell at all) with a 64px header showing `Step {step} of 3`
+      - Rebuild `OnboardingStepper` to render circle indicators (numbered or dot, current/done/upcoming states) per `X-onb1.dc.html`, keeping its `role="list"`/`role="listitem"`/`aria-current="step"` accessibility structure
+      - Restyle `OnboardingPanel`'s Card/step content with TASK-093 Field/Input styling (via `PricingTable`, `CvUploadForm`, `AddOfferForm` already used per step) and TASK-092 Button variants for Back/Next/Skip
+      - Add a 4th "all set" step - bump `LAST_STEP`/step clamp handling so step 4 renders a summary/confirmation view per `X-onb-done.dc.html`, and move the `completeOnboarding` form submit to that step instead of step 3
       - Update `clampStep` in `onboarding/page.tsx` (currently clamps 1-3) to allow the new 4th step
     acceptance:
-      - The /onboarding route renders with no Sidebar visible, a 64px header reading "Step X of 3", and circular stepper
-        indicators instead of the current numbered-square rows
+      - The /onboarding route renders with no Sidebar visible, a 64px header reading "Step X of 3", and circular stepper indicators instead of the current numbered-square rows
       - Step 3 (add first offer) still renders `AddOfferForm` and its existing duplicate-handling behaviour is unchanged
       - A 4th "all set" step renders after add-offer, and `completeOnboarding` is submitted from that step, not step 3
-      - clampStep accepts and clamps the new step range correctly (unit-testable per its "Exported for direct unit
-        testing" comment)
+      - clampStep accepts and clamps the new step range correctly (unit-testable per its "Exported for direct unit testing" comment)
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Onboarding has its own sidebar-free layout with circular stepper and a new all-set step, verified end-to-end
@@ -9764,7 +9385,7 @@ tasks:
   ###############################################################################
   - id: TASK-121
     github:
-      issue: null
+      issue: "234"
       project_item: null
     status: todo
     priority: P1
@@ -9775,17 +9396,7 @@ tasks:
       - TASK-120
     title: Onboarding CV upload step - dropzone, progress and parsed-profile summary
     goal: >
-      Onboarding step 2's CV upload (`src/features/cv/components/cv-upload-form.tsx`) currently reuses the generic
-      `DocumentUploadForm` (`src/features/cv/components/document-upload-form.tsx`): a plain file `<Input type="file">`
-      with no drag-and-drop, no file chip, and no unsupported-file feedback beyond the browser's native `accept`
-      filtering. `useUploadCv` (`src/features/cv/hooks/use-upload-cv.ts`) calls `uploadCv` and on success only shows a
-      toast and calls `router.refresh()` - it discards the mutation's resolved value. `uploadCv`
-      (`src/features/cv/services/upload-cv.service.ts`) returns `{ profile, cvDocument }`, where `profile` is the
-      upserted `Profile` carrying the parsed `summary: string`, `skills: string[]`, `experience`, `projects` and
-      `score` (per `parsedProfileSchema` in `src/entities/profile/types.ts`). Resolving the plan's open question: the
-      onb2-done summary must read from the server-refreshed profile (a fresh `profileService.findUnique(ownerId)` read
-      in the onboarding page/step after `router.refresh()`), not from the client mutation's return value, since
-      `useUploadCv` never surfaces that value today.
+      Onboarding step 2's CV upload (`src/features/cv/components/cv-upload-form.tsx`) currently reuses the generic `DocumentUploadForm` (`src/features/cv/components/document-upload-form.tsx`): a plain file `<Input type="file">` with no drag-and-drop, no file chip, and no unsupported-file feedback beyond the browser's native `accept` filtering. `useUploadCv` (`src/features/cv/hooks/use-upload-cv.ts`) calls `uploadCv` and on success only shows a toast and calls `router.refresh()` - it discards the mutation's resolved value. `uploadCv` (`src/features/cv/services/upload-cv.service.ts`) returns `{ profile, cvDocument }`, where `profile` is the upserted `Profile` carrying the parsed `summary: string`, `skills: string[]`, `experience`, `projects` and `score` (per `parsedProfileSchema` in `src/entities/profile/types.ts`). Resolving the plan's open question: the onb2-done summary must read from the server-refreshed profile (a fresh `profileService.findUnique(ownerId)` read in the onboarding page/step after `router.refresh()`), not from the client mutation's return value, since `useUploadCv` never surfaces that value today.
 
     scope:
       - src/features/cv/components/cv-upload-form.tsx
@@ -9796,30 +9407,18 @@ tasks:
       - A CV upload step with a dropzone (drag-and-drop + click-to-browse), matching `X-onb2.dc.html`
       - A file chip showing the selected file name with a remove action, matching `X-onb2.dc.html`
       - An uploading/progress state matching `X-onb2-uploading.dc.html`
-      - A done state (`X-onb2-done.dc.html`) showing a parsed-profile summary sourced from the profile re-read after
-        upload succeeds (owner-scoped, server-side), not from client mutation state
-      - An inline unsupported-file error state (`X-onb2-error.dc.html`) for a file rejected before or during upload
-        (wrong extension, or the mutation's `onError`), rendered inline in the step rather than only as a toast
+      - A done state (`X-onb2-done.dc.html`) showing a parsed-profile summary sourced from the profile re-read after upload succeeds (owner-scoped, server-side), not from client mutation state
+      - An inline unsupported-file error state (`X-onb2-error.dc.html`) for a file rejected before or during upload (wrong extension, or the mutation's `onError`), rendered inline in the step rather than only as a toast
     tasks:
-      - Build a dropzone variant of `DocumentUploadForm` (or a new component built alongside it, reusing its Input/
-        mutation-wiring pattern) supporting drag-and-drop file selection plus the existing click-to-browse input,
-        constrained to `.pdf`/`.docx`
-      - Add a file-chip UI (file name + remove button clearing `file` state) shown once a file is selected, before
-        submit
-      - Reuse `mutation.isPending` for the uploading/progress visual state (`X-onb2-uploading.dc.html`); this
-        component has no real upload-percentage source, so treat it as an indeterminate pending state, not a fake
-        percentage
-      - On successful upload, instead of (or in addition to) `router.refresh()`, have the onboarding step re-read the
-        owner's profile server-side (`profileService.findUnique`) and pass `profile.summary`/`profile.skills` etc. into
-        a done-state summary view per `X-onb2-done.dc.html`
-      - Reject non-`.pdf`/`.docx` files inline (before calling the mutation) with an error state per
-        `X-onb2-error.dc.html`, and also render the mutation's `onError` message inline in the step (in addition to or
-        instead of the existing toast) rather than leaving upload failures toast-only
+      - Build a dropzone variant of `DocumentUploadForm` (or a new component built alongside it, reusing its Input/ mutation-wiring pattern) supporting drag-and-drop file selection plus the existing click-to-browse input, constrained to `.pdf`/`.docx`
+      - Add a file-chip UI (file name + remove button clearing `file` state) shown once a file is selected, before submit
+      - Reuse `mutation.isPending` for the uploading/progress visual state (`X-onb2-uploading.dc.html`); this component has no real upload-percentage source, so treat it as an indeterminate pending state, not a fake percentage
+      - On successful upload, instead of (or in addition to) `router.refresh()`, have the onboarding step re-read the owner's profile server-side (`profileService.findUnique`) and pass `profile.summary`/`profile.skills` etc. into a done-state summary view per `X-onb2-done.dc.html`
+      - Reject non-`.pdf`/`.docx` files inline (before calling the mutation) with an error state per `X-onb2-error.dc.html`, and also render the mutation's `onError` message inline in the step (in addition to or instead of the existing toast) rather than leaving upload failures toast-only
     acceptance:
       - The CV upload step in onboarding accepts a dropped file, not only a clicked file input
       - A selected-but-not-yet-uploaded file renders as a chip with a working remove action
-      - After a successful upload, the step shows a summary that includes at least the parsed `profile.summary`,
-        sourced from a server-side profile re-read, not from `useUploadCv`'s discarded mutation value
+      - After a successful upload, the step shows a summary that includes at least the parsed `profile.summary`, sourced from a server-side profile re-read, not from `useUploadCv`'s discarded mutation value
       - Selecting a non-PDF/DOCX file shows an inline unsupported-file error without calling the upload mutation
       - A failed upload (mutation `onError`) shows an inline error in the step, not toast-only
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
@@ -9866,7 +9465,7 @@ tasks:
   ###############################################################################
   - id: TASK-122
     github:
-      issue: null
+      issue: "235"
       project_item: null
     status: todo
     priority: P1
@@ -9893,19 +9492,7 @@ tasks:
       - TASK-121
     title: Migration cleanup and Midnight Mint audit gate
     goal: >
-      With every desktop workspace, public, auth and onboarding screen converted (TASK-104 through TASK-121), this
-      closes the milestone the way TASK-077 closed "Design System Overhaul" - by auditing rather than assuming.
-      TASK-094 renamed Badge to Tag behind a compat re-export so call sites could migrate incrementally; that
-      re-export and every leftover old-system utility now need to go. The gap analysis that started this milestone
-      measured the exact debt this task must clear: `font-heading` 8 sites (Heading.tsx, dialog.tsx),
-      `font-display` 2, amber accent utilities 3 (sidebar.tsx L108 `border-accent`, Text.tsx colour variant,
-      onboarding-stepper.tsx), `Label variant="meta"` 6 sites (settings/page.tsx, `(marketing)/page.tsx`,
-      pricing-table.tsx, page-header.tsx, sidebar.tsx L88), `<Badge` 18 uses in 14 files, info/success/warning
-      utilities 6, `font-mono` 13 sites (need per-site triage, not a blanket removal - numeric/monospace values are
-      legitimate), `richColors` 1 (`src/app/providers.tsx` L14), and em dash 22 in 17 files. TASK-090's
-      `ui-principles.md` guardrail checklist (grep-per-rule table) predates every one of these facts and must gain
-      a row for each. This task is the gate: sweep the debt, extend the checklist, wire `check-tokens` into CI, and
-      run `/design-review` over every desktop board before the milestone is called done.
+      With every desktop workspace, public, auth and onboarding screen converted (TASK-104 through TASK-121), this closes the milestone the way TASK-077 closed "Design System Overhaul" - by auditing rather than assuming. TASK-094 renamed Badge to Tag behind a compat re-export so call sites could migrate incrementally; that re-export and every leftover old-system utility now need to go. The gap analysis that started this milestone measured the exact debt this task must clear: `font-heading` 8 sites (Heading.tsx, dialog.tsx), `font-display` 2, amber accent utilities 3 (sidebar.tsx L108 `border-accent`, Text.tsx colour variant, onboarding-stepper.tsx), `Label variant="meta"` 6 sites (settings/page.tsx, `(marketing)/page.tsx`, pricing-table.tsx, page-header.tsx, sidebar.tsx L88), `<Badge` 18 uses in 14 files, info/success/warning utilities 6, `font-mono` 13 sites (need per-site triage, not a blanket removal - numeric/monospace values are legitimate), `richColors` 1 (`src/app/providers.tsx` L14), and em dash 22 in 17 files. TASK-090's `ui-principles.md` guardrail checklist (grep-per-rule table) predates every one of these facts and must gain a row for each. This task is the gate: sweep the debt, extend the checklist, wire `check-tokens` into CI, and run `/design-review` over every desktop board before the milestone is called done.
 
     scope:
       - src/shared/ui/primitives/feedback/badge
@@ -9994,7 +9581,7 @@ tasks:
   ###############################################################################
   - id: TASK-123
     github:
-      issue: null
+      issue: "236"
       project_item: null
     status: todo
     priority: P2
@@ -10005,19 +9592,7 @@ tasks:
       - TASK-103
     title: Mobile app shell - header, bottom tab bar and add-offer sheet
     goal: >
-      `src/app/(app)/layout.tsx` renders a flat `<Sidebar notifications={...} /><Screen>` pair with zero
-      `md:`/`sm:` branches (confirmed by grep across the file and `src/widgets/nav/sidebar.tsx` - both return
-      no matches), and no TabBar, BottomNav, Drawer or Sheet component exists anywhere under `src` (confirmed
-      by a repo-wide grep). `docs/design-system/tokens.json` fixes the mobile boundary at `breakpoint.md: 768`,
-      which is Tailwind v4's own default `md:` breakpoint (no custom override in `src/app/globals.css`'s
-      `@theme inline` block), so `<768` in the plan is literally `max-md:`. Below that breakpoint the sidebar
-      must disappear entirely and be replaced by a 56px header and a 76px five-item bottom tab bar
-      (Home/Offers/add/Posts/More) with a centred 48x44 add button - `size.control.touch` in tokens.json is
-      already 48, matching the add button's hit target. The add button opens `add-offer-form.tsx`
-      (`src/features/job-offer/components/add-offer-form.tsx`, already made dialog-reusable by TASK-103) as a
-      bottom sheet. Nothing in `src/shared/ui` is a sheet or drawer today; `radix-ui` (`package.json` line 44,
-      already a dependency and already the base of `src/shared/ui/dialog.tsx` via `Dialog as DialogPrimitive
-      from 'radix-ui'`) is the primitive to build the sheet on, not a new drawer library.
+      `src/app/(app)/layout.tsx` renders a flat `<Sidebar notifications={...} /><Screen>` pair with zero `md:`/`sm:` branches (confirmed by grep across the file and `src/widgets/nav/sidebar.tsx` - both return no matches), and no TabBar, BottomNav, Drawer or Sheet component exists anywhere under `src` (confirmed by a repo-wide grep). `docs/design-system/tokens.json` fixes the mobile boundary at `breakpoint.md: 768`, which is Tailwind v4's own default `md:` breakpoint (no custom override in `src/app/globals.css`'s `@theme inline` block), so `<768` in the plan is literally `max-md:`. Below that breakpoint the sidebar must disappear entirely and be replaced by a 56px header and a 76px five-item bottom tab bar (Home/Offers/add/Posts/More) with a centred 48x44 add button - `size.control.touch` in tokens.json is already 48, matching the add button's hit target. The add button opens `add-offer-form.tsx` (`src/features/job-offer/components/add-offer-form.tsx`, already made dialog-reusable by TASK-103) as a bottom sheet. Nothing in `src/shared/ui` is a sheet or drawer today; `radix-ui` (`package.json` line 44, already a dependency and already the base of `src/shared/ui/dialog.tsx` via `Dialog as DialogPrimitive from 'radix-ui'`) is the primitive to build the sheet on, not a new drawer library.
 
     scope:
       - src/app/(app)/layout.tsx
@@ -10028,40 +9603,22 @@ tasks:
       - docs/design-system/tokens.json
       - docs/design-system/mockups/X-m-dashboard.dc.html
     deliverables:
-      - A new `MobileTabBar` widget (`src/widgets/nav/mobile-tab-bar.tsx`) rendered only below `md:` - 56px
-        header (page title / back affordance) plus a fixed 76px bottom bar with Home, Offers, a centred 48x44
-        add button, Posts, More
-      - The `AppLayout` hiding `Sidebar` and rendering `MobileTabBar` at `max-md:`, keeping the existing
-        `getNotifications`/`getOwnerId` data fetch shared between both (no duplicated server calls)
-      - A new `BottomSheet` primitive (`src/shared/ui/bottom-sheet.tsx`) built on `radix-ui`'s `Dialog`
-        primitive with bottom-anchored, full-width, rounded-top styling, distinct from the existing centred
-        `Dialog`
-      - The add button opening `add-offer-form.tsx` inside `BottomSheet` on mobile (desktop/tablet keep
-        TASK-103's centred `Dialog`)
-      - New tokens `mobile.headerHeight` (56) and `mobile.tabBarHeight` (76) added to `docs/design-system/tokens.json`
-        under `space.layout`, since neither value exists there today (only `topBarHeight` = 52 for the desktop
-        top bar does)
+      - A new `MobileTabBar` widget (`src/widgets/nav/mobile-tab-bar.tsx`) rendered only below `md:` - 56px header (page title / back affordance) plus a fixed 76px bottom bar with Home, Offers, a centred 48x44 add button, Posts, More
+      - The `AppLayout` hiding `Sidebar` and rendering `MobileTabBar` at `max-md:`, keeping the existing `getNotifications`/`getOwnerId` data fetch shared between both (no duplicated server calls)
+      - A new `BottomSheet` primitive (`src/shared/ui/bottom-sheet.tsx`) built on `radix-ui`'s `Dialog` primitive with bottom-anchored, full-width, rounded-top styling, distinct from the existing centred `Dialog`
+      - The add button opening `add-offer-form.tsx` inside `BottomSheet` on mobile (desktop/tablet keep TASK-103's centred `Dialog`)
+      - New tokens `mobile.headerHeight` (56) and `mobile.tabBarHeight` (76) added to `docs/design-system/tokens.json` under `space.layout`, since neither value exists there today (only `topBarHeight` = 52 for the desktop top bar does)
     tasks:
-      - Add `mobile.headerHeight` = 56 and `mobile.tabBarHeight` = 76 to `space.layout` in
-        docs/design-system/tokens.json, run the TASK-090 `check-tokens` script to confirm it still passes
-      - Build `src/shared/ui/bottom-sheet.tsx` on `radix-ui`'s `Dialog.Root/Portal/Overlay/Content`, anchoring
-        Content to the bottom edge with `data-[state=open]` slide-up motion using the existing `--dur`/`--ease`
-        tokens (TASK-066), not a new animation library
-      - Build `src/widgets/nav/mobile-tab-bar.tsx` - 56px header row, 76px fixed bottom bar, 5 items, centred
-        48x44 add button opening the add-offer `BottomSheet` with `add-offer-form.tsx` inside
-      - Update `src/app/(app)/layout.tsx` to render `Sidebar` at `md:flex hidden` and `MobileTabBar` at
-        `flex md:hidden`, both consuming the same `notifications`/`ownerId` already fetched once
-      - Add bottom padding to `Screen` (or the mobile layout wrapper) equal to `mobile.tabBarHeight` so page
-        content never sits under the fixed tab bar
+      - Add `mobile.headerHeight` = 56 and `mobile.tabBarHeight` = 76 to `space.layout` in docs/design-system/tokens.json, run the TASK-090 `check-tokens` script to confirm it still passes
+      - Build `src/shared/ui/bottom-sheet.tsx` on `radix-ui`'s `Dialog.Root/Portal/Overlay/Content`, anchoring Content to the bottom edge with `data-[state=open]` slide-up motion using the existing `--dur`/`--ease` tokens (TASK-066), not a new animation library
+      - Build `src/widgets/nav/mobile-tab-bar.tsx` - 56px header row, 76px fixed bottom bar, 5 items, centred 48x44 add button opening the add-offer `BottomSheet` with `add-offer-form.tsx` inside
+      - Update `src/app/(app)/layout.tsx` to render `Sidebar` at `md:flex hidden` and `MobileTabBar` at `flex md:hidden`, both consuming the same `notifications`/`ownerId` already fetched once
+      - Add bottom padding to `Screen` (or the mobile layout wrapper) equal to `mobile.tabBarHeight` so page content never sits under the fixed tab bar
     acceptance:
-      - Below 768px viewport width, `Sidebar` is not rendered and `MobileTabBar` is visible with Home, Offers,
-        add, Posts, More
-      - The centre add control is 48x44 and opens `add-offer-form.tsx` inside the new `BottomSheet`, not the
-        existing centred `Dialog`
-      - At 768px and above, `MobileTabBar` is not rendered and the existing `Sidebar` behaviour (including its
-        768-1279 icon-collapsed state from TASK-100) is unchanged
-      - The file `docs/design-system/tokens.json` contains `space.layout.mobile.headerHeight` = 56 and
-        `space.layout.mobile.tabBarHeight` = 76, and `npm run check-tokens` passes
+      - Below 768px viewport width, `Sidebar` is not rendered and `MobileTabBar` is visible with Home, Offers, add, Posts, More
+      - The centre add control is 48x44 and opens `add-offer-form.tsx` inside the new `BottomSheet`, not the existing centred `Dialog`
+      - At 768px and above, `MobileTabBar` is not rendered and the existing `Sidebar` behaviour (including its 768-1279 icon-collapsed state from TASK-100) is unchanged
+      - The file `docs/design-system/tokens.json` contains `space.layout.mobile.headerHeight` = 56 and `space.layout.mobile.tabBarHeight` = 76, and `npm run check-tokens` passes
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Mobile shell verified at a sub-768px viewport in both themes
@@ -10111,7 +9668,7 @@ tasks:
   ###############################################################################
   - id: TASK-124
     github:
-      issue: null
+      issue: "237"
       project_item: null
     status: todo
     priority: P2
@@ -10123,16 +9680,7 @@ tasks:
       - TASK-119
     title: Mobile marketing and auth screens
     goal: >
-      TASK-117/118/119 restyle the landing, pricing and auth routes for desktop/tablet using the shared
-      `Button`/`Card`/`Banner` primitives, but none of them add a `max-md:` branch, and the marketing/auth
-      routes (`src/app/(marketing)/page.tsx`, `src/app/sign-in/page.tsx`, `src/app/sign-up/page.tsx`,
-      `src/app/forgot-password/page.tsx` - there is no `(auth)` route group in this repo, confirmed by
-      `find src/app -maxdepth 1 -type d`) render the same fixed-width layout at every viewport today. Four
-      vendored boards cover the mobile variants - `docs/design-system/mockups/X-m-landing.dc.html`,
-      `X-m-signin.dc.html`, `X-m-signup.dc.html`, `X-m-forgot.dc.html` (all confirmed present alongside the
-      other `X-m-*` boards TASK-090 vendored). This task adds the `max-md:` single-column layout, stacked hero
-      and full-width form treatment those boards show, reusing the exact components TASK-117/118/119 already
-      restyled rather than introducing mobile-only variants of them.
+      TASK-117/118/119 restyle the landing, pricing and auth routes for desktop/tablet using the shared `Button`/`Card`/`Banner` primitives, but none of them add a `max-md:` branch, and the marketing/auth routes (`src/app/(marketing)/page.tsx`, `src/app/sign-in/page.tsx`, `src/app/sign-up/page.tsx`, `src/app/forgot-password/page.tsx` - there is no `(auth)` route group in this repo, confirmed by `find src/app -maxdepth 1 -type d`) render the same fixed-width layout at every viewport today. Four vendored boards cover the mobile variants - `docs/design-system/mockups/X-m-landing.dc.html`, `X-m-signin.dc.html`, `X-m-signup.dc.html`, `X-m-forgot.dc.html` (all confirmed present alongside the other `X-m-*` boards TASK-090 vendored). This task adds the `max-md:` single-column layout, stacked hero and full-width form treatment those boards show, reusing the exact components TASK-117/118/119 already restyled rather than introducing mobile-only variants of them.
 
     scope:
       - src/app/(marketing)/page.tsx
@@ -10144,26 +9692,17 @@ tasks:
       - docs/design-system/mockups/X-m-signup.dc.html
       - docs/design-system/mockups/X-m-forgot.dc.html
     deliverables:
-      - Landing page rendering a single-column stacked hero, value grid and evidence section below `md:`,
-        matching X-m-landing.dc.html, with no new components beyond `max-md:` utility classes on TASK-117's
-        existing sections
-      - Signin/signup/forgot pages rendering full-width, single-column form cards below `md:`, matching
-        X-m-signin/X-m-signup/X-m-forgot.dc.html, reusing TASK-119's Banner-based error states unchanged
-      - No duplicated marketing/auth component created for mobile - every change is a `max-md:` variant of the
-        existing desktop markup
+      - Landing page rendering a single-column stacked hero, value grid and evidence section below `md:`, matching X-m-landing.dc.html, with no new components beyond `max-md:` utility classes on TASK-117's existing sections
+      - Signin/signup/forgot pages rendering full-width, single-column form cards below `md:`, matching X-m-signin/X-m-signup/X-m-forgot.dc.html, reusing TASK-119's Banner-based error states unchanged
+      - No duplicated marketing/auth component created for mobile - every change is a `max-md:` variant of the existing desktop markup
     tasks:
-      - Add `max-md:` single-column classes to the landing hero, product-frame grid and evidence sections in
-        src/app/(marketing)/page.tsx per X-m-landing.dc.html
-      - Add `max-md:` full-width form-card classes to sign-in/sign-up/forgot-password pages per their X-m-*
-        boards, keeping TASK-119's Banner error/aria-invalid behaviour untouched
-      - Verify the signed-in marketing header's "Go to dashboard" state (TASK-118) still renders correctly at
-        mobile widths
+      - Add `max-md:` single-column classes to the landing hero, product-frame grid and evidence sections in src/app/(marketing)/page.tsx per X-m-landing.dc.html
+      - Add `max-md:` full-width form-card classes to sign-in/sign-up/forgot-password pages per their X-m-* boards, keeping TASK-119's Banner error/aria-invalid behaviour untouched
+      - Verify the signed-in marketing header's "Go to dashboard" state (TASK-118) still renders correctly at mobile widths
     acceptance:
       - Below 768px, the landing page renders single-column with no horizontal overflow
-      - Below 768px, sign-in/sign-up/forgot-password render full-width single-column forms matching their
-        X-m-* boards
-      - No new component file added under src/features/marketing or the sign-in/sign-up/forgot-password
-        routes - only `max-md:` classes on existing markup
+      - Below 768px, sign-in/sign-up/forgot-password render full-width single-column forms matching their X-m-* boards
+      - No new component file added under src/features/marketing or the sign-in/sign-up/forgot-password routes - only `max-md:` classes on existing markup
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - All four mobile marketing/auth screens verified at a sub-768px viewport in both themes
@@ -10202,7 +9741,7 @@ tasks:
   ###############################################################################
   - id: TASK-125
     github:
-      issue: null
+      issue: "238"
       project_item: null
     status: todo
     priority: P2
@@ -10213,14 +9752,7 @@ tasks:
       - TASK-121
     title: Mobile onboarding - progress bars and sticky action bar
     goal: >
-      TASK-120 gives onboarding its own sidebar-free layout (64px header, "Step X of 3") and TASK-121 builds
-      the CV-upload step (dropzone, file chip, progress, parsed-profile summary). Only three mobile boards
-      exist for onboarding - `docs/design-system/mockups/X-m-onb1.dc.html`, `X-m-onb2.dc.html`,
-      `X-m-onb3.dc.html` (confirmed; there is no mobile equivalent of the desktop
-      `onb2-uploading`/`onb2-done`/`onb2-error`/`onb-done` boards) - so this task adapts TASK-120/121's
-      existing step layout and TASK-121's existing upload states to a `max-md:` single-column shell with a
-      progress bar and a sticky bottom action bar, rather than re-deriving new mobile-only states for
-      upload/progress/error/done.
+      TASK-120 gives onboarding its own sidebar-free layout (64px header, "Step X of 3") and TASK-121 builds the CV-upload step (dropzone, file chip, progress, parsed-profile summary). Only three mobile boards exist for onboarding - `docs/design-system/mockups/X-m-onb1.dc.html`, `X-m-onb2.dc.html`, `X-m-onb3.dc.html` (confirmed; there is no mobile equivalent of the desktop `onb2-uploading`/`onb2-done`/`onb2-error`/`onb-done` boards) - so this task adapts TASK-120/121's existing step layout and TASK-121's existing upload states to a `max-md:` single-column shell with a progress bar and a sticky bottom action bar, rather than re-deriving new mobile-only states for upload/progress/error/done.
 
     scope:
       - src/app/(app)/onboarding/page.tsx
@@ -10230,31 +9762,20 @@ tasks:
       - docs/design-system/mockups/X-m-onb2.dc.html
       - docs/design-system/mockups/X-m-onb3.dc.html
     deliverables:
-      - Onboarding (single route, client-side step state in onboarding-panel.tsx — there are no separate
-        step-1/step-2/step-3 route files) rendering a linear progress bar instead of TASK-120's stepper circles
-        below `md:`, matching X-m-onb1/2/3.dc.html
-      - A sticky bottom action bar (Back/Continue) below `md:` on every step, replacing the desktop inline
-        action row, driven by the same step state onboarding-panel.tsx already holds
-      - TASK-121's upload/progress/parsed-profile-summary/error states rendered inside the mobile shell
-        unchanged in behaviour, only restyled to single column
+      - Onboarding (single route, client-side step state in onboarding-panel.tsx — there are no separate step-1/step-2/step-3 route files) rendering a linear progress bar instead of TASK-120's stepper circles below `md:`, matching X-m-onb1/2/3.dc.html
+      - A sticky bottom action bar (Back/Continue) below `md:` on every step, replacing the desktop inline action row, driven by the same step state onboarding-panel.tsx already holds
+      - TASK-121's upload/progress/parsed-profile-summary/error states rendered inside the mobile shell unchanged in behaviour, only restyled to single column
     tasks:
-      - Add a `max-md:` progress-bar variant to onboarding-panel.tsx's step indicator (TASK-120), reusing its
-        existing step-count state — do not introduce separate route files per step
-      - Add a sticky bottom action bar `max-md:` inside onboarding-panel.tsx's per-step render, reusing the
-        existing Back/Continue handlers rather than new ones
-      - Verify TASK-121's dropzone, file chip, progress and error states render correctly inside the
-        single-column mobile shell with no new component variants
+      - Add a `max-md:` progress-bar variant to onboarding-panel.tsx's step indicator (TASK-120), reusing its existing step-count state — do not introduce separate route files per step
+      - Add a sticky bottom action bar `max-md:` inside onboarding-panel.tsx's per-step render, reusing the existing Back/Continue handlers rather than new ones
+      - Verify TASK-121's dropzone, file chip, progress and error states render correctly inside the single-column mobile shell with no new component variants
     acceptance:
-      - Below 768px, onboarding shows a linear progress bar (not the stepper circles) and a sticky bottom
-        action bar on every step
-      - TASK-121's CV upload states (dropzone, file chip, progress, parsed-profile summary, unsupported-file
-        error) all render correctly inside the mobile shell
-      - No new onboarding step component created - only `max-md:` layout variants of TASK-120/121's existing
-        pages
+      - Below 768px, onboarding shows a linear progress bar (not the stepper circles) and a sticky bottom action bar on every step
+      - TASK-121's CV upload states (dropzone, file chip, progress, parsed-profile summary, unsupported-file error) all render correctly inside the mobile shell
+      - No new onboarding step component created - only `max-md:` layout variants of TASK-120/121's existing pages
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
-      - All three onboarding steps verified at a sub-768px viewport, including the CV upload error and success
-        paths
+      - All three onboarding steps verified at a sub-768px viewport, including the CV upload error and success paths
     labels:
       - ui
       - frontend
@@ -10289,7 +9810,7 @@ tasks:
   ###############################################################################
   - id: TASK-126
     github:
-      issue: null
+      issue: "239"
       project_item: null
     status: todo
     priority: P2
@@ -10300,34 +9821,22 @@ tasks:
       - TASK-123
     title: Mobile dashboard
     goal: >
-      TASK-104 builds the desktop dashboard (pipeline strip with rings, Closed lane, Needs-attention list
-      reusing `derive-nudges.ts`, Upcoming interviews as a GridTable, response-rate SegmentedControl) inside
-      the sidebar layout. `docs/design-system/mockups/X-m-dashboard.dc.html` is the vendored mobile board
-      (confirmed present) and shows the same sections stacked single-column under the TASK-123 mobile shell
-      (56px header, 76px tab bar) instead of side by side. This task is a `max-md:` layout pass over
-      TASK-104's dashboard - the pipeline data, nudges and response-rate logic are unchanged, only the grid
-      becomes a single column and the GridTable rows become a condensed list matching the mobile board.
+      TASK-104 builds the desktop dashboard (pipeline strip with rings, Closed lane, Needs-attention list reusing `derive-nudges.ts`, Upcoming interviews as a GridTable, response-rate SegmentedControl) inside the sidebar layout. `docs/design-system/mockups/X-m-dashboard.dc.html` is the vendored mobile board (confirmed present) and shows the same sections stacked single-column under the TASK-123 mobile shell (56px header, 76px tab bar) instead of side by side. This task is a `max-md:` layout pass over TASK-104's dashboard - the pipeline data, nudges and response-rate logic are unchanged, only the grid becomes a single column and the GridTable rows become a condensed list matching the mobile board.
 
     scope:
       - src/app/(app)/(protected)/dashboard/page.tsx
       - docs/design-system/mockups/X-m-dashboard.dc.html
     deliverables:
-      - Dashboard sections (pipeline strip, Needs attention, Upcoming interviews, response rate) stacked
-        single-column below `md:`, matching X-m-dashboard.dc.html
+      - Dashboard sections (pipeline strip, Needs attention, Upcoming interviews, response rate) stacked single-column below `md:`, matching X-m-dashboard.dc.html
       - Rendered correctly inside the TASK-123 mobile shell (below the 56px header, above the 76px tab bar)
-      - No change to the underlying data services (`derive-nudges.ts`, `get-notifications.service.ts`,
-        `response-rate-readout.service.ts`)
+      - No change to the underlying data services (`derive-nudges.ts`, `get-notifications.service.ts`, `response-rate-readout.service.ts`)
     tasks:
       - Add `max-md:` single-column stacking to the dashboard grid built in TASK-104
-      - Condense the Upcoming interviews GridTable to a mobile list-row layout per X-m-dashboard.dc.html,
-        reusing the same row data
-      - Confirm the response-rate SegmentedControl remains usable at mobile width (full-width or scrollable,
-        matching the board)
+      - Condense the Upcoming interviews GridTable to a mobile list-row layout per X-m-dashboard.dc.html, reusing the same row data
+      - Confirm the response-rate SegmentedControl remains usable at mobile width (full-width or scrollable, matching the board)
     acceptance:
-      - Below 768px, the dashboard renders single-column matching X-m-dashboard.dc.html, inside the TASK-123
-        mobile shell
-      - Pipeline counts, Needs-attention items and response-rate figures match the desktop dashboard for the
-        same data (no logic duplicated or diverged)
+      - Below 768px, the dashboard renders single-column matching X-m-dashboard.dc.html, inside the TASK-123 mobile shell
+      - Pipeline counts, Needs-attention items and response-rate figures match the desktop dashboard for the same data (no logic duplicated or diverged)
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Mobile dashboard verified at a sub-768px viewport in both themes against live data
@@ -10357,7 +9866,7 @@ tasks:
   ###############################################################################
   - id: TASK-127
     github:
-      issue: null
+      issue: "240"
       project_item: null
     status: todo
     priority: P2
@@ -10369,36 +9878,24 @@ tasks:
       - TASK-123
     title: Mobile offers list - sticky tier headers and full-page preview
     goal: >
-      TASK-105 builds the desktop/tablet offers list (KPI strip, toolbar, tier-grouped GridTable) and TASK-106
-      gives it a 344px preview pane that becomes a drawer at 768-1279. Per the REDESIGN-PLAN owner decision,
-      below 768 the preview pane becomes a full page instead of a pane or drawer -
-      `docs/design-system/mockups/X-m-offers.dc.html` (confirmed vendored) shows sticky tier group headers and
-      stage chips replacing the GridTable's desktop row layout. This task adds the `max-md:` single-column
-      list with sticky tier headers and stage chips, and routes row selection to a full-page preview route
-      instead of opening TASK-106's pane/drawer.
+      TASK-105 builds the desktop/tablet offers list (KPI strip, toolbar, tier-grouped GridTable) and TASK-106 gives it a 344px preview pane that becomes a drawer at 768-1279. Per the REDESIGN-PLAN owner decision, below 768 the preview pane becomes a full page instead of a pane or drawer - `docs/design-system/mockups/X-m-offers.dc.html` (confirmed vendored) shows sticky tier group headers and stage chips replacing the GridTable's desktop row layout. This task adds the `max-md:` single-column list with sticky tier headers and stage chips, and routes row selection to a full-page preview route instead of opening TASK-106's pane/drawer.
 
     scope:
       - src/app/(app)/(protected)/offers/page.tsx
       - src/app/(app)/(protected)/offers/[id]/preview/page.tsx
       - docs/design-system/mockups/X-m-offers.dc.html
     deliverables:
-      - Offers list rendering a single-column list below `md:` with sticky tier group headers (position
-        sticky, matching X-m-offers.dc.html) replacing the desktop GridTable
+      - Offers list rendering a single-column list below `md:` with sticky tier group headers (position sticky, matching X-m-offers.dc.html) replacing the desktop GridTable
       - Stage chips replacing the desktop Tag/status text on each row per the mobile board
-      - Row tap navigating to a full-page preview route instead of opening TASK-106's 344px pane or
-        768-1279 drawer
-      - KPI strip and toolbar (search, filter, sort, group-by) collapsed to a mobile-appropriate layout,
-        reusing TASK-105's existing filter/sort/group-by logic unchanged
+      - Row tap navigating to a full-page preview route instead of opening TASK-106's 344px pane or 768-1279 drawer
+      - KPI strip and toolbar (search, filter, sort, group-by) collapsed to a mobile-appropriate layout, reusing TASK-105's existing filter/sort/group-by logic unchanged
     tasks:
-      - Add a `max-md:` single-column list variant of TASK-105's tier-grouped GridTable with sticky tier
-        group headers, per X-m-offers.dc.html
+      - Add a `max-md:` single-column list variant of TASK-105's tier-grouped GridTable with sticky tier group headers, per X-m-offers.dc.html
       - Replace desktop Tag/status rendering with stage chips on mobile rows, matching the board
-      - Route row selection to a new `offers/[id]/preview` full page below `md:` instead of TASK-106's
-        pane/drawer, reusing the same offer-preview data/query TASK-106 already fetches
+      - Route row selection to a new `offers/[id]/preview` full page below `md:` instead of TASK-106's pane/drawer, reusing the same offer-preview data/query TASK-106 already fetches
       - Collapse the KPI strip and toolbar controls to fit single-column width without dropping any control
     acceptance:
-      - Below 768px, offers list renders single-column with sticky tier group headers that remain visible
-        while scrolling within their group, matching X-m-offers.dc.html
+      - Below 768px, offers list renders single-column with sticky tier group headers that remain visible while scrolling within their group, matching X-m-offers.dc.html
       - Selecting a row below 768px navigates to a full page, not TASK-106's pane or drawer
       - Search/filter/sort/group-by from TASK-105 all remain functional at mobile width
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
@@ -10437,7 +9934,7 @@ tasks:
   ###############################################################################
   - id: TASK-128
     github:
-      issue: null
+      issue: "241"
       project_item: null
     status: todo
     priority: P2
@@ -10452,43 +9949,25 @@ tasks:
       - TASK-123
     title: Mobile offer detail - back header, KPI pair and sticky bottom actions
     goal: >
-      TASK-108 builds the desktop offer-detail shell (sticky header with company/title/meta/star/edit/stage
-      control, Tabs for Fit report/Tailored CV/Outreach/Cover letter/Application, a 320px rail with match and
-      callback figures), and TASK-109..112 fill each tab body. `docs/design-system/mockups/X-m-offer.dc.html`
-      (confirmed vendored) replaces that with a back-button header, the rail's match/callback figures
-      condensed into a KPI pair below the header, the five Tabs condensed to fit narrow width, and a sticky
-      bottom action bar. This task is the mobile shell around TASK-108's existing tab content and TASK-109-112's
-      existing tab bodies - the fit/CV/cover-letter/outreach/application logic in each tab does not change,
-      only how the shell around it lays out below 768px.
+      TASK-108 builds the desktop offer-detail shell (sticky header with company/title/meta/star/edit/stage control, Tabs for Fit report/Tailored CV/Outreach/Cover letter/Application, a 320px rail with match and callback figures), and TASK-109..112 fill each tab body. `docs/design-system/mockups/X-m-offer.dc.html` (confirmed vendored) replaces that with a back-button header, the rail's match/callback figures condensed into a KPI pair below the header, the five Tabs condensed to fit narrow width, and a sticky bottom action bar. This task is the mobile shell around TASK-108's existing tab content and TASK-109-112's existing tab bodies - the fit/CV/cover-letter/outreach/application logic in each tab does not change, only how the shell around it lays out below 768px.
 
     scope:
       - src/app/(app)/(protected)/offers/[id]/page.tsx
       - docs/design-system/mockups/X-m-offer.dc.html
     deliverables:
-      - A `max-md:` back-header variant of TASK-108's sticky header (back chevron + company/title, star/edit
-        collapsed to an overflow action) matching X-m-offer.dc.html
-      - The 320px rail's match and callback figures rendered as a KPI pair directly below the header on mobile,
-        instead of a side rail
-      - TASK-108's Tabs condensed to fit mobile width (scrollable tab row or abbreviated labels) with the same
-        five tab bodies (TASK-109 Fit report, TASK-110 Tailored CV/Cover letter, TASK-111 Outreach, TASK-112
-        Application) unchanged
+      - A `max-md:` back-header variant of TASK-108's sticky header (back chevron + company/title, star/edit collapsed to an overflow action) matching X-m-offer.dc.html
+      - The 320px rail's match and callback figures rendered as a KPI pair directly below the header on mobile, instead of a side rail
+      - TASK-108's Tabs condensed to fit mobile width (scrollable tab row or abbreviated labels) with the same five tab bodies (TASK-109 Fit report, TASK-110 Tailored CV/Cover letter, TASK-111 Outreach, TASK-112 Application) unchanged
       - A sticky bottom action bar below `md:` for the stage-control action, matching the mobile board
     tasks:
-      - Add a `max-md:` back-header layout to the offer-detail page reusing TASK-108's existing
-        company/title/star/edit/stage-control data and handlers
-      - Render the rail's match-percentage and callback-probability figures as a KPI pair below the header at
-        mobile width, sourced from the same fit-assessment data TASK-109 already reads
-      - Make TASK-108's Tabs horizontally scrollable (or otherwise condensed) below `md:` without changing tab
-        content or order
-      - Add a sticky bottom action bar for the stage control below `md:`, reusing the existing stage-change
-        handler
+      - Add a `max-md:` back-header layout to the offer-detail page reusing TASK-108's existing company/title/star/edit/stage-control data and handlers
+      - Render the rail's match-percentage and callback-probability figures as a KPI pair below the header at mobile width, sourced from the same fit-assessment data TASK-109 already reads
+      - Make TASK-108's Tabs horizontally scrollable (or otherwise condensed) below `md:` without changing tab content or order
+      - Add a sticky bottom action bar for the stage control below `md:`, reusing the existing stage-change handler
     acceptance:
-      - Below 768px, offer detail shows a back-header, a match/callback KPI pair, condensed Tabs and a sticky
-        bottom stage-control action bar, matching X-m-offer.dc.html
-      - All five tabs (Fit report, Tailored CV, Cover letter, Outreach, Application) remain reachable and
-        functionally unchanged from TASK-109/110/111/112 at mobile width
-      - Stage changes made from the sticky bottom action bar produce the same result as the desktop stage
-        control
+      - Below 768px, offer detail shows a back-header, a match/callback KPI pair, condensed Tabs and a sticky bottom stage-control action bar, matching X-m-offer.dc.html
+      - All five tabs (Fit report, Tailored CV, Cover letter, Outreach, Application) remain reachable and functionally unchanged from TASK-109/110/111/112 at mobile width
+      - Stage changes made from the sticky bottom action bar produce the same result as the desktop stage control
       - npm run test, npm run typecheck, npm run lint and npm run build succeed
     done:
       - Mobile offer detail verified at a sub-768px viewport across all five tabs, in both themes
