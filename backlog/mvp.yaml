@@ -3,7 +3,7 @@ project:
   version: 1.0
   github:
     repository: pruszynskia/ai-career-os
-    project: AI Career OS MVP
+    project: 5 # GitHub Projects v2 number — gh project item-add needs the number, not a title
   labels:
     - architecture
     - setup
@@ -54,7 +54,7 @@ tasks:
   - id: TASK-001
     github:
       issue: "1"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3u-Y
     status: done
     priority: P0
     estimate: XS
@@ -123,7 +123,7 @@ tasks:
   - id: TASK-002
     github:
       issue: "2"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3u_c
     status: done
     priority: P0
     estimate: M
@@ -198,7 +198,7 @@ tasks:
   - id: TASK-003
     github:
       issue: "3"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3u_4
     status: done
     priority: P0
     estimate: S
@@ -266,7 +266,7 @@ tasks:
   - id: TASK-004
     github:
       issue: "4"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vAU
     status: done
     priority: P0
     estimate: S
@@ -340,7 +340,7 @@ tasks:
   - id: TASK-005
     github:
       issue: "5"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vBA
     status: done
     priority: P0
     estimate: M
@@ -410,7 +410,7 @@ tasks:
   - id: TASK-006
     github:
       issue: "6"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vBc
     status: done
     priority: P1
     estimate: M
@@ -479,7 +479,7 @@ tasks:
   - id: TASK-007
     github:
       issue: "7"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vCM
     status: done
     priority: P1
     estimate: M
@@ -541,7 +541,7 @@ tasks:
   - id: TASK-008
     github:
       issue: "8"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vCs
     status: done
     priority: P1
     estimate: M
@@ -611,7 +611,7 @@ tasks:
   - id: TASK-009
     github:
       issue: "9"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vDc
     status: done
     priority: P1
     estimate: L
@@ -683,7 +683,7 @@ tasks:
   - id: TASK-010
     github:
       issue: "10"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vEI
     status: done
     priority: P2
     estimate: S
@@ -741,7 +741,7 @@ tasks:
   - id: TASK-011
     github:
       issue: "11"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vE4
     status: done
     priority: P1
     estimate: L
@@ -807,7 +807,7 @@ tasks:
   - id: TASK-012
     github:
       issue: "12"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vFQ
     status: done
     priority: P1
     estimate: M
@@ -871,7 +871,7 @@ tasks:
   - id: TASK-013
     github:
       issue: "13"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vF8
     status: done
     priority: P2
     estimate: M
@@ -935,7 +935,7 @@ tasks:
   - id: TASK-014
     github:
       issue: "14"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vGc
     status: done
     priority: P1
     estimate: M
@@ -997,7 +997,7 @@ tasks:
   - id: TASK-015
     github:
       issue: "15"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz3vG8
     status: done
     priority: P2
     estimate: S
@@ -1057,7 +1057,7 @@ tasks:
   - id: TASK-016
     github:
       issue: "31"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H6M
     status: done
     priority: P0
     estimate: L
@@ -1129,7 +1129,7 @@ tasks:
   - id: TASK-017
     github:
       issue: "32"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H6s
     status: done
     priority: P1
     estimate: M
@@ -1204,7 +1204,7 @@ tasks:
   - id: TASK-018
     github:
       issue: "33"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H7w
     status: done
     priority: P1
     estimate: M
@@ -1286,7 +1286,7 @@ tasks:
   - id: TASK-019
     github:
       issue: "34"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H8g
     status: done
     priority: P1
     estimate: M
@@ -1352,7 +1352,7 @@ tasks:
   - id: TASK-020
     github:
       issue: "35"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H9A
     status: done
     priority: P1
     estimate: S
@@ -1415,7 +1415,7 @@ tasks:
   - id: TASK-021
     github:
       issue: "36"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H9w
     status: done
     priority: P1
     estimate: M
@@ -1480,7 +1480,7 @@ tasks:
   - id: TASK-022
     github:
       issue: "37"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H-4
     status: done
     priority: P1
     estimate: S
@@ -1544,7 +1544,7 @@ tasks:
   - id: TASK-023
     github:
       issue: "38"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_H_c
     status: done
     priority: P1
     estimate: M
@@ -1610,7 +1610,7 @@ tasks:
   - id: TASK-024
     github:
       issue: "39"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_IBE
     status: done
     priority: P1
     estimate: M
@@ -1673,7 +1673,7 @@ tasks:
   - id: TASK-025
     github:
       issue: "40"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzgz_IBw
     status: done
     priority: P1
     estimate: M
@@ -1741,7 +1741,7 @@ tasks:
   - id: TASK-026
     github:
       issue: "46"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0C3Yc
     status: done
     priority: P1
     estimate: L
@@ -1832,7 +1832,7 @@ tasks:
   - id: TASK-027
     github:
       issue: "47"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0C3Y0
     status: done
     priority: P2
     estimate: M
@@ -1913,7 +1913,7 @@ tasks:
   - id: TASK-028
     github:
       issue: "61"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0GgyI
     status: done
     priority: P2
     estimate: S
@@ -1988,7 +1988,7 @@ tasks:
   - id: TASK-029
     github:
       issue: "62"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0GgyY
     status: done
     priority: P2
     estimate: L
@@ -2063,7 +2063,7 @@ tasks:
   - id: TASK-030
     github:
       issue: "63"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Ggyw
     status: done
     priority: P2
     estimate: M
@@ -2135,7 +2135,7 @@ tasks:
   - id: TASK-031
     github:
       issue: "64"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0GgzA
     status: done
     priority: P2
     estimate: L
@@ -2205,7 +2205,7 @@ tasks:
   - id: TASK-049
     github:
       issue: "106"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4Tlfs
     status: done
     priority: P2
     estimate: M
@@ -2288,7 +2288,7 @@ tasks:
   - id: TASK-050
     github:
       issue: "107"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4Tlg8
     status: done
     priority: P2
     estimate: M
@@ -2366,7 +2366,7 @@ tasks:
   - id: TASK-051
     github:
       issue: "108"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4TliE
     status: done
     priority: P2
     estimate: M
@@ -2444,7 +2444,7 @@ tasks:
   - id: TASK-052
     github:
       issue: "109"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4Tli4
     status: done
     priority: P2
     estimate: S
@@ -2518,7 +2518,7 @@ tasks:
   - id: TASK-032
     github:
       issue: "65"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Ggzs
     status: done
     priority: P2
     estimate: S
@@ -2579,7 +2579,7 @@ tasks:
   - id: TASK-033
     github:
       issue: "66"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg0E
     status: done
     priority: P2
     estimate: M
@@ -2648,7 +2648,7 @@ tasks:
   - id: TASK-041
     github:
       issue: "79"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRko
     status: done
     priority: P2
     estimate: S
@@ -2718,7 +2718,7 @@ tasks:
   - id: TASK-042
     github:
       issue: "80"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRk8
     status: done
     priority: P2
     estimate: S
@@ -2786,7 +2786,7 @@ tasks:
   - id: TASK-043
     github:
       issue: "81"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRlQ
     status: done
     priority: P2
     estimate: L
@@ -2872,7 +2872,7 @@ tasks:
   - id: TASK-034
     github:
       issue: "67"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg0Y
     status: done
     priority: P2
     estimate: L
@@ -2947,7 +2947,7 @@ tasks:
   - id: TASK-035
     github:
       issue: "68"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg0s
     status: done
     priority: P2
     estimate: S
@@ -3010,7 +3010,7 @@ tasks:
   - id: TASK-044
     github:
       issue: "82"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRlw
     status: done
     priority: P1
     estimate: S
@@ -3078,7 +3078,7 @@ tasks:
   - id: TASK-045
     github:
       issue: "83"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRmc
     status: done
     priority: P2
     estimate: M
@@ -3151,7 +3151,7 @@ tasks:
   - id: TASK-036
     github:
       issue: "69"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg04
     status: done
     priority: P2
     estimate: M
@@ -3233,7 +3233,7 @@ tasks:
   - id: TASK-037
     github:
       issue: "70"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg1c
     status: done
     priority: P2
     estimate: M
@@ -3308,7 +3308,7 @@ tasks:
   - id: TASK-046
     github:
       issue: "84"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRno
     status: done
     priority: P2
     estimate: XS
@@ -3357,7 +3357,7 @@ tasks:
   - id: TASK-038
     github:
       issue: "71"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg1o
     status: done
     priority: P2
     estimate: L
@@ -3430,7 +3430,7 @@ tasks:
   - id: TASK-047
     github:
       issue: "85"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRoE
     status: done
     priority: P2
     estimate: S
@@ -3499,7 +3499,7 @@ tasks:
   - id: TASK-039
     github:
       issue: "72"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg2Q
     status: done
     priority: P2
     estimate: S
@@ -3560,7 +3560,7 @@ tasks:
   - id: TASK-040
     github:
       issue: "73"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0Gg2Y
     status: done
     priority: P2
     estimate: S
@@ -3621,7 +3621,7 @@ tasks:
   - id: TASK-048
     github:
       issue: "86"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg0HRo4
     status: done
     priority: P2
     estimate: L
@@ -3694,7 +3694,7 @@ tasks:
   - id: TASK-053
     github:
       issue: "145"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLHc
     status: done
     priority: P1
     estimate: L
@@ -3780,7 +3780,7 @@ tasks:
   - id: TASK-054
     github:
       issue: "117"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aStg
     status: done
     priority: P2
     estimate: S
@@ -3847,7 +3847,7 @@ tasks:
   - id: TASK-055
     github:
       issue: "118"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aSu4
     status: done
     priority: P2
     estimate: M
@@ -3924,7 +3924,7 @@ tasks:
   - id: TASK-056
     github:
       issue: "119"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aSvs
     status: done
     priority: P1
     estimate: L
@@ -4022,7 +4022,7 @@ tasks:
   - id: TASK-057
     github:
       issue: "120"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aSxU
     status: done
     priority: P2
     estimate: M
@@ -4094,7 +4094,7 @@ tasks:
   - id: TASK-058
     github:
       issue: "121"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aSyY
     status: done
     priority: P1
     estimate: M
@@ -4169,7 +4169,7 @@ tasks:
   - id: TASK-059
     github:
       issue: "122"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aSzY
     status: done
     priority: P1
     estimate: L
@@ -4252,7 +4252,7 @@ tasks:
   - id: TASK-089
     github:
       issue: "174"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6n1A4
     status: done
     priority: P2
     estimate: L
@@ -4338,7 +4338,7 @@ tasks:
   - id: TASK-060
     github:
       issue: "123"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aS0k
     status: done
     priority: P2
     estimate: M
@@ -4420,7 +4420,7 @@ tasks:
   - id: TASK-061
     github:
       issue: "124"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aS1E
     status: done
     priority: P1
     estimate: M
@@ -4499,7 +4499,7 @@ tasks:
   - id: TASK-062
     github:
       issue: "125"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg4aS10
     status: done
     priority: P1
     estimate: M
@@ -4583,7 +4583,7 @@ tasks:
   - id: TASK-065
     github:
       issue: "146"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLbM
     status: done
     priority: P1
     estimate: M
@@ -4673,7 +4673,7 @@ tasks:
   - id: TASK-064
     github:
       issue: "147"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLdo
     status: in_progress
     priority: P2
     estimate: S
@@ -4749,7 +4749,7 @@ tasks:
   - id: TASK-063
     github:
       issue: "148"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLes
     status: in_progress
     priority: P1
     estimate: S
@@ -4820,7 +4820,7 @@ tasks:
   - id: TASK-066
     github:
       issue: "149"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLgM
     status: done
     priority: P1
     estimate: M
@@ -4911,7 +4911,7 @@ tasks:
   - id: TASK-067
     github:
       issue: "150"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLhs
     status: done
     priority: P1
     estimate: M
@@ -5001,7 +5001,7 @@ tasks:
   - id: TASK-068
     github:
       issue: "151"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLjk
     status: done
     priority: P1
     estimate: M
@@ -5092,7 +5092,7 @@ tasks:
   - id: TASK-069
     github:
       issue: "152"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLk4
     status: done
     priority: P1
     estimate: L
@@ -5189,7 +5189,7 @@ tasks:
   - id: TASK-070
     github:
       issue: "153"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLmA
     status: done
     priority: P2
     estimate: M
@@ -5280,7 +5280,7 @@ tasks:
   - id: TASK-071
     github:
       issue: "154"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLpM
     status: done
     priority: P1
     estimate: L
@@ -5384,7 +5384,7 @@ tasks:
   - id: TASK-072
     github:
       issue: "155"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLqk
     status: done
     priority: P2
     estimate: M
@@ -5473,7 +5473,7 @@ tasks:
   - id: TASK-073
     github:
       issue: "156"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLrs
     status: done
     priority: P1
     estimate: L
@@ -5568,7 +5568,7 @@ tasks:
   - id: TASK-074
     github:
       issue: "157"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLso
     status: done
     priority: P2
     estimate: M
@@ -5659,7 +5659,7 @@ tasks:
   - id: TASK-075
     github:
       issue: "158"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLuA
     status: done
     priority: P2
     estimate: M
@@ -5753,7 +5753,7 @@ tasks:
   - id: TASK-076
     github:
       issue: "159"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLvM
     status: done
     priority: P1
     estimate: M
@@ -5844,7 +5844,7 @@ tasks:
   - id: TASK-077
     github:
       issue: "160"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg5zLwA
     status: done
     priority: P2
     estimate: M
@@ -5941,7 +5941,7 @@ tasks:
   - id: TASK-078
     github:
       issue: "162"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIr4
     status: done
     priority: P1
     estimate: L
@@ -6037,7 +6037,7 @@ tasks:
   - id: TASK-079
     github:
       issue: "163"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIto
     status: done
     priority: P1
     estimate: L
@@ -6138,7 +6138,7 @@ tasks:
   - id: TASK-080
     github:
       issue: "164"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIu8
     status: done
     priority: P1
     estimate: M
@@ -6227,7 +6227,7 @@ tasks:
   - id: TASK-081
     github:
       issue: "165"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIvo
     status: done
     priority: P1
     estimate: L
@@ -6322,7 +6322,7 @@ tasks:
   - id: TASK-082
     github:
       issue: "166"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIxA
     status: done
     priority: P1
     estimate: M
@@ -6411,7 +6411,7 @@ tasks:
   - id: TASK-083
     github:
       issue: "167"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIyk
     status: done
     priority: P1
     estimate: L
@@ -6511,7 +6511,7 @@ tasks:
   - id: TASK-084
     github:
       issue: "168"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jIzY
     status: done
     priority: P2
     estimate: L
@@ -6610,7 +6610,7 @@ tasks:
   - id: TASK-085
     github:
       issue: "169"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jI0s
     status: done
     priority: P1
     estimate: M
@@ -6703,7 +6703,7 @@ tasks:
   - id: TASK-086
     github:
       issue: "170"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jI14
     status: done
     priority: P2
     estimate: M
@@ -6787,7 +6787,7 @@ tasks:
   - id: TASK-087
     github:
       issue: "171"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jI3o
     status: done
     priority: P2
     estimate: M
@@ -6878,7 +6878,7 @@ tasks:
   - id: TASK-088
     github:
       issue: "172"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg6jI4M
     status: done
     priority: P1
     estimate: M
@@ -6975,7 +6975,7 @@ tasks:
   - id: TASK-090
     github:
       issue: "203"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmJM
     status: done
     priority: P1
     estimate: M
@@ -7077,7 +7077,7 @@ tasks:
   - id: TASK-091
     github:
       issue: "204"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmK0
     status: todo
     priority: P1
     estimate: M
@@ -7177,7 +7177,7 @@ tasks:
   - id: TASK-092
     github:
       issue: "205"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8XaVQ
     status: todo
     priority: P1
     estimate: L
@@ -7257,7 +7257,7 @@ tasks:
   - id: TASK-093
     github:
       issue: "206"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmM0
     status: todo
     priority: P1
     estimate: M
@@ -7344,7 +7344,7 @@ tasks:
   - id: TASK-094
     github:
       issue: "207"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmOw
     status: todo
     priority: P1
     estimate: L
@@ -7431,7 +7431,7 @@ tasks:
   - id: TASK-095
     github:
       issue: "208"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmRU
     status: todo
     priority: P1
     estimate: M
@@ -7500,7 +7500,7 @@ tasks:
   - id: TASK-096
     github:
       issue: "209"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmRo
     status: todo
     priority: P1
     estimate: M
@@ -7579,7 +7579,7 @@ tasks:
   - id: TASK-097
     github:
       issue: "210"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmSo
     status: todo
     priority: P1
     estimate: M
@@ -7645,7 +7645,7 @@ tasks:
   - id: TASK-098
     github:
       issue: "211"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmUw
     status: todo
     priority: P1
     estimate: L
@@ -7725,7 +7725,7 @@ tasks:
   - id: TASK-099
     github:
       issue: "212"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmV8
     status: todo
     priority: P1
     estimate: M
@@ -7799,7 +7799,7 @@ tasks:
   - id: TASK-100
     github:
       issue: "213"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmXw
     status: todo
     priority: P1
     estimate: L
@@ -7885,7 +7885,7 @@ tasks:
   - id: TASK-101
     github:
       issue: "214"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmYs
     status: todo
     priority: P2
     estimate: M
@@ -7961,7 +7961,7 @@ tasks:
   - id: TASK-102
     github:
       issue: "215"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmZw
     status: todo
     priority: P2
     estimate: S
@@ -8027,7 +8027,7 @@ tasks:
   - id: TASK-103
     github:
       issue: "216"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmbA
     status: todo
     priority: P1
     estimate: M
@@ -8101,7 +8101,7 @@ tasks:
   - id: TASK-104
     github:
       issue: "217"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmcU
     status: todo
     priority: P1
     estimate: L
@@ -8191,7 +8191,7 @@ tasks:
   - id: TASK-105
     github:
       issue: "218"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmgA
     status: todo
     priority: P1
     estimate: L
@@ -8275,7 +8275,7 @@ tasks:
   - id: TASK-106
     github:
       issue: "219"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmhY
     status: todo
     priority: P2
     estimate: M
@@ -8340,7 +8340,7 @@ tasks:
   - id: TASK-107
     github:
       issue: "220"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Umlw
     status: todo
     priority: P1
     estimate: M
@@ -8408,7 +8408,7 @@ tasks:
   - id: TASK-108
     github:
       issue: "221"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Umoc
     status: todo
     priority: P1
     estimate: XL
@@ -8490,7 +8490,7 @@ tasks:
   - id: TASK-109
     github:
       issue: "222"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Ump4
     status: todo
     priority: P1
     estimate: L
@@ -8562,7 +8562,7 @@ tasks:
   - id: TASK-110
     github:
       issue: "223"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmsE
     status: todo
     priority: P1
     estimate: L
@@ -8632,7 +8632,7 @@ tasks:
   - id: TASK-111
     github:
       issue: "224"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmuM
     status: todo
     priority: P2
     estimate: M
@@ -8703,7 +8703,7 @@ tasks:
   - id: TASK-112
     github:
       issue: "225"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmvQ
     status: todo
     priority: P2
     estimate: S
@@ -8765,7 +8765,7 @@ tasks:
   - id: TASK-113
     github:
       issue: "226"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmxY
     status: todo
     priority: P2
     estimate: M
@@ -8846,7 +8846,7 @@ tasks:
   - id: TASK-114
     github:
       issue: "227"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um0M
     status: todo
     priority: P2
     estimate: L
@@ -8934,7 +8934,7 @@ tasks:
   - id: TASK-115
     github:
       issue: "228"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um1U
     status: todo
     priority: P2
     estimate: M
@@ -9007,7 +9007,7 @@ tasks:
   - id: TASK-116
     github:
       issue: "229"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um3g
     status: todo
     priority: P2
     estimate: M
@@ -9079,7 +9079,7 @@ tasks:
   - id: TASK-117
     github:
       issue: "230"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um6o
     status: todo
     priority: P1
     estimate: M
@@ -9157,7 +9157,7 @@ tasks:
   - id: TASK-118
     github:
       issue: "231"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um9A
     status: todo
     priority: P1
     estimate: S
@@ -9228,7 +9228,7 @@ tasks:
   - id: TASK-119
     github:
       issue: "232"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um-s
     status: todo
     priority: P1
     estimate: M
@@ -9308,7 +9308,7 @@ tasks:
   - id: TASK-120
     github:
       issue: "233"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnAE
     status: todo
     priority: P1
     estimate: M
@@ -9386,7 +9386,7 @@ tasks:
   - id: TASK-121
     github:
       issue: "234"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnC8
     status: todo
     priority: P1
     estimate: M
@@ -9466,7 +9466,7 @@ tasks:
   - id: TASK-122
     github:
       issue: "235"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnEc
     status: todo
     priority: P1
     estimate: L
@@ -9582,7 +9582,7 @@ tasks:
   - id: TASK-123
     github:
       issue: "236"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnFo
     status: todo
     priority: P2
     estimate: L
@@ -9669,7 +9669,7 @@ tasks:
   - id: TASK-124
     github:
       issue: "237"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnHU
     status: todo
     priority: P2
     estimate: M
@@ -9742,7 +9742,7 @@ tasks:
   - id: TASK-125
     github:
       issue: "238"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnJg
     status: todo
     priority: P2
     estimate: M
@@ -9811,7 +9811,7 @@ tasks:
   - id: TASK-126
     github:
       issue: "239"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnMY
     status: todo
     priority: P2
     estimate: S
@@ -9867,7 +9867,7 @@ tasks:
   - id: TASK-127
     github:
       issue: "240"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnOc
     status: todo
     priority: P2
     estimate: M
@@ -9935,7 +9935,7 @@ tasks:
   - id: TASK-128
     github:
       issue: "241"
-      project_item: null
+      project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnQE
     status: todo
     priority: P2
     estimate: L
