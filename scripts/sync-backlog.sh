@@ -131,6 +131,8 @@ echo "⬆️ Syncing YAML → GitHub"
 
 ensure_milestones
 
+PROJECT=$(yq '.project.github.project' "$FILE")
+
 
 
 TASK_COUNT=$(yq '.tasks | length' "$FILE")
@@ -214,15 +216,24 @@ ISSUE_EXISTS=false
 
 
 
+# Only a real 404 means "recreate it". Any other failure (network reset, rate
+# limit) must abort — treating it as missing files a duplicate issue.
 if [ -n "$EXISTING" ]
 
 then
 
-if gh issue view "$EXISTING" >/dev/null 2>&1
+if CHECK_ERR=$(gh api "repos/$REPO/issues/$EXISTING" --silent 2>&1)
 
 then
 
 ISSUE_EXISTS=true
+
+elif ! grep -q "HTTP 404" <<< "$CHECK_ERR"
+
+then
+
+echo "❌ could not check issue #$EXISTING for $ID: $CHECK_ERR" >&2
+exit 1
 
 fi
 
@@ -309,6 +320,22 @@ then
 assign_milestone "$ISSUE" "$MILESTONE"
 
 fi
+
+
+
+###############################################################################
+# Link to GitHub Project
+# Don't rely on the project's "Auto-add" workflow — it silently drops issues
+# created in a burst. item-add is idempotent: an issue already on the board
+# returns its existing item id.
+###############################################################################
+
+ITEM_ID=$(gh project item-add "$PROJECT" --owner "${REPO%%/*}" \
+--url "https://github.com/$REPO/issues/$ISSUE" --format json --jq .id)
+
+yq -i \
+".tasks[$i].github.project_item = \"$ITEM_ID\"" \
+"$FILE"
 
 
 

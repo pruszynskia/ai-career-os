@@ -8,7 +8,7 @@
 #      even if backlog/mvp.yaml still has github.issue: null)
 #   3. gh issue develop  — create + link + checkout the <issue>-task-<nnn>-<slug>
 #      branch server-side
-#   4. link the issue into the "AI Career OS MVP" project, store the item id
+#   4. link the issue into the GitHub Project (project.github.project), store the item id
 #   5. commit the backlog YAML change on the new branch
 #
 # --dry-run prints every git / gh command and runs nothing.
@@ -19,8 +19,8 @@ FILE="backlog/mvp.yaml"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$DIR/lib/issue-body.sh"
 
-PROJECT="AI Career OS MVP"
-PROJECT_OWNER="pruszynskia"
+PROJECT="$(yq '.project.github.project' "$FILE")"
+PROJECT_OWNER="$(yq '.project.github.repository' "$FILE" | cut -d/ -f1)"
 
 ID=""
 DRY=0
@@ -99,12 +99,12 @@ if [ "$DRY" = 1 ]; then
 else
   ISSUE_URL="$(gh issue view "$ISSUE" --json url --jq .url)"
   ITEM_ID="$(gh project item-add "$PROJECT" --owner "$PROJECT_OWNER" --url "$ISSUE_URL" \
-    --format json --jq .id 2>/dev/null || true)"
+    --format json --jq .id || true)"
   if [ -n "$ITEM_ID" ]; then
     yq -i ".tasks[$IDX].github.project_item = \"$ITEM_ID\"" "$FILE"
-    echo "linked issue #$ISSUE to project (item $ITEM_ID)"
+    echo "linked issue #$ISSUE to project $PROJECT (item $ITEM_ID)"
   else
-    echo "warning: could not add issue #$ISSUE to project '$PROJECT' (run: gh auth refresh -s project,read:project)" >&2
+    echo "warning: could not add issue #$ISSUE to project $PROJECT (see gh error above)" >&2
   fi
 fi
 
