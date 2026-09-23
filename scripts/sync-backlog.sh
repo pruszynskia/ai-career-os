@@ -48,17 +48,29 @@ fi
 
 ###############################################################################
 # Milestones
-# Ensures every milestone declared in project.milestones exists on GitHub.
-# gh issue create/edit --milestone requires the milestone to already exist,
-# it will not create one on the fly.
+# Ensures every milestone declared in project.milestones exists on GitHub, and
+# builds a title -> number lookup (MILESTONE_MAP_FILE) for push_sync.
+#
+# `gh issue create/edit --milestone <title>` only resolves OPEN milestones —
+# it 404s on a closed one even to re-set the value an issue already has. Once
+# an early-stage milestone (MVP, Stage 0, ...) gets closed as that stage
+# wraps, every task still filed under it becomes unsyncable via that flag.
+# So milestone assignment is done separately via the REST API by number
+# (assign_milestone below), which accepts any milestone regardless of state.
 ###############################################################################
+
+MILESTONE_MAP_FILE=""
 
 ensure_milestones(){
 
 
 REPO=$(yq '.project.github.repository' "$FILE")
 
-EXISTING_MILESTONES=$(gh api "repos/$REPO/milestones?state=all" --paginate -q '.[].title' 2>/dev/null || true)
+MILESTONE_MAP_FILE=$(mktemp)
+trap 'rm -f "$MILESTONE_MAP_FILE"' EXIT
+
+gh api "repos/$REPO/milestones?state=all" --paginate -q '.[] | "\(.title)\t\(.number)"' \
+  > "$MILESTONE_MAP_FILE" 2>/dev/null || true
 
 MILESTONE_COUNT=$(yq '.project.milestones | length' "$FILE")
 
@@ -69,16 +81,37 @@ do
 
 MS_TITLE=$(yq ".project.milestones[$m]" "$FILE")
 
-if ! grep -Fxq "$MS_TITLE" <<< "$EXISTING_MILESTONES"
+if ! awk -F'\t' -v t="$MS_TITLE" '$1==t{found=1} END{exit !found}' "$MILESTONE_MAP_FILE"
 
 then
 
 echo "🏁 Creating milestone: $MS_TITLE"
-gh api "repos/$REPO/milestones" -f title="$MS_TITLE" -f state=open >/dev/null
+NEW_NUM=$(gh api "repos/$REPO/milestones" -f title="$MS_TITLE" -f state=open -q .number)
+printf '%s\t%s\n' "$MS_TITLE" "$NEW_NUM" >> "$MILESTONE_MAP_FILE"
 
 fi
 
 done
+
+}
+
+# assign_milestone <issue-number> <milestone-title>
+# No-op if the title isn't in the map (shouldn't happen after ensure_milestones).
+assign_milestone(){
+
+MNUM=$(awk -F'\t' -v t="$2" '$1==t{print $2; exit}' "$MILESTONE_MAP_FILE")
+
+if [ -n "$MNUM" ]
+
+then
+
+gh api "repos/$REPO/issues/$1" -X PATCH -f milestone="$MNUM" >/dev/null
+
+else
+
+echo "⚠️ milestone '$2' not found for issue #$1" >&2
+
+fi
 
 }
 
@@ -152,15 +185,6 @@ MILESTONE=""
 
 fi
 
-MILESTONE_ARGS=()
-
-if [ -n "$MILESTONE" ]
-
-then
-
-MILESTONE_ARGS=(--milestone "$MILESTONE")
-
-fi
 
 
 
@@ -220,8 +244,7 @@ echo "♻️ Updating $ID (#$EXISTING)"
 
 
 gh issue edit "$EXISTING" \
---body-file "$BODY_FILE" \
-"${MILESTONE_ARGS[@]}"
+--body-file "$BODY_FILE"
 
 
 
@@ -247,8 +270,7 @@ then
 
 ISSUE_URL=$(gh issue create \
 --title "[$ID] $TITLE" \
---body-file "$BODY_FILE" \
-"${MILESTONE_ARGS[@]}")
+--body-file "$BODY_FILE")
 
 
 else
@@ -257,8 +279,7 @@ else
 ISSUE_URL=$(gh issue create \
 --title "[$ID] $TITLE" \
 --body-file "$BODY_FILE" \
---label "$LABELS" \
-"${MILESTONE_ARGS[@]}")
+--label "$LABELS")
 
 
 fi
@@ -272,6 +293,20 @@ ISSUE=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
 echo "Created issue #$ISSUE"
 
 
+
+fi
+
+
+
+###############################################################################
+# Assign Milestone (by number, so a closed milestone still works)
+###############################################################################
+
+if [ -n "$MILESTONE" ]
+
+then
+
+assign_milestone "$ISSUE" "$MILESTONE"
 
 fi
 
