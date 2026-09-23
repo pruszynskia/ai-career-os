@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { Archivo, Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '@/app/providers';
 import './globals.css';
 
@@ -11,11 +11,6 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-const archivo = Archivo({
-  variable: '--font-archivo',
   subsets: ['latin'],
 });
 
@@ -38,7 +33,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
       // next-themes sets the .dark class on this element before React
       // hydrates, which would otherwise trigger a hydration mismatch warning.
       suppressHydrationWarning

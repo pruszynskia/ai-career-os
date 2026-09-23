@@ -43,8 +43,6 @@ body {
   --default-transition-duration: var(--dur);
   --default-transition-timing-function: var(--ease);
 
-  --font-heading: var(--font-display);
-  --font-display: var(--font-archivo);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -79,19 +77,13 @@ body {
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-success-foreground: var(--success-foreground);
   --color-success: var(--success);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -106,8 +98,12 @@ body {
   --color-background: var(--background);
   --color-warning-foreground: var(--warning-foreground);
   --color-warning: var(--warning);
-  --color-info-foreground: var(--info-foreground);
-  --color-info: var(--info);
+  /* border-default/-strong, primary-hover/-pressed/-subtle,
+     destructive-hover/-subtle, foreground-secondary, warning-subtle,
+     surface-sunken, tier-1..4 and chart-fill/-track exist as raw custom
+     properties below (tokens.json parity) but aren't aliased into Tailwind
+     utilities here - add an alias only once a component actually consumes
+     one. */
   /* Radius scale capped at 8px (Design System Overhaul) - xl/2xl/3xl/4xl all
      resolve to the same 8px ceiling until call sites are cleaned up individually
      in TASK-069. */
@@ -127,74 +123,67 @@ body {
   --dur-slow: 240ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Tier-1: warm-neutral ramp (hue 75, low chroma, never pure black/white)
-     plus the amber/gold/blue signal primitives. Semantic tokens below alias
-     these - no semantic token holds a literal oklch() value of its own. */
-  --neutral-canvas: oklch(0.985 0.004 75);
-  --neutral-sunken: oklch(0.965 0.006 75);
-  --neutral-raised: oklch(0.995 0.003 75);
-  --neutral-raised-hover: oklch(0.965 0.007 75);
-  --neutral-border-hairline: oklch(0.9 0.008 75);
-  --neutral-border-strong: oklch(0.65 0.012 75);
-  --neutral-text-primary: oklch(0.18 0.012 75);
-  --neutral-text-secondary: oklch(0.32 0.012 75);
-  --neutral-text-muted: oklch(0.48 0.012 75);
-  --neutral-ink: oklch(0.16 0.01 75);
-  --neutral-paper: oklch(0.98 0.004 75);
-  --signal-amber: oklch(0.78 0.16 55);
-  --signal-amber-ink: oklch(0.2 0.03 55);
-  --signal-gold: oklch(0.82 0.15 95);
-  --signal-gold-ink: oklch(0.22 0.04 95);
-  --signal-info: oklch(0.46 0.19 240);
-  --signal-info-paper: oklch(0.98 0.02 240);
-  --status-success: oklch(0.6 0.14 155);
-  --status-success-ink: oklch(0.15 0.02 155);
-  --status-destructive: oklch(0.577 0.245 27.325);
-  /* Chart step ramp - same warm-neutral hue as the rest of Tier-1, kept
-     theme-invariant (not redeclared in .dark) since the previous literal
-     values were already identical across both themes. */
-  --chart-step-1: oklch(0.87 0.01 75);
-  --chart-step-2: oklch(0.62 0.012 75);
-  --chart-step-3: oklch(0.48 0.012 75);
-  --chart-step-4: oklch(0.36 0.012 75);
-  --chart-step-5: oklch(0.24 0.012 75);
+  /* Midnight Mint (ADR-023, supersedes ADR-018) - light theme values from
+     docs/design-system/tokens.json's color object. Each var name below is
+     that entry's own "css" field; no semantic token holds a literal value
+     of its own beyond what's copied here. */
+  --background: #ffffff;
+  --sidebar: #f6f7f9;
+  --surface-sunken: #f2f4f6;
+  --popover: #ffffff;
+  --muted: #f4f5f7;
 
-  /* Tier-2: shadcn semantic tokens, aliasing the ramp above. */
-  --background: var(--neutral-canvas);
-  --foreground: var(--neutral-text-primary);
-  --card: var(--neutral-raised);
-  --card-foreground: var(--neutral-text-primary);
-  --popover: var(--neutral-raised);
-  --popover-foreground: var(--neutral-text-primary);
-  --primary: var(--neutral-ink);
-  --primary-foreground: var(--neutral-paper);
-  --secondary: var(--neutral-sunken);
-  --secondary-foreground: var(--neutral-text-primary);
-  --muted: var(--neutral-sunken);
-  --muted-foreground: var(--neutral-text-muted);
-  --accent: var(--signal-amber);
-  --accent-foreground: var(--signal-amber-ink);
-  --warning: var(--signal-gold);
-  --warning-foreground: var(--signal-gold-ink);
-  --info: var(--signal-info);
-  --info-foreground: var(--signal-info-paper);
-  --success: var(--status-success);
-  --success-foreground: var(--status-success-ink);
-  --destructive: var(--status-destructive);
-  --border: var(--neutral-border-hairline);
-  --input: var(--neutral-border-strong);
-  /* Focus ring is the high-contrast neutral-inverse primary, not the amber
-     accent - amber/background is 2.04:1 in light mode, well under the 3:1
-     WCAG 2.1 SC 1.4.11 floor for a non-text focus indicator. */
+  --border: #e6e8ec;
+  --border-default: #d2d6dc;
+  --input: #7a8494;
+  --border-strong: #2d3642;
+
+  --foreground: #0a0e14;
+  --foreground-secondary: #2d3642;
+  --muted-foreground: #5b6472;
+  --primary-foreground: #ffffff;
+
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --primary-pressed: #134e4a;
+  --primary-subtle: #e6f7f5;
+
+  --warning: #b45309;
+  --warning-subtle: #fef4e6;
+  --destructive: #c2261d;
+  --destructive-hover: #a31f17;
+  --destructive-subtle: #fdecec;
+  --destructive-foreground: #ffffff;
+  /* tokens.json has no dedicated onWarning value - --warning flips
+     light-text/dark-text between themes the same way --destructive does
+     (bright fill in dark mode, deep fill in light mode), so this literal
+     matches --destructive-foreground's ink rather than aliasing to it. */
+  --warning-foreground: #ffffff;
+  --success: var(--primary);
+  --success-foreground: var(--primary-foreground);
+
+  --tier-1: #0d9488;
+  --tier-2: #134e4a;
+  --tier-3: #8a94a3;
+  --tier-4: #d2d6dc;
+
+  --chart-fill: var(--primary);
+  --chart-track: #e6e8ec;
+
   --ring: var(--primary);
-  --chart-1: var(--chart-step-1);
-  --chart-2: var(--chart-step-2);
-  --chart-3: var(--chart-step-3);
-  --chart-4: var(--chart-step-4);
-  --chart-5: var(--chart-step-5);
   --radius: 0.375rem;
-  --sidebar: var(--card);
-  --sidebar-foreground: var(--card-foreground);
+
+  /* Not in tokens.json's color object - shadcn-generic slots still read by
+     out-of-scope components (Surface.tsx's raised Card tier, Button/Badge's
+     secondary variant) - aliased to their closest Midnight Mint equivalent
+     instead of left pointing at a retired amber/neutral-ramp value. */
+  --card: var(--popover);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+
+  --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--secondary);
@@ -204,57 +193,55 @@ body {
 }
 
 .dark {
-  /* Tier-1: warm-neutral ramp, dark values. */
-  --neutral-canvas: oklch(0.16 0.012 75);
-  --neutral-sunken: oklch(0.13 0.01 75);
-  --neutral-raised: oklch(0.21 0.014 75);
-  --neutral-raised-hover: oklch(0.25 0.016 75);
-  --neutral-border-hairline: oklch(0.3 0.01 75);
-  --neutral-border-strong: oklch(0.42 0.014 75);
-  --neutral-text-primary: oklch(0.96 0.006 75);
-  --neutral-text-secondary: oklch(0.82 0.01 75);
-  --neutral-text-muted: oklch(0.65 0.012 75);
-  --neutral-ink: oklch(0.16 0.01 75);
-  --neutral-paper: oklch(0.96 0.006 75);
-  /* Signal amber/gold/info primitives are identical between themes (a fixed
-     accent, not a surface) and inherit from :root via the cascade - not
-     redeclared here to avoid drift between two copies of the same value. */
-  --status-success: oklch(0.68 0.14 155);
-  --status-success-ink: oklch(0.12 0.02 155);
-  --status-destructive: oklch(0.704 0.191 22.216);
+  /* Midnight Mint (ADR-023) - dark theme values, same var names as :root. */
+  --background: #0a0e14;
+  --sidebar: #000000;
+  --surface-sunken: #07090d;
+  --popover: #161b24;
+  --muted: #1c1f26;
 
-  /* Tier-2: shadcn semantic tokens, aliasing the ramp above. */
-  --background: var(--neutral-canvas);
-  --foreground: var(--neutral-text-primary);
-  --card: var(--neutral-raised);
-  --card-foreground: var(--neutral-text-primary);
-  --popover: var(--neutral-raised);
-  --popover-foreground: var(--neutral-text-primary);
-  --primary: var(--neutral-paper);
-  --primary-foreground: var(--neutral-ink);
-  --secondary: var(--neutral-sunken);
-  --secondary-foreground: var(--neutral-text-primary);
-  --muted: var(--neutral-sunken);
-  --muted-foreground: var(--neutral-text-muted);
-  --accent: var(--signal-amber);
-  --accent-foreground: var(--signal-amber-ink);
-  --warning: var(--signal-gold);
-  --warning-foreground: var(--signal-gold-ink);
-  --info: var(--signal-info);
-  --info-foreground: var(--signal-info-paper);
-  --success: var(--status-success);
-  --success-foreground: var(--status-success-ink);
-  --destructive: var(--status-destructive);
-  --border: var(--neutral-border-hairline);
-  --input: var(--neutral-border-strong);
+  --border: #1c1f26;
+  --border-default: #2d3642;
+  --input: #5b6778;
+  --border-strong: #aeb6c2;
+
+  --foreground: #e8ecf1;
+  --foreground-secondary: #aeb6c2;
+  --muted-foreground: #818b99;
+  --primary-foreground: #042f2e;
+
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --primary-pressed: #14b8a6;
+  --primary-subtle: #0b2a28;
+
+  --warning: #f5b452;
+  --warning-subtle: #2a2211;
+  --destructive: #f87171;
+  --destructive-hover: #fca5a5;
+  --destructive-subtle: #2a1215;
+  --destructive-foreground: #140404;
+  --warning-foreground: #140404;
+  --success: var(--primary);
+  --success-foreground: var(--primary-foreground);
+
+  --tier-1: #2dd4bf;
+  --tier-2: #0d9488;
+  --tier-3: #5b6778;
+  --tier-4: #2d3642;
+
+  --chart-fill: var(--primary);
+  --chart-track: #2d3642;
+
   --ring: var(--primary);
-  --chart-1: var(--chart-step-1);
-  --chart-2: var(--chart-step-2);
-  --chart-3: var(--chart-step-3);
-  --chart-4: var(--chart-step-4);
-  --chart-5: var(--chart-step-5);
-  --sidebar: var(--card);
-  --sidebar-foreground: var(--card-foreground);
+
+  --card: var(--popover);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+
+  --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--secondary);

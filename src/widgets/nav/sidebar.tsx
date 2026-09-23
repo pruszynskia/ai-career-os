@@ -105,7 +105,7 @@ export function Sidebar({ notifications }: { notifications: Notification[] }) {
                       className={cn(
                         'flex items-center gap-2 rounded-lg border-l-2 py-2 pr-2 pl-1.5 text-sm font-medium transition-colors hover:bg-muted',
                         isActive
-                          ? 'border-accent text-foreground'
+                          ? 'border-primary text-foreground'
                           : 'border-transparent text-muted-foreground',
                       )}
                     >
