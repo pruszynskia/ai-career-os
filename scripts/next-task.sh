@@ -26,13 +26,16 @@ if [ -n "${ON_MAIN_TASKS:-}" ]; then
 else
   git fetch origin --quiet 2>/dev/null || true
   SUBJECTS="$(git log origin/main --format='%s' 2>/dev/null || true)"
-  # chore(backlog) commits sometimes deliberately mark a task done via the
+  # chore commits sometimes deliberately mark a task done via the
   # "(TASK-NNN)" convention (e.g. "superseded by ADR-009 (TASK-021)"), so
-  # they must stay eligible for the exact heuristics below. But a range like
-  # "sync issue numbers for TASK-078-088" false-positives against the loose
-  # bare-number heuristic (the "-" before the next number reads as a valid
-  # word boundary) — so that one heuristic alone excludes chore(backlog).
-  SUBJECTS_LOOSE="$(printf '%s\n' "$SUBJECTS" | grep -v '^chore(backlog)' || true)"
+  # they must stay eligible for the exact heuristics below. But chore
+  # commits also routinely just *mention* a task in passing while scaffolding
+  # the backlog or an unrelated env/dep change ("add TASK-063", "link
+  # TASK-060 to GitHub issue"), or merge from a "chore/backlog-task-NNN-..."
+  # branch — none of that is the task's implementation landing. The loose
+  # bare-number heuristic below reads any such mention as a word-boundary
+  # match, so exclude every chore commit (prefix or branch name) from it.
+  SUBJECTS_LOOSE="$(printf '%s\n' "$SUBJECTS" | grep -viE '(^chore\(|chore/)' || true)"
   # The "(TASK-NNN)" commit-subject suffix is the current convention, but the
   # repo's history used two earlier ones before it settled: a "TASK-NNN: ..."
   # prefix (roughly TASK-001..016), and before that only the PR merge commit's
