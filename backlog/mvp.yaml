@@ -3693,7 +3693,7 @@ tasks:
     github:
       issue: "145"
       project_item: null
-    status: in_progress
+    status: done
     priority: P1
     estimate: L
     milestone: "Monetization Milestone"
