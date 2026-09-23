@@ -12,9 +12,13 @@ trap 'rm -f "$FIX"' EXIT
 cat > "$FIX" <<'YAML'
 project:
   milestones:
+    - Zero
     - Alpha
     - Beta
 tasks:
+  - id: TASK-000
+    milestone: Zero
+    depends_on: [TASK-999]
   - id: TASK-001
     milestone: Alpha
     depends_on: []
@@ -54,12 +58,14 @@ assert "does not re-pick a merged task" "TASK-003" "$(run 'TASK-001 TASK-002')"
 assert "falls back to earlier incomplete milestone" \
   "TASK-001" "$(run 'TASK-002 TASK-003 TASK-004 TASK-005')"
 
-# everything merged -> NONE
-assert "reports NONE when active milestone complete" \
-  "NONE" "$(run 'TASK-001 TASK-002 TASK-003 TASK-004 TASK-005')"
+# nothing merged -> Beta is last-incomplete but every Beta task is blocked;
+# falls back past it to Alpha, which has a ready task
+assert "falls back past a fully-blocked latest milestone to a runnable earlier one" \
+  "TASK-001" "$(run '')"
 
-# nothing merged -> Beta active, but every Beta task blocked on unmet dep -> NONE
-assert "reports NONE when active milestone fully blocked" \
-  "NONE" "$(run '')"
+# Alpha/Beta all merged, only Zero's permanently-blocked task (missing dep)
+# remains -> no milestone has a runnable task -> NONE
+assert "reports NONE when every incomplete milestone is blocked" \
+  "NONE" "$(run 'TASK-001 TASK-002 TASK-003 TASK-004 TASK-005')"
 
 echo "all next-task.sh checks passed"

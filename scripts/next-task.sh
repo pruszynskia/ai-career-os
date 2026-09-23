@@ -20,7 +20,10 @@ FILE="${BACKLOG_FILE:-backlog/mvp.yaml}"
 
 # --- done-ness predicate -----------------------------------------------------
 # Test mode: ON_MAIN_TASKS="TASK-001 TASK-002" overrides git (used by the tests).
-if [ -n "${ON_MAIN_TASKS:-}" ]; then
+# Checked with the "set at all" test, not "non-empty" — ON_MAIN_TASKS="" (the
+# nothing-merged case) must still select the fixture, not fall through to the
+# real repo's git history.
+if [ -n "${ON_MAIN_TASKS+set}" ]; then
   SUBJECTS=""
   on_main() { case " $ON_MAIN_TASKS " in *" TASK-$1 "*) return 0 ;; *) return 1 ;; esac; }
 else
@@ -63,31 +66,27 @@ if [[ "$BRANCH" =~ $re ]]; then
   fi
 fi
 
-# --- 2. active milestone: last milestones[] entry with >=1 task not on main -
+# --- 2. walk milestones from the last one with >=1 task not on main backward
+#        toward the first, and within each try the first not-on-main task
+#        (ascending by number) whose every depends_on is already on main. A
+#        milestone whose incomplete tasks are all blocked (e.g. waiting on an
+#        even earlier milestone, as Mobile Redesign waits on Design System
+#        Redesign) is not the last word — fall back to the earlier milestone
+#        that actually has ready work instead of reporting NONE. -------------
 MCOUNT="$(yq '.project.milestones | length' "$FILE")"
-ACTIVE=""
 for ((m=MCOUNT-1; m>=0; m--)); do
   MS="$(yq ".project.milestones[$m]" "$FILE")"
   while IFS= read -r id; do
     [ -n "$id" ] || continue
-    if ! on_main "${id#TASK-}"; then ACTIVE="$MS"; break; fi
-  done < <(yq ".tasks[] | select(.milestone == \"$MS\") | .id" "$FILE")
-  [ -n "$ACTIVE" ] && break
+    on_main "${id#TASK-}" && continue
+    deps_ok=1
+    while IFS= read -r dep; do
+      [ -n "$dep" ] || continue
+      on_main "${dep#TASK-}" || { deps_ok=0; break; }
+    done < <(yq ".tasks[] | select(.id == \"$id\") | .depends_on[]?" "$FILE")
+    [ "$deps_ok" = 1 ] && { echo "$id"; exit 0; }
+  done < <(yq ".tasks[] | select(.milestone == \"$MS\") | .id" "$FILE" | sort -t- -k2 -n)
 done
-[ -n "$ACTIVE" ] || { echo "NONE"; exit 0; }
 
-# --- 3. first task in the active milestone, ascending by number,
-#        not on main, with every depends_on already on main ------------------
-while IFS= read -r id; do
-  [ -n "$id" ] || continue
-  on_main "${id#TASK-}" && continue
-  deps_ok=1
-  while IFS= read -r dep; do
-    [ -n "$dep" ] || continue
-    on_main "${dep#TASK-}" || { deps_ok=0; break; }
-  done < <(yq ".tasks[] | select(.id == \"$id\") | .depends_on[]?" "$FILE")
-  [ "$deps_ok" = 1 ] && { echo "$id"; exit 0; }
-done < <(yq ".tasks[] | select(.milestone == \"$ACTIVE\") | .id" "$FILE" | sort -t- -k2 -n)
-
-# --- 4. nothing runnable --------------------------------------------------------
+# --- 3. nothing runnable in any incomplete milestone --------------------------
 echo "NONE"
