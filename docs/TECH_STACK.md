@@ -654,7 +654,12 @@ Deploy
 
 `.env.example` is the canonical list of every variable the app reads, each
 with a placeholder and a note on whether it is server-only. Copy it to
-`.env.local` for local work.
+`.env.local` for local work — `.env.local` is git-ignored and local-only; it
+is never the source of truth for a real deployment. Production and Preview
+read every secret (Supabase anon + service-role keys, AI provider keys,
+Stripe keys, `NEXT_PUBLIC_SITE_URL`) from the Vercel project's Environment
+Variables, set directly in the Vercel dashboard (or `vercel env add`) so a
+fresh deploy boots correctly with no local env file present.
 
 `src/shared/env.ts` validates the environment with Zod. The public
 `NEXT_PUBLIC_` Supabase pair is checked on server startup (via

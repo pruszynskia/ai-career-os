@@ -52,6 +52,22 @@ memory-bank/current-task.md
   branching on pathname in one shared layout. See
   `src/app/(app)/(protected)/layout.tsx`.
 
+- TASK-063 (secret rotation before public launch): the actual rotation
+  (Supabase anon/service-role keys, AI provider key, Stripe secret + webhook
+  signing secret, owner account password/deletion, Vercel env vars) has to
+  happen in the Supabase, Vercel and Stripe dashboards — a coding agent has
+  no credentials or browser access to those, so it cannot perform or verify
+  it. What was verified from the repo: `.env.example` carries only
+  placeholders, no `NEXT_PUBLIC_` var holds a secret, and
+  `git log --all -p -- .env .env.local` returns nothing. Repo-side docs were
+  updated (`docs/TECH_STACK.md`) to say secrets live in Vercel and
+  `.env.local` is local-only. The dashboard rotation itself — new Supabase
+  keys, new/rotated AI provider and Stripe keys set in Vercel Production +
+  Preview, owner password change or seed-user deletion, `NEXT_PUBLIC_SITE_URL`
+  set to the real origin, and the post-rotation sign-in/AI/Checkout smoke
+  test on the production deploy — is still owner (Andrzej) work, not done by
+  this task.
+
 - Supabase Auth email flows (sign-up confirm, password recovery): the built-in
   email service is capped at ~2 messages/hour **project-wide** across all auth
   emails. Testing sign-up + reset in one sitting exhausts it and `/recover`
