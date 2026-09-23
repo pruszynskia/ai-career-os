@@ -339,6 +339,94 @@ None serve the two promises above, and all would widen scope.
 
 ---
 
+# Design System Redesign
+
+`backlog/mvp.yaml` TASK-090–122.
+
+**Goal:** replace the "Design System Overhaul" warm-neutral/amber system (ADR-018)
+with Midnight Mint — the tokens, mockups and component specs produced outside the
+repo and vendored in by TASK-090. This stage touches every desktop and tablet
+screen (mobile is deliberately deferred to its own stage below) and follows a
+strict layering: foundation (tokens) → shared components → app shell → workspace
+screens → public/auth/onboarding → a close-out audit gate, the same
+build-then-audit shape "Design System Overhaul" used (TASK-077).
+
+| Task | Title |
+|---|---|
+| TASK-090 | Vendor the Midnight Mint design-system spec into the repo |
+| TASK-091 | Rewrite globals.css to Midnight Mint tokens and drop Archivo |
+| TASK-092 | Button family — variant rename, size rename and every call site |
+| TASK-093 | Inputs, Field, Select restyle and Label meta retirement into SectionLabel |
+| TASK-094 | Tag, status text, TierMarker, StageRing and Meter |
+| TASK-095 | SegmentedControl and Tabs on Radix ToggleGroup/Tabs |
+| TASK-096 | Surfaces — Card outlined, ListRow, StatCard and PageHeader/AppPageLayout |
+| TASK-097 | GridTable — Head, Row, GroupHeader and "Show N more" |
+| TASK-098 | Overlays restyle and new Banner — Dialog, ConfirmDialog, Popover, Toaster |
+| TASK-099 | Empty state, Skeleton, Spinner restyle and new LockedPanel |
+| TASK-100 | Desktop app shell — sidebar, top bar and stage counts |
+| TASK-101 | Jump dialog — search offers, companies and pages |
+| TASK-102 | Notifications popover restyle |
+| TASK-103 | Add offer dialog — move the inline form off the offers page |
+| TASK-104 | Dashboard restyle — pipeline strip, Needs attention, response rate |
+| TASK-105 | Offers list restyle — KPI strip, recommendation-mix Meter, tier-grouped GridTable |
+| TASK-106 | Offer preview pane on the offers list |
+| TASK-107 | Offers board restyle — flat cards, sunken Closed lane, drop toast |
+| TASK-108 | Offer detail shell — sticky header, Tabs, 320 rail |
+| TASK-109 | Fit report tab restyle — grouped GridTable, divergence Banner, LockedPanel on Free |
+| TASK-110 | Tailored CV and cover letter tabs restyle — keyword rows, AI action meta, LockedPanel |
+| TASK-111 | Outreach tab restyle — who-you-know ListRows, 3-col channel cards, interlock Banner |
+| TASK-112 | Application tab restyle — notes and status history with StageRing |
+| TASK-113 | Documents screen as a split list/reader view |
+| TASK-114 | Posts screen as a composer rail with filtered, claim-tagged rows |
+| TASK-115 | Profile screen as a two-column layout with CV rail |
+| TASK-116 | Settings screen as sub-nav with a card per section |
+| TASK-117 | Landing page rebuild on Midnight Mint |
+| TASK-118 | Pricing page restyle, signed-in header and checkout-cancelled banner |
+| TASK-119 | Auth and system pages restyle, field-level reset error, global-error.tsx |
+| TASK-120 | Onboarding layout and steps 1/3/done restyle |
+| TASK-121 | Onboarding CV upload step — dropzone, progress and parsed-profile summary |
+| TASK-122 | Migration cleanup and Midnight Mint audit gate |
+
+Row order matches the task blocks' order in `backlog/mvp.yaml`. TASK-090/091 land
+the vendored spec and the token layer first; TASK-092–099 rebuild every shared
+component against those tokens in parallel; TASK-100–103 rebuild the app shell on
+top of the components; TASK-104–121 restyle every workspace, public, auth and
+onboarding screen (each depending only on the specific components/shell pieces it
+needs, not on every prior screen); TASK-122 closes the milestone with the same
+audit-gate pattern TASK-077 used for the prior design system, extended with the
+guardrails this migration specifically needs (no `font-heading`, no amber accent,
+no `Badge`, no `Label variant="meta"`, no `richColors`).
+
+Desktop and the 768–1279 tablet breakpoint only — `<768` is its own stage below.
+
+---
+
+# Mobile Redesign
+
+`backlog/mvp.yaml` TASK-123–128.
+
+**Goal:** bring every screen below the 768px breakpoint onto Midnight Mint,
+after the desktop/tablet system (TASK-090–122) has landed. Owner decision:
+mobile is deliberately a separate, later milestone rather than folded into each
+desktop screen task, so desktop tasks stay focused and this stage can reuse their
+finished components and data wiring instead of building both at once.
+
+| Task | Title |
+|---|---|
+| TASK-123 | Mobile app shell — header, bottom tab bar and add-offer sheet |
+| TASK-124 | Mobile marketing and auth screens |
+| TASK-125 | Mobile onboarding — progress bars and sticky action bar |
+| TASK-126 | Mobile dashboard |
+| TASK-127 | Mobile offers list — sticky tier headers and full-page preview |
+| TASK-128 | Mobile offer detail — back header, KPI pair and sticky bottom actions |
+
+Row order matches `backlog/mvp.yaml`. TASK-123 builds the mobile shell (bottom
+tab bar, header, the new bottom-sheet primitive) first; every other task is a
+`max-md:` layout pass over an already-restyled desktop screen, reusing its data
+and logic unchanged — no task in this stage adds or forks a data query.
+
+---
+
 # Turning a Stage Into Backlog Tasks
 
 Use `/generate-next-milestone` (`.claude/commands/generate-next-milestone.md`)
