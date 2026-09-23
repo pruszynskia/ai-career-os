@@ -27,7 +27,7 @@ export function OnboardingStepper({
               className={cn(
                 'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-xs tabular-nums',
                 isActive
-                  ? 'bg-accent/15 font-medium text-foreground'
+                  ? 'border-[1.5px] border-primary font-medium text-primary'
                   : isDone
                     ? 'text-foreground'
                     : 'text-muted-foreground',

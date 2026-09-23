@@ -23,7 +23,7 @@ const textVariants = cva('', {
     color: {
       default: 'text-foreground',
       muted: 'text-muted-foreground',
-      accent: 'text-accent',
+      warning: 'text-warning',
       destructive: 'text-destructive',
     },
     align: {

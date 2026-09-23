@@ -125,9 +125,9 @@ function DialogTitle({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  // Explicit font-sans, not an oversight: same 24px zone floor as
-  // CardTitle in card.tsx - DialogTitle renders at text-body-lg (16px),
-  // below where the display face (--font-heading) is allowed to apply.
+  // Explicit font-sans, not an oversight: same as CardTitle in card.tsx -
+  // Geist Sans is the only face now (Midnight Mint, ADR-023), so this just
+  // matches Heading.tsx's font family rather than a size-gated display face.
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"

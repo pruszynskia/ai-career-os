@@ -2,13 +2,13 @@ import * as React from 'react';
 
 import { cn } from '@/shared/ui/utils';
 
-// Archivo (font-heading) is a display face reserved for 24px and up (h1-h3).
-// Levels below that stay in Geist Sans so the display face never applies to
-// what is effectively body-zone text.
+// Geist Sans is the only face (Midnight Mint, ADR-023) - no display face
+// split anymore, every heading level renders in font-sans, differentiated
+// by size and weight only.
 const LEVEL_CLASS: Record<1 | 2 | 3 | 4 | 5 | 6, string> = {
-  1: 'font-heading text-h1',
-  2: 'font-heading text-h2',
-  3: 'font-heading text-h3',
+  1: 'font-sans text-h1',
+  2: 'font-sans text-h2',
+  3: 'font-sans text-h3',
   4: 'font-sans text-body-lg',
   5: 'font-sans text-body',
   6: 'font-sans text-body-sm',

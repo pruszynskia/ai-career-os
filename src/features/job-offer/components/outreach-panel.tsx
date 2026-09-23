@@ -208,7 +208,7 @@ export function OutreachPanel({
       </div>
 
       {showInterlockWarning && interlockWarning && (
-        <Text size="sm" color="accent">
+        <Text size="sm" color="warning">
           {interlockWarning.contactName} at this company was already messaged on{' '}
           {interlockWarning.messagedAt.toLocaleDateString()} - contacting a
           second person here within 30 days may look like spam. This is only a

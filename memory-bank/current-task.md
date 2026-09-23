@@ -67,6 +67,76 @@ Validation:
 - `npm run build` — pass
 - `npm run check-tokens` — pass (exit 0, "PASS"; see deviation note above)
 
+### Feature: TASK-091 — Rewrite globals.css to Midnight Mint tokens and drop Archivo
+
+Status: **done** — green on typecheck/lint/test/build/check-tokens.
+
+What shipped:
+
+- `src/app/globals.css` — `:root`/`.dark` rewritten to the Midnight Mint
+  values from `docs/design-system/tokens.json`'s `color` object, one CSS var
+  per entry's own `css` field. `--signal-amber/-gold/-info`,
+  `--chart-step-1..5`, `--info`/`--info-foreground`, `--accent`/
+  `--accent-foreground` and `--font-heading`/`--font-display` all removed
+  (nothing left "just in case"). `@theme inline` rewired to match (added
+  `--color-border-default`, `--color-border-strong`, `--color-foreground-
+  secondary`, `--color-primary-hover/-pressed/-subtle`, `--color-warning-
+  subtle`, `--color-destructive-hover/-subtle/-foreground`, `--color-surface-
+  sunken`, `--color-tier-1..4`, `--color-chart-fill/-track`; dropped
+  `--color-info*`, `--color-accent*`, `--color-chart-1..5` — the last had
+  zero consumers in `src` and only existed to alias the now-removed
+  chart-step ramp). `--card`, `--secondary`, `--popover-foreground`,
+  `--success-foreground`, `--sidebar-*` aren't in `tokens.json` (it has no
+  "card"/"secondary" node) but stayed defined — aliased to their closest
+  Midnight Mint equivalent (`--card`→`--popover`, `--secondary`→`--muted`,
+  etc.) — because out-of-scope files (`Surface.tsx`, `button.tsx`,
+  `Badge.tsx`, `usage-meter.tsx`) still read them and this task's scope is
+  globals.css/font/three-call-sites only, not those components.
+  `--warning-foreground` also isn't in `tokens.json` (no `onWarning` value);
+  it borrows `--destructive-foreground` since both flip bright-fill-needs-
+  dark-text / deep-fill-needs-light-text the same way across themes.
+- `src/app/layout.tsx` — Archivo import, `archivo` font object and
+  `archivo.variable` removed from the `html` className; only
+  `geistSans.variable`/`geistMono.variable` remain.
+- `src/shared/ui/primitives/typography/heading/Heading.tsx` — levels 1-3
+  changed `font-heading` → `font-sans`; comment rewritten (Geist is the only
+  face now).
+- `src/shared/ui/dialog.tsx`, `src/shared/ui/card.tsx` — stale
+  "`--font-heading` is a display face reserved for ≥24px" comments rewritten
+  now that no display face exists.
+- Three amber `--accent` call sites retargeted to `--primary` (teal), per
+  `tokens.json`'s "selection edge"/body-text uses and verified against
+  `colors.md`'s contrast table + the mockups: `sidebar.tsx:108`
+  `border-accent` → `border-primary` (matches `accent.default`'s "selection
+  edge" use; `X-dashboard.dc.html`'s active nav uses `var(--acc)` for the
+  same purpose, our left-border treatment unchanged per scope);
+  `Text.tsx`'s `accent` variant `text-accent` → `text-primary` (passes
+  4.5:1 as body text in both themes — confirmed via `check-tokens -v`'s
+  `accent.default on background.canvas` pair, 10.39/5.47 — its one caller,
+  `outreach-panel.tsx:211`, needed no change); `onboarding-stepper.tsx`'s
+  active-step `bg-accent/15` → `bg-primary/15` (matches `X-onb1.dc.html`'s
+  active step using `var(--acc)` as its highlight color).
+
+Not done (out of scope per `do_not`): no control height/padding/radius/
+variant-naming change on any component (that's TASK-092/093/096); Badge.tsx's
+`info` variant left reading now-undefined `--info`/`--info-foreground` (
+sanctioned by the task prompt — Badge is replaced by Tag in TASK-094); no new
+font added; `docs/design-system/*.md` untouched (TASK-090 already finalized
+them); nothing "left defined just in case."
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 163 passed, no new tests (token/CSS + two-class-string
+  diff, no new branching logic to cover)
+- `npm run build` — pass
+- `npm run check-tokens` — PASS, both themes, 0 contrast failures; CSS-name
+  audit shows every `tokens.json` color var now "reused" (only `--scrim`,
+  `--shadow-overlay`, `--tier-5` show as "new" — none have a consumer yet;
+  `tier.notScored` has no color value in `tokens.json`, only a dashed-border
+  style, so no `--tier-5` var was invented for it)
+
 ### Feature: TASK-075 — Auth, onboarding and billing screen pass
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).
