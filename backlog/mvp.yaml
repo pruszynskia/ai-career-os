@@ -6976,7 +6976,7 @@ tasks:
     github:
       issue: "203"
       project_item: null
-    status: todo
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Redesign"

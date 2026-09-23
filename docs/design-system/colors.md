@@ -1,138 +1,138 @@
 # Colors
 
-Brand direction: a **warm-neutral** surface ramp (OKLCH hue 75, very low
-chroma, never pure black or white) with a **neutral-inverse** primary action
-(the high-contrast opposite of the canvas — near-black on light, near-white
-on dark — rather than a brand hue) and a single **amber** (hue 55) signal
-accent restricted to interactive/focus states. This supersedes the Deep
-Navy / Electric Blue / Emerald identity from ADR-010 (see ADR-018).
+Brand direction: **Midnight Mint** — a near-black/near-white neutral ramp
+(no warm or cool tint) with a single **teal** accent (`#2DD4BF` dark /
+`#0F766E` light) carrying every primary-action, link, focus-ring, selection
+and progress meaning. This supersedes the previous neutral-ramp-plus-amber
+system (see ADR-023, which itself supersedes the design decision it
+replaces — ADR-023's Alternatives Considered has the history).
 
-All tokens live as OKLCH CSS custom properties in
-[`src/app/globals.css`](../../src/app/globals.css) under `:root` (light) and
-`.dark`, consumed through the existing shadcn semantic token names — there is
-no separate theming mechanism. Every semantic token (`--background`,
-`--primary`, `--accent`, …) resolves through a Tier-1 primitive
-(`--neutral-canvas`, `--signal-amber`, …) defined in the same block; no
-semantic token is assigned a literal `oklch()` value of its own.
+All tokens live in [`docs/design-system/tokens.json`](./tokens.json), the
+source of truth `src/app/globals.css`'s `:root` (light) and `.dark` blocks
+are rewritten from (TASK-091). Each token's `css` field is the CSS custom
+property name; there is no separate theming mechanism beyond the existing
+`.dark` class toggle.
 
 ## Palette
 
-| Token | Light | Dark | Role |
-|---|---|---|---|
-| `--background` / `--card` / `--popover` | `--neutral-canvas` / `--neutral-raised` | `--neutral-canvas` / `--neutral-raised` | Page background and elevated surfaces, warm off-white / warm near-black |
-| `--foreground` / `--card-foreground` / `--popover-foreground` / `--secondary-foreground` | `--neutral-text-primary` | `--neutral-text-primary` | Default body and high-emphasis text |
-| `--primary` | `--neutral-ink` (near-black) | `--neutral-paper` (near-white) | Neutral-inverse of the canvas — the single dominant action colour, structurally never a status hue |
-| `--secondary` / `--muted` | `--neutral-sunken` | `--neutral-sunken` | Low-emphasis / recessed surfaces |
-| `--muted-foreground` | `--neutral-text-muted` | `--neutral-text-muted` | Secondary/tertiary text |
-| `--accent` | `--signal-amber` (hue 55) | `--signal-amber` (hue 55) | The one signal accent — interaction/hover highlights, never body or link text |
-| `--ring` | `--primary` (near-black) | `--primary` (near-white) | Focus ring — the high-contrast neutral-inverse, not the accent (amber/background is 2.04:1 in light mode, under the 3:1 SC 1.4.11 floor for a focus indicator) |
-| `--warning` | `--signal-gold` (hue 95) | `--signal-gold` (hue 95) | Warning status |
-| `--info` | `--signal-info` (hue 240) | `--signal-info` (hue 240) | Informational status |
-| `--success` | `--status-success` (hue 155) | `--status-success` (hue 155) | Positive status, progress |
-| `--destructive` | `--status-destructive` (hue ≈27) | `--status-destructive` (hue ≈22) | Errors/destructive actions (unchanged shadcn red — out of colour-identity scope) |
-| `--border` | `--neutral-border-hairline` | `--neutral-border-hairline` | Dividers |
-| `--input` | `--neutral-border-strong` | `--neutral-border-strong` | Form control borders |
+| Role | Dark | Light | CSS var | Use |
+|---|---|---|---|---|
+| Canvas | `#0A0E14` | `#FFFFFF` | `--background` | Page background |
+| Sidebar | `#000000` | `#F6F7F9` | `--sidebar` | App sidebar, mobile tab bar, status footer |
+| Sunken | `#07090D` | `#F2F4F6` | `--surface-sunken` | Inputs (dark), table group headers, closed lanes |
+| Raised | `#161B24` | `#FFFFFF` | `--popover` | Dialogs, popovers, menus, toasts (always with overlay shadow) |
+| Hover / selected | `#1C1F26` | `#F4F5F7` | `--muted` | Row/nav hover, selected row, active nav item, skeleton blocks |
+| Border subtle | `#1C1F26` | `#E6E8EC` | `--border` | Row dividers, section rules |
+| Border default | `#2D3642` | `#D2D6DC` | `--border-default` | Cards/sections, buttons (secondary), chips, table containers |
+| Border control | `#5B6778` | `#7A8494` | `--input` | Text inputs, selects, textareas, checkboxes (≥3:1, WCAG 1.4.11) |
+| Border strong | `#AEB6C2` | `#2D3642` | `--border-strong` | Featured card (Pro plan), selected chip |
+| Text primary | `#E8ECF1` | `#0A0E14` | `--foreground` | Default body / high-emphasis text |
+| Text secondary | `#AEB6C2` | `#2D3642` | `--foreground-secondary` | Secondary text |
+| Text muted | `#818B99` | `#5B6472` | `--muted-foreground` | Meta, captions, placeholders, table headers |
+| **Accent (teal)** | `#2DD4BF` | `#0F766E` | `--primary` | Primary buttons, links on dark, focus ring, progress, selection edge, score bars |
+| Accent hover | `#5EEAD4` | `#115E59` | `--primary-hover` | Hover state |
+| Accent pressed | `#14B8A6` | `#134E4A` | `--primary-pressed` | Pressed state |
+| Accent subtle | `#0B2A28` | `#E6F7F5` | `--primary-subtle` | Success banner, drop-target fill |
+| Text on accent | `#042F2E` | `#FFFFFF` | `--primary-foreground` | Text on filled `--primary` |
+| Warning (urgency) | `#F5B452` | `#B45309` | `--warning` | Follow-up due, expiring, pending connection, notification dot — urgency only |
+| Warning subtle | `#2A2211` | `#FEF4E6` | `--warning-subtle` | Warning banner fill |
+| Danger | `#F87171` | `#C2261D` | `--destructive` | Errors, destructive actions |
+| Danger hover | `#FCA5A5` | `#A31F17` | `--destructive-hover` | Hover state |
+| Danger subtle | `#2A1215` | `#FDECEC` | `--destructive-subtle` | Danger banner fill |
+| Text on danger | `#140404` | `#FFFFFF` | `--destructive-foreground` | Text on filled `--destructive` |
+| Success | alias of accent.default | alias of accent.default | `--success` | Positive status |
+| Tier 1 (Apply immediately) | `#2DD4BF` | `#0D9488` | `--tier-1` | |
+| Tier 2 (Strong opportunity) | `#0D9488` | `#134E4A` | `--tier-2` | |
+| Tier 3 (Consider) | `#5B6778` | `#8A94A3` | `--tier-3` | |
+| Tier 4 (Ignore) | `#2D3642` | `#D2D6DC` | `--tier-4` | |
+| Tier 5 (Not scored) | 1px dashed `--muted-foreground`, no fill | same | `--tier-5` | |
+| Chart fill | alias of accent.default | alias of accent.default | `--chart-fill` | Score/usage bar fill |
+| Chart track | `#2D3642` | `#E6E8EC` | `--chart-track` | Score/usage bar track |
+| Focus ring | alias of accent.default | alias of accent.default | `--ring` | 2px solid, 2px offset, every interactive element via `:focus-visible` |
+| Scrim | `rgba(0,0,0,.62)` | `rgba(10,14,20,.32)` | `--scrim` | Dialog/overlay backdrop |
 
-Unlike the superseded ADR-010 palette, hue is **not** held constant across
-light/dark for the neutral surfaces — light and dark are each an
-independently tuned step of the same warm-neutral ramp, not an inverted copy
-of one set of numbers. The amber, gold and info signal colours are held
-identical between themes, since each is a single fixed accent rather than a
-surface.
-
-`--warning` / `--warning-foreground` and `--info` / `--info-foreground` are
-new tokens, wired into the `@theme inline` block in `globals.css` as
-`--color-warning` / `--color-warning-foreground` / `--color-info` /
-`--color-info-foreground`, following the existing `--color-success` pattern
-— `bg-warning`, `text-warning-foreground`, `bg-info` and
-`text-info-foreground` are usable Tailwind utilities the same way
-`bg-destructive` already is.
+**Retired:** `--accent` as amber (its interactive-hover role is now
+`--muted`, a neutral surface, not a colour), `--info` / `--info-foreground`
+(no blue in the system), `--signal-gold`, the `--chart-step-1..5` ramp, and
+the secondary display face — `--font-heading` / `--font-display` — see
+[`typography.md`](./typography.md).
 
 ## Colour budget
 
-Roughly **90% neutral** (canvas/sunken/raised surfaces and border hairlines),
-**~8% ink** (primary text and the neutral-inverse `--primary` action), and
-**~2% accent** (amber interaction states, plus the rarer warning/info/success/
-destructive status colours). Any screen leaning far outside that ratio —
-several amber elements competing at once, or a status colour used for
-emphasis rather than status — is a spec violation, not a style choice.
-
-## Foreground pairing rule
-
-`--accent-foreground` and `--warning-foreground` use a **dark ink** text
-(not white) in both modes — amber and gold are light colours, so white text
-on them fails WCAG AA while a dark ink foreground comfortably passes (see
-contrast table below). `--info-foreground` and `--success-foreground` use a
-**light** foreground, since info/success sit at a mid-to-dark lightness.
-`--primary-foreground` is always the opposite of `--primary`: near-white ink
-on the near-black light-mode primary, near-black ink on the near-white
-dark-mode primary.
+Mostly neutral (canvas/sidebar/sunken/raised surfaces and border hairlines),
+with teal reserved for the single dominant action per region — the focus
+ring, the one primary button, links, progress and selection state — and
+warning/danger reserved for urgency and destructive actions only. A screen
+with several teal elements competing at once, or a status colour used for
+emphasis rather than status, is a spec violation, not a style choice.
 
 ## WCAG AA contrast (verified)
 
-Ratios computed from the final OKLCH token values above via the WCAG 2
-relative-luminance formula (OKLCH → OKLab → linear sRGB → relative
-luminance), not assumed. Minimum required: 4.5:1 for body text, 3:1 for
-large text (≥18pt / ≥14pt bold) and for non-text UI components such as a
-focus ring (WCAG 2.1 SC 1.4.11).
+Ratios computed from the token hex values above via the WCAG 2
+relative-luminance formula, not assumed — this table mirrors
+`scripts/check-tokens.py`'s pair list, the runnable gate for these numbers.
+Minimum required: 4.5:1 for body text, 3:1 for non-text UI components such
+as a focus ring or a control border (WCAG 2.1 SC 1.4.11).
 
-| Pair | Light | Dark | Result |
+| Pair | Dark | Light | Result |
 |---|---|---|---|
-| foreground / background | 18.04 | 17.22 | Pass (body text) |
-| primary-foreground / primary | 18.28 | 17.21 | Pass (body text) |
-| secondary-foreground / secondary | 16.99 | 17.87 | Pass (body text) |
-| muted-foreground / background | 6.26 | 5.98 | Pass (body text) |
-| accent-foreground / accent | 8.51 | 8.51 | Pass (body text) |
-| warning-foreground / warning | 9.95 | 9.95 | Pass (body text) |
-| info-foreground / info | 6.14 | 6.14 | Pass (body text) |
-| success-foreground / success | 5.30 | 7.45 | Pass (body text) |
-| destructive (text) / background | 4.58 | 6.71 | Pass (body text) |
-| ring (`--primary`) / background | 18.28 | 17.21 | Pass (3:1 focus indicator) |
-| text-accent / background | 2.04 | 9.11 | **Fails in light** — do not use `text-accent` as body or link text; amber is reserved for non-text interaction states (borders, hover fills, icons) |
-| text-warning / background | 1.67 | 11.15 | **Fails in light** — same rule as `text-accent`; use `bg-warning` + `text-warning-foreground` (badge pattern) instead of `text-warning` on the page background |
-| text-info / background | 6.25 | 2.97 | **Fails in dark** — use `bg-info` + `text-info-foreground` (badge pattern), never `text-info` directly on the page background |
-| text-success / background | 3.54 | 7.16 | **Fails 4.5:1 body-text in light** (passes the 3:1 large-text/UI floor) — reserve for large/bold text or icons only, use `success-foreground`/`success` for badges |
+| text.primary / background.canvas | 16.30 | 19.34 | Pass (body text) |
+| text.secondary / background.canvas | 9.46 | 12.22 | Pass (body text) |
+| text.muted / background.canvas | 5.61 | 5.98 | Pass (body text) |
+| status.warning / background.canvas | 10.62 | 5.02 | Pass (body text) |
+| status.danger / background.canvas | 6.99 | 5.85 | Pass (body text) |
+| focus.ring / background.canvas | 10.39 | 5.47 | Pass (3:1 focus indicator) |
+| accent.default / background.canvas | 10.39 | 5.47 | Pass (body text — teal as link/text) |
+| text.onAccent / accent.default | 7.77 | 5.47 | Pass (primary button label) |
+| status.onDanger / status.danger | 7.24 | 5.85 | Pass (danger button label) |
+| text.primary / status.warningSubtle | 13.25 | 17.77 | Pass (banner text) |
+| status.warning / status.warningSubtle | 8.64 | 4.61 | Pass (3:1 banner icon) |
+| text.primary / status.dangerSubtle | 14.80 | 16.93 | Pass (banner text) |
+| status.danger / status.dangerSubtle | 6.35 | 5.12 | Pass (3:1 banner icon) |
+| border.control / background.canvas | 3.37 | 3.78 | Pass (3:1 input boundary) |
+| border.control / background.sunken | 3.47 | 3.43 | Pass (3:1 input boundary) |
+| data.barFill / data.barTrack | 6.57 | 4.46 | Pass (3:1 score bar) |
+| tier.applyImmediately / background.sunken | 10.70 | 3.40 | Pass (3:1 tier marker) |
+| tier.strongOpportunity / background.sunken | 5.32 | 8.59 | Pass (3:1 tier marker) |
 
-`--destructive` is used as tinted text on `bg-destructive/10` (see
-`src/shared/ui/button.tsx`'s `destructive` variant), not as a solid fill with
-a `-foreground` pair — the contrast check above is destructive text directly
-against the page background, which is the pairing that's actually rendered.
-
-The `text-accent`/`text-warning`/`text-info`/`text-success` rows are the
-direct-on-background text pairing, distinct from the badge-style
-`*-foreground`/`*` pairing above them, which is the only way these four
-colours may be used as text (see Usage below).
-
-## Radius
-
-`--radius` is 0.375rem (6px). `--radius-xl`, `--radius-2xl`, `--radius-3xl`
-and `--radius-4xl` are all capped at 0.5rem (8px) so no `rounded-xl`/
-`rounded-2xl`/`rounded-3xl`/`rounded-4xl` call site in the codebase renders
-above 8px, pending the individual call-site cleanup in TASK-069.
-
-## Motion
-
-`--dur-fast` (100ms), `--dur` (160ms), `--dur-slow` (240ms) and `--ease`
-(`cubic-bezier(0.2, 0, 0, 1)`) are defined once in `globals.css`, for
-TASK-077's motion work to consume.
+`scripts/check-tokens.py` checks the full 48-pair matrix (every text role
+against every background, plus the accent/status/tier/data pairs above) for
+both themes — all 48 pairs pass in both themes as of this token set. Run
+`npm run check-tokens -- -v` for the complete list.
 
 ## Dark mode
 
-Dark is the default theme (TASK-067) — `next-themes` applies the `.dark`
-class before first paint, and Light and System are opt-in via the toggle in
-Settings. Its palette is a **designed inversion** of the light ramp — every
-dark value above was independently tuned for legibility and elevation, not
-derived by auto-inverting the light tokens.
+Dark is the default theme (`next-themes` applies the `.dark` class before
+first paint; Light is opt-in via the toggle in Settings). Its palette is a
+designed inversion, not an auto-inverted copy of the light values — every
+dark value above was independently tuned for legibility and elevation.
+
+## Radius
+
+`radius.lg` (12px, `--radius-lg` / `rounded-xl`) is reserved for dialogs and
+product frames only — see [`ui-principles.md`](./ui-principles.md)'s
+guardrail checklist. `radius.md` (8px) covers cards, table containers,
+menus, popovers, toasts and banners; `radius.sm` (6px) covers controls
+(buttons, inputs, selects, chips); `radius.xs` (4px) covers tier markers and
+tiny chips; `radius.full` covers avatars, dots and stage rings.
+
+## Motion
+
+`motion.duration` (fast 100ms, base 160ms, slow 240ms) and
+`motion.easing` (`cubic-bezier(0.2, 0, 0, 1)`) in `tokens.json` are the
+values `--dur-fast`/`--dur`/`--dur-slow`/`--ease` in `globals.css` are
+rewritten from. Reduced motion stays opacity-only fades at `duration.fast`
+(existing `globals.css` rule).
 
 ## Usage
 
-- Reach for the semantic token (`bg-primary`, `text-foreground`, `bg-success`),
-  never a raw OKLCH/hex value in component code.
-- `primary` for the single dominant call-to-action per screen and for links
-  (`text-accent`/`text-warning`/`text-info` fail contrast in one theme each —
-  see the table above); `accent` for non-text interactive highlights (hover
-  fills, borders, icons) only; `warning`/`info`/`success` for status only,
-  always as the `*-foreground`-on-`*` badge pairing, never as `text-*`
-  directly on the page background.
-- Do not introduce new color tokens outside this palette without updating
-  this document first.
+- Reach for the semantic token (`bg-primary`, `text-foreground`,
+  `bg-success`), never a raw hex value in component code.
+- `--primary` (teal) is the single accent: primary buttons, links, focus
+  ring, progress, selection edge and score bars. It is not split across an
+  "accent" and a separate "ring" concept the way the retired amber system
+  was.
+- `--warning`/`--destructive` are status-only, restricted to their stated
+  `use` in the palette table above — never used for emphasis or decoration.
+- Do not introduce a color token outside `tokens.json` without updating this
+  document first.
