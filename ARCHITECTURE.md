@@ -167,7 +167,10 @@ Tailwind CSS
 
 Animations:
 
-Framer Motion
+No animation library — `tw-animate-css` (Radix enter/exit keyframes) plus
+plain Tailwind `transition-*` utilities routed through the `--dur*`/`--ease`
+tokens in `src/app/globals.css`. See
+[docs/design-system/motion.md](docs/design-system/motion.md).
 
 Icons:
 
@@ -179,7 +182,8 @@ as tokens in `src/app/globals.css`):
 
 - [docs/design-system/colors.md](docs/design-system/colors.md)
 - [docs/design-system/typography.md](docs/design-system/typography.md)
-- [docs/design-system/ui-principles.md](docs/design-system/ui-principles.md)
+- [docs/design-system/ui-principles.md](docs/design-system/ui-principles.md) — including the runnable guardrail checklist
+- [docs/design-system/motion.md](docs/design-system/motion.md)
 
 ---
 

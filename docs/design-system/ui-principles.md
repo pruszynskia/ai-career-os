@@ -78,6 +78,24 @@ of re-implementing the page shell:
   `src/app/(app)/layout.tsx` already applies once per route — never re-add
   outer padding or a second scroll container inside it.
 
+## Guardrail checklist
+
+Run these from the repo root. Each is a pass/fail gate for `/design-review`
+and for TASK-077's own audit — a rule that only lives in prose drifts back to
+the defaults within a few features, so it's a grep, not a suggestion.
+
+| Rule | Rationale | Grep |
+|---|---|---|
+| No gradients | "Explicitly avoid" above | `grep -rn "gradient" src --include="*.tsx" --include="*.css"` → no matches |
+| No `backdrop-blur` | "Explicitly avoid" above | `grep -rn "backdrop-blur" src --include="*.tsx"` → no matches |
+| No radius above 8px | Radius scale caps at `--radius-lg`/6px; nothing calls for more | `grep -rEn "rounded-(xl|2xl|3xl|4xl)\b" src --include="*.tsx"` → no matches |
+| `rounded-full` only on genuinely circular elements | Pill shapes on rectangular controls read as generic AI-product chrome | `grep -rln "rounded-full" src --include="*.tsx"` → only `Avatar.tsx` |
+| No raw Tailwind palette colour | Colour comes from `colors.md`'s semantic tokens only | `grep -rEn "(bg|text|border|ring|fill|stroke)-(red|blue|green|yellow|purple|pink|indigo|orange|teal|cyan|lime|emerald|sky|violet|fuchsia|rose|amber|slate|gray|zinc|neutral|stone)-[0-9]+" src --include="*.tsx"` → no matches |
+| Shadow only on true overlays | Elevation model above — no shadow on an inline `Card` | `grep -rln "shadow-" src --include="*.tsx"` → only `dialog.tsx`, `Popover.tsx`, `Select.tsx` (and any future toast/tooltip/dropdown) |
+| No `Card` wrapping an individual list item | Elevation model — a collection reads as ruled rows, not stacked cards; a small, fixed-count row of richly-detailed distinct objects (a board column, a pricing tier) is the exception, a scrolling list of similar rows is not | `grep -rln "<Card" src --include="*.tsx"` → for every match, open the file and confirm the `<Card>` either wraps a single, non-repeated entity, or is one of the two sanctioned repeated-item exceptions: `application-board.tsx`'s `BoardCard` (one per board column) and `pricing-table.tsx` (one per plan, a fixed 2-3-item comparison grid, not an open-ended list). A `.map((` proximity grep is not enough here: an extracted row component (like `BoardCard`) puts `<Card` lines away from its call site, so this rule is a listing to audit by hand, not a zero-match gate |
+| No hardcoded transition duration or easing | [`motion.md`](./motion.md) — every transition goes through `--dur*`/`--ease` | Two portable (no `-P`, no lookahead) checks: (1) `grep -rEn "duration-[0-9]+\b|\bease-(linear|in|out|in-out)\b|cubic-bezier\(" src --include="*.tsx" --include="*.ts" --include="*.css" --exclude="globals.css"` and `grep -rn "style={{[^}]*transition" src --include="*.tsx"` → no matches (catches hardcoded values); (2) `grep -rEn "duration-\[|ease-\[" src --include="*.tsx" --include="*.ts" --include="*.css" --exclude="globals.css"` → every match reads `duration-[var(--dur` or `ease-[var(--ease` (catches an arbitrary-value escape hatch smuggling in a literal like `duration-[300ms]`) |
+| Reduced motion drops transform | [`motion.md`](./motion.md) | `grep -n "\-\-tw-enter-scale: 1 !important" src/app/globals.css` → present (checks that the reduced-motion block actually neutralizes the transform vars, not just that the media query exists) |
+
 ## When adding a new screen
 
 1. Compose from existing `src/shared/ui` primitives (Button, Card, Dialog,

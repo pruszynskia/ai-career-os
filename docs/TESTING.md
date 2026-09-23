@@ -494,6 +494,30 @@ that automated tests only touch in parts.
    sign-in burst is (`src/shared/rate-limit`) — after the limit, a `429` with
    `Retry-After` is returned instead of reaching `delete_own_account()`.
 
+## Theme switching and design-system guardrails
+
+There is no automated visual-regression suite (see Future Improvements) —
+this is a manual/`/design-review` journey.
+
+1. On `/settings`, switch `Appearance` between `Light`, `Dark` and `System`
+   → every route re-renders with no unreadable text (a11y contrast is
+   verified once in [`colors.md`](design-system/colors.md)'s table, not
+   per-screen) and no layout shift beyond the colour swap itself.
+2. Reload after choosing a theme → the choice persists (`next-themes`
+   reads its `theme` localStorage key before first paint, so there's no
+   flash of the other theme).
+3. Run the [`/design-review`](../.claude/commands/design-review.md) loop
+   (`docs/DESIGN_REVIEW_WORKFLOW.md`) against every route in both themes
+   before closing a design-system milestone task, and run every grep in
+   [`ui-principles.md`](design-system/ui-principles.md)'s guardrail
+   checklist — a screen that only looks right in one theme, or a component
+   that reintroduces a banned pattern (gradient, raw palette colour,
+   oversized radius, a `Card` around a single list row), has failed even if
+   the automated suite is green.
+4. With OS-level "reduce motion" enabled, open a dialog/popover/select →
+   it still fades in, nothing slides, scales or rotates (see
+   [`motion.md`](design-system/motion.md)).
+
 ---
 
 # Future Improvements
