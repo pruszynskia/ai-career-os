@@ -27,10 +27,16 @@ in this prompt (plan findings F3/F4).
    `deploy-loop: CONTINUE — TASK-054 implement → review`.
 
 3. Pace the next tick:
-   - `CONTINUE` → `ScheduleWakeup` in ~120 s.
-   - `WAIT` → `ScheduleWakeup` in ~600 s (GitHub / Vercel is doing the work).
-   - `STOP` or `BLOCKED` → `ScheduleWakeup stop:true` and surface the `reason`
-     to Andrzej.
+   - `CONTINUE` → the next transition is ready now; call the orchestrator
+     again immediately (same turn), don't `ScheduleWakeup` a delay first.
+     Only stop chaining ticks to end the turn when the status becomes WAIT,
+     STOP, or BLOCKED, or a phase genuinely needs external time to pass.
+   - `WAIT` → `ScheduleWakeup` in ~600 s (GitHub / Vercel is doing the work,
+     or a PR is open under `pr-only` awaiting Andrzej's manual merge — see
+     Autonomy below). Poll on a longer interval (~900 s) if repeated polls
+     come back unchanged.
+   - `STOP` or genuine `BLOCKED` (needs a human decision, not just a pending
+     merge) → `ScheduleWakeup stop:true` and surface the `reason` to Andrzej.
 
 The main `/loop` session only ever holds this thin dispatcher — it grows
 ~10 lines per tick. Everything heavy happens in the discarded orchestrator and
@@ -48,12 +54,17 @@ failed; any budget cap tripped (`max_ticks_per_task` 20, `max_tasks_per_run`
 
 `.claude/deploy-loop-state.json` carries `"autonomy"`:
 
-- `"pr-only"` (default) — stop with the PR open; Andrzej merges by hand.
+- `"pr-only"` (default) — open the PR and do NOT auto-merge; Andrzej merges
+  by hand. The loop does not stop and wait for a "resume" — it keeps polling
+  (`WAIT`, ~600-900 s) until the PR shows `mergedAt` set, then continues
+  straight into sync/next-task on its own. Only a genuine `merge-gate.sh`
+  refusal (oversized diff, failing check, etc.) or another real stop
+  condition ends the loop early.
 - `"auto-merge"` — run `merge-gate.sh`, then `gh pr merge --auto`; GitHub
   merges the moment the required `build` check goes green.
 
-Ship at `pr-only`; flip the field to `auto-merge` only after several clean
-supervised cycles (plan F10).
+Default is `pr-only` — keep it that way; only flip the field to `auto-merge`
+if Andrzej explicitly asks for it again.
 
 ## One-time setup
 

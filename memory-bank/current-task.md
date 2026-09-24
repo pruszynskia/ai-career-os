@@ -8,6 +8,95 @@
 
 ## Current Sprint
 
+### Feature: TASK-094 — Tag, status text, TierMarker, StageRing and Meter
+
+Status: **done** — green on typecheck/lint/test/build (181 tests passed, 12
+new).
+
+What shipped:
+
+- `src/shared/ui/tag.tsx` (new) — `tagVariants`, neutral-only (`size`
+  `sm(20)/md(24)`, `border-[var(--border-default)]`, `rounded-lg` (the
+  6px step — TASK-092/093 already established that the Tailwind class
+  named `lg` maps to `--radius` (6px) in this repo's remapped scale, not
+  tokens.json's own step names), `text-xs` (12px) `font-normal`
+  `text-[var(--foreground-secondary)]`; `aria-pressed:*` covers the
+  selected/filter-chip state from the mockups' `.tag.on`).
+- `src/shared/ui/primitives/feedback/badge/Badge.tsx` — rewritten as a
+  compiling-only shim: `BadgeProps` still accepts the old coloured
+  `variant` (`default/secondary/outline/destructive/success/warning/info`)
+  so every existing call site type-checks unchanged, but the component
+  itself just renders `Tag` and discards the value (`void variant`) — Tag
+  is neutral-only, so the old colour no longer shows. `badge/index.ts`'s
+  `badgeVariants` re-export dropped (had no consumer outside `Badge.tsx`
+  itself, confirmed by grep).
+- `src/shared/ui/primitives/typography/text/Text.tsx` — `color` variant
+  gained `success` (`text-success`, already aliased); `warning`/
+  `destructive` already existed from an earlier task, untouched.
+- `src/entities/job-offer/ui/tier-marker.tsx` (new) — `TierMarker`, a 6x6
+  `rounded-[1px]` square reading `--tier-1..4` via inline `style`
+  (not yet Tailwind-aliased, same arbitrary-value convention `button.tsx`/
+  `input.tsx` already use for `--primary-hover`/`--surface-sunken`), `tier:
+  null` renders the `--tier-5` dashed-muted-border "not scored" state
+  instead. Always paired with a `Text` label (`children`, required prop —
+  the square alone carries no meaning).
+- `src/entities/application/ui/stage-ring.tsx` (new) — `StageRing`, a 14px
+  `aria-hidden` SVG. `status: ApplicationStatus | null`: `null` → dashed
+  muted ring ("not tracked"); one of the five `ACTIVE_APPLICATION_STATUSES`
+  → track + accent progress arc at `stageIndex / 5` (reuses the existing
+  `ACTIVE_APPLICATION_STATUSES` array rather than requiring callers to pass
+  a raw index); `OFFER` → filled accent circle + check; `REJECTED`/
+  `NO_RESPONSE`/`EXPIRED` (via the existing `isTerminalApplicationStatus`
+  helper) → filled `--border-default` circle + dash. No call site yet
+  (TASK-100/112's job per the task prompt) — built and tested standalone.
+- `src/shared/ui/meter.tsx` (new) — `Meter`, track `--chart-track` / fill
+  `bg-primary`, `variant` `inline` (3px, the default) or `standalone`
+  (6px). `role="meter"` + `aria-valuenow/min/max` only apply in
+  standalone **and** non-segmented mode — a `segments` prop (array of
+  `{value, colorVar}`) renders a stacked multi-colour bar instead for the
+  recommendation-mix legend, where there's no single "current value" to
+  expose as one ARIA meter.
+- `src/features/job-offer/components/recommended-action-badge.tsx` —
+  `RECOMMENDED_ACTION_VARIANT` (Badge colour map) replaced by
+  `RECOMMENDED_ACTION_TIER` (`RecommendedAction` → tier 1-4, mirroring
+  `tokens.json`'s tier order 1:1: `APPLY_IMMEDIATELY`→1 ...
+  `IGNORE`→4); `RecommendedActionBadge` now renders `<TierMarker
+  tier={...}>{label}</TierMarker>`. Its two callers (`fit-report.tsx`,
+  `unified-offer-list.tsx`) needed no change — same `action` prop, same
+  export name.
+- `src/shared/ui/primitives/index.ts` — added `Tag`/`tagVariants`/`Meter`
+  barrel re-exports (same explicit-named-export pattern `SectionLabel`
+  already used there, since both live outside `primitives/` proper).
+- New tests: `tag.test.tsx` (no coloured class in output, `aria-pressed`
+  renders), `meter.test.tsx` (meter role only standalone+non-segmented),
+  `stage-ring.test.tsx` (5 distinct arc offsets, not-tracked/offer/closed
+  states, aria-hidden), `recommended-action-badge.test.tsx` (renders a
+  `TierMarker`, not a `Tag`/`Badge` box).
+
+Not done (explicitly out of scope per `do_not`): the 18 (now 16, after
+`recommended-action-badge.tsx`'s own usage moved to `TierMarker`) existing
+`<Badge>` call sites weren't touched (TASK-122's job); no colour
+hardcoded anywhere `--tier-*`/`--chart-*` was needed; no number badge
+added; `GridTable`/group-header tier usage not built (TASK-097).
+`docs/design-system/tokens.json` needed no edit — every token this task
+reads (`--tier-1..4`, `--chart-track`, `--chart-fill`, `--warning`,
+`--success`) already landed in `globals.css` by TASK-091, so it's listed
+in `scope:` only as the verification source.
+
+Playwright MCP design-review loop not run (no Playwright MCP tool
+available in this session's tool set — same limitation as every prior UI
+task in this log). Worth a manual light/dark pass on `/offers`,
+`/offers/[id]` (the fit report's `RecommendedActionBadge` is the only
+wired call site this task adds) before merge.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element`
+  warning)
+- `npm run test` — 181 passed (12 new, across the four new test files)
+- `npm run build` — pass
+
 ### Feature: TASK-093 — Inputs, Field, Select restyle and Label meta retirement into SectionLabel
 
 Status: **done** — green on typecheck/lint/test/build (169 tests passed, 3
