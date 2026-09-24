@@ -7,6 +7,7 @@ import { getNotifications } from '@/features/notification/services/get-notificat
 import { getOwnerId } from '@/shared/auth/session';
 import { getPlanForOwner } from '@/shared/billing/entitlements';
 import { Screen } from '@/shared/ui/primitives';
+import { MobileHeader, MobileTabBar } from '@/widgets/nav/mobile-tab-bar';
 import { Sidebar } from '@/widgets/nav/sidebar';
 import { TopBar } from '@/widgets/nav/top-bar';
 
@@ -30,8 +31,12 @@ export default async function AppLayout({
         usage={{ used, limit: plan.aiActionsPerMonth, planName: plan.name }}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar notifications={notifications} />
-        <Screen>{children}</Screen>
+        <div className="hidden md:block">
+          <TopBar notifications={notifications} />
+        </div>
+        <MobileHeader notifications={notifications} />
+        <Screen className="max-md:pb-[76px]">{children}</Screen>
+        <MobileTabBar />
       </div>
     </div>
   );
