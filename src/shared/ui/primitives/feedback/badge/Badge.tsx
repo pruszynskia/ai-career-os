@@ -1,45 +1,30 @@
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 
-import { cn } from '@/shared/ui/utils';
+import { Tag, type TagProps } from '@/shared/ui/tag';
 
-const badgeVariants = cva(
-  'inline-flex w-fit shrink-0 items-center gap-1 rounded-xs border font-mono font-medium tracking-wide uppercase whitespace-nowrap',
-  {
-    variants: {
-      variant: {
-        default: 'border-transparent bg-primary text-primary-foreground',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        outline: 'border-border text-foreground',
-        destructive: 'border-transparent bg-destructive text-white',
-        success: 'border-transparent bg-success text-success-foreground',
-        warning: 'border-transparent bg-warning text-warning-foreground',
-        info: 'border-transparent bg-info text-info-foreground',
-      },
-      size: {
-        sm: 'px-1.5 py-0.5 text-xs',
-        md: 'px-2 py-1 text-sm',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'sm',
-    },
-  },
-);
+// Compiling shim only (DESIGN-SYSTEM \S4.8): Tag is the real, neutral-only
+// component now. The coloured `variant` this used to carry is accepted here
+// so the 18 existing call sites (grepped) keep type-checking, but it no
+// longer changes anything visually - every Badge now renders as a Tag.
+// TASK-122 updates those call sites to Tag directly and removes this file.
+type LegacyBadgeVariant =
+  | 'default'
+  | 'secondary'
+  | 'outline'
+  | 'destructive'
+  | 'success'
+  | 'warning'
+  | 'info';
 
-interface BadgeProps
-  extends React.ComponentProps<'span'>, VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, size, ...props }: BadgeProps) {
-  return (
-    <span
-      data-slot="badge"
-      className={cn(badgeVariants({ variant, size }), className)}
-      {...props}
-    />
-  );
+interface BadgeProps extends Omit<TagProps, 'size'> {
+  variant?: LegacyBadgeVariant;
+  size?: TagProps['size'];
 }
 
-export { Badge, badgeVariants };
+function Badge({ variant, ...props }: BadgeProps) {
+  void variant; // accepted for compile compat only, Tag is neutral-only
+  return <Tag {...props} />;
+}
+
+export { Badge };
 export type { BadgeProps };

@@ -34,11 +34,13 @@ None. (Autonomy stays whatever `.claude/deploy-loop-state.json` says —
 
 - Preflight result (branch, tree state, next task id)
 - Confirmation the state file was reset (new `deadline`)
-- That the loop is running and will STOP at the first "PR ready for review"
-  under `pr-only`
+- That the loop is running: under `pr-only` it opens each PR without
+  auto-merging and keeps polling until Andrzej merges it by hand, then
+  continues on its own — it does not stop and wait for a "resume" just
+  because a PR is open.
 
 ## Do not
 
-- Do not flip `autonomy` to `auto-merge` from here — that is a deliberate,
-  separate edit after several clean supervised cycles.
+- Do not flip `autonomy` to `auto-merge` from here — only do that if Andrzej
+  explicitly asks for it.
 - Do not start if preflight fails — fix the branch/tree first.

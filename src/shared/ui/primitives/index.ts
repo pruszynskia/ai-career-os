@@ -19,6 +19,10 @@ export * from './feedback/spinner';
 export * from './feedback/skeleton';
 export * from './feedback/badge';
 export * from './feedback/avatar';
+export { Tag, tagVariants } from '@/shared/ui/tag';
+export type { TagProps } from '@/shared/ui/tag';
+export { Meter } from '@/shared/ui/meter';
+export type { MeterProps, MeterSegment } from '@/shared/ui/meter';
 
 export * from './interaction/button';
 export * from './interaction/input';
