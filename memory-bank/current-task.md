@@ -1629,3 +1629,4 @@ Validation:
 - 2026-09-24: TASK-103 (add-offer dialog widget, moved inline form off the offers page) merged via PR #260, merge commit dcefc2a3d93d03e9cb80f40b8702f28822a6ae61.
 - 2026-09-24: TASK-123 (mobile app shell: header, bottom tab bar, add-offer bottom sheet) merged via PR #261, merge commit 2834647821f7a03b2b0565cc562d828233f6ae97.
 - 2026-09-24: TASK-126 (mobile layout for dashboard components) merged via PR #263, merge commit dc9b43b05023bbd83ffc7796027a9200e5f2e8df.
+- 2026-09-24: TASK-105 (offers list restyle: KPI strip, recommendation-mix meter, tier-grouped GridTable) merged via PR #264, merge commit 008c0ee53bd0feb705ab256143f24645903aa1f2.
