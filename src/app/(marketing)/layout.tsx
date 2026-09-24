@@ -23,7 +23,7 @@ export default function MarketingLayout({
               <Heading level={3}>AI Career OS</Heading>
             </Link>
             <HStack gap={2} align="center">
-              <Button asChild variant="ghost">
+              <Button asChild variant="quiet">
                 <Link href="/sign-in">Sign in</Link>
               </Button>
               <Button asChild>

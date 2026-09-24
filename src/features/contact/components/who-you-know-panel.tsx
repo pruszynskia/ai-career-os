@@ -87,7 +87,7 @@ export function WhoYouKnowPanel({
                     {CONTACT_CLASSIFICATION_LABELS[contact.classification]}
                   </Badge>
                   <Button
-                    variant={isSelected ? 'default' : 'outline'}
+                    variant={isSelected ? 'primary' : 'secondary'}
                     size="sm"
                     onClick={() =>
                       onSelect({
@@ -141,7 +141,7 @@ export function WhoYouKnowPanel({
         </div>
         <Button
           type="submit"
-          variant="secondary"
+          variant="primary"
           disabled={!name.trim() || addContactMutation.isPending}
           className="self-start"
         >

@@ -64,7 +64,7 @@ export default async function SignInPage({
             <Divider className="flex-1" />
           </div>
           <form action={signInWithGoogle}>
-            <Button type="submit" variant="outline" className="w-full">
+            <Button type="submit" variant="secondary" className="w-full">
               Continue with Google
             </Button>
           </form>

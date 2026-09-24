@@ -261,7 +261,7 @@ function BoardCard({ offer }: { offer: OfferWithApplication }) {
             {suggestExpired && (
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 disabled={statusMutation.isPending}
                 onClick={() =>

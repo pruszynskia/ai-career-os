@@ -97,11 +97,11 @@ export async function PricingTable() {
               </VStack>
               {isSignedIn ? (
                 plan.id === (isPro ? 'pro' : 'free') ? (
-                  <Button variant="outline" className="w-full" disabled>
+                  <Button variant="secondary" className="w-full" disabled>
                     Current plan
                   </Button>
                 ) : isPro ? (
-                  <Button variant="outline" className="w-full" disabled>
+                  <Button variant="secondary" className="w-full" disabled>
                     Included
                   </Button>
                 ) : (
@@ -114,7 +114,7 @@ export async function PricingTable() {
               ) : (
                 <Button
                   asChild
-                  variant={plan.featured ? 'default' : 'outline'}
+                  variant={plan.featured ? 'primary' : 'secondary'}
                   className="w-full"
                 >
                   <Link href="/sign-up">{plan.cta}</Link>

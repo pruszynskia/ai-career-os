@@ -45,7 +45,7 @@ export function OptimizeDocumentPanel<TImprovement extends Improvement>({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <AsyncButton
-          variant="secondary"
+          variant="primary"
           className="self-start"
           pending={mutation.isPending}
           pendingLabel={buttonPendingLabel}

@@ -87,7 +87,7 @@ export function DangerZone() {
             </Text>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={handleExport}
               disabled={isExporting}
             >
@@ -108,7 +108,7 @@ export function DangerZone() {
                 if (!open) setConfirmText('');
               }}
               trigger={
-                <Button type="button" variant="destructive">
+                <Button type="button" variant="danger">
                   Delete account
                 </Button>
               }

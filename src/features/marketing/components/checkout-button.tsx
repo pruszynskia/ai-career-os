@@ -19,7 +19,7 @@ export function CheckoutButton({
     <VStack gap={2}>
       <Button
         type="button"
-        variant={featured ? 'default' : 'outline'}
+        variant={featured ? 'primary' : 'secondary'}
         className="w-full"
         onClick={() => mutate(plan)}
         disabled={isPending}

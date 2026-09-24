@@ -133,13 +133,13 @@ export function PostCard({
           </span>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleCopy}>
+          <Button variant="secondary" size="sm" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy'}
           </Button>
           {post.status === 'DRAFT' && <EditPostDialog post={post} />}
           <ConfirmDialog
             trigger={
-              <Button variant="destructive" size="sm">
+              <Button variant="danger" size="sm">
                 Delete
               </Button>
             }
@@ -196,7 +196,7 @@ export function PostCard({
         <AsyncButton
           type="button"
           size="sm"
-          variant="outline"
+          variant="secondary"
           className="self-start"
           pending={markSentMutation.isPending}
           pendingLabel="Marking…"

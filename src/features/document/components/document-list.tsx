@@ -71,14 +71,14 @@ export function DocumentList({ documents }: { documents: CvDocument[] }) {
               </p>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setEditingId(document.id)}
                 >
                   Edit
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() =>
                     downloadTextFile(

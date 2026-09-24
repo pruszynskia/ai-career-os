@@ -98,7 +98,7 @@ export function OfferFilters({
         <Button
           type="button"
           size="sm"
-          variant={view === 'list' ? 'default' : 'outline'}
+          variant={view === 'list' ? 'primary' : 'secondary'}
           aria-pressed={view === 'list'}
           onClick={() => updateParams({ view: undefined })}
         >
@@ -107,7 +107,7 @@ export function OfferFilters({
         <Button
           type="button"
           size="sm"
-          variant={view === 'board' ? 'default' : 'outline'}
+          variant={view === 'board' ? 'primary' : 'secondary'}
           aria-pressed={view === 'board'}
           onClick={() => updateParams({ view: 'board' })}
         >

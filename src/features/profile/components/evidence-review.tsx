@@ -97,7 +97,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                     <AsyncButton
                       type="button"
                       size="sm"
-                      variant="outline"
+                      variant="secondary"
                       pending={isPending && pendingState === 'FLAGGED'}
                       disabled={isPending && pendingState !== 'FLAGGED'}
                       onClick={() =>
@@ -112,7 +112,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                     <AsyncButton
                       type="button"
                       size="sm"
-                      variant="destructive"
+                      variant="danger"
                       pending={isPending && pendingState === 'EXCLUDED'}
                       disabled={isPending && pendingState !== 'EXCLUDED'}
                       onClick={() =>

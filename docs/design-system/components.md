@@ -186,7 +186,7 @@ Props:
 import { ConfirmDialog } from '@/shared/ui';
 
 <ConfirmDialog
-  trigger={<Button variant="destructive">Delete</Button>}
+  trigger={<Button variant="danger">Delete</Button>}
   title="Delete this offer?"
   description="This cannot be undone."
   pending={mutation.isPending}

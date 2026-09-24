@@ -64,14 +64,14 @@ export function AddOfferForm() {
           <div className="flex gap-2">
             <Button
               type="button"
-              variant={mode === 'url' ? 'default' : 'outline'}
+              variant={mode === 'url' ? 'primary' : 'secondary'}
               onClick={() => setMode('url')}
             >
               Paste URL
             </Button>
             <Button
               type="button"
-              variant={mode === 'raw-text' ? 'default' : 'outline'}
+              variant={mode === 'raw-text' ? 'primary' : 'secondary'}
               onClick={() => setMode('raw-text')}
             >
               Paste text
@@ -123,7 +123,7 @@ export function AddOfferForm() {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setDuplicate(null)}
                 >
@@ -131,7 +131,7 @@ export function AddOfferForm() {
                 </Button>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="danger"
                   size="sm"
                   disabled={deleteMutation.isPending}
                   onClick={() =>

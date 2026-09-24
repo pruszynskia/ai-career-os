@@ -82,7 +82,7 @@ export default async function LandingPage() {
             <Button asChild>
               <Link href="/sign-up">Create your account</Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="secondary">
               <Link href="/pricing">See pricing</Link>
             </Button>
           </HStack>

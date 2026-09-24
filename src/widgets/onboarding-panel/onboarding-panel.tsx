@@ -33,7 +33,7 @@ export function OnboardingPanel({ step }: { step: number }) {
             <HStack justify="between" align="center">
               <HStack gap={2}>
                 {step > 1 && (
-                  <Button asChild variant="outline">
+                  <Button asChild variant="secondary">
                     <Link href={`/onboarding?step=${step - 1}`}>Back</Link>
                   </Button>
                 )}
@@ -47,7 +47,7 @@ export function OnboardingPanel({ step }: { step: number }) {
               <form action={completeOnboarding}>
                 <Button
                   type="submit"
-                  variant={isLastStep ? 'default' : 'ghost'}
+                  variant={isLastStep ? 'primary' : 'quiet'}
                 >
                   {isLastStep ? 'Finish' : 'Skip for now'}
                 </Button>
