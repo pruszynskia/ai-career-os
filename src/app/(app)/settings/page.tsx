@@ -12,7 +12,7 @@ import { getOwnerId } from '@/shared/auth/session';
 import { getPlanForOwner } from '@/shared/billing/entitlements';
 import { AppPageLayout } from '@/shared/layouts';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Label, VStack } from '@/shared/ui/primitives';
+import { SectionLabel, VStack } from '@/shared/ui/primitives';
 import { ThemeToggle } from '@/shared/ui/theme-toggle';
 
 export const dynamic = 'force-dynamic';
@@ -30,9 +30,7 @@ export default async function SettingsPage() {
     <AppPageLayout eyebrow="Account" title="Settings">
       <VStack gap={8}>
         <VStack gap={3}>
-          <Label as="span" variant="meta">
-            Appearance
-          </Label>
+          <SectionLabel>Appearance</SectionLabel>
           <ThemeToggle />
         </VStack>
 
@@ -40,9 +38,7 @@ export default async function SettingsPage() {
           <JobPreferencesForm preferences={profile} />
         ) : (
           <VStack gap={3}>
-            <Label as="span" variant="meta">
-              Job preferences
-            </Label>
+            <SectionLabel>Job preferences</SectionLabel>
             <EmptyState message="Upload your CV on the Profile page to set job preferences." />
           </VStack>
         )}

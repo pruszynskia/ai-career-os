@@ -13,6 +13,7 @@ export * from './surface/surface';
 export * from './typography/text';
 export * from './typography/heading';
 export * from './typography/label';
+export { SectionLabel } from '@/shared/ui/section-label';
 
 export * from './feedback/spinner';
 export * from './feedback/skeleton';

@@ -5,9 +5,9 @@ import { cn } from '@/shared/ui/utils';
 
 const labelVariants = cva('', {
   variants: {
+    // The "meta" variant is retired (DESIGN-SYSTEM.md \S4.4) - use SectionLabel.
     variant: {
-      form: 'text-sm font-medium',
-      meta: 'text-label font-mono uppercase [letter-spacing:0.08em] text-muted-foreground',
+      form: 'text-xs font-medium text-[var(--foreground-secondary)]',
     },
   },
   defaultVariants: {

@@ -8,18 +8,19 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { cn } from '@/shared/ui/utils';
 
 const selectTriggerVariants = cva(
-  'flex w-fit items-center justify-between gap-2 rounded-lg border border-border bg-background px-2.5 text-sm whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-input dark:bg-input/30',
+  'flex w-fit items-center justify-between gap-2 rounded-lg border border-input bg-background px-2.5 text-sm whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-sunken)]',
   {
     variants: {
-      // Dense (28px) is the in-app default; comfortable (32px) is reserved
-      // for primary actions - same two-tier control height as Button/Input.
+      // Heights from tokens.json's size.control, matching Input (md/lg/touch = 32/40/48).
+      // touch forces 16px text so iOS doesn't auto-zoom on focus.
       size: {
-        default: 'h-7',
-        comfortable: 'h-8',
+        md: 'h-8 text-sm',
+        lg: 'h-10 text-sm',
+        touch: 'h-12 text-base',
       },
     },
     defaultVariants: {
-      size: 'default',
+      size: 'md',
     },
   },
 );
@@ -150,7 +151,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-md py-1.5 pr-8 pl-2 text-sm outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-muted data-highlighted:text-foreground [&_svg:not([class*='size-'])]:size-4",
+        "relative flex h-8 w-full cursor-default items-center gap-2 rounded-md pr-8 pl-2 text-sm outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-muted data-highlighted:text-foreground [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}

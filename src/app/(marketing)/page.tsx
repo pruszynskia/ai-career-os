@@ -11,7 +11,7 @@ import {
   Grid,
   HStack,
   Heading,
-  Label,
+  SectionLabel,
   Text,
   VStack,
 } from '@/shared/ui/primitives';
@@ -58,9 +58,7 @@ export default async function LandingPage() {
     <VStack gap={12}>
       <Grid cols={1} colsMd={12} gap={8}>
         <VStack gap={4} align="start" className="md:col-span-8">
-          <Label as="span" variant="meta">
-            One verified record of your job search
-          </Label>
+          <SectionLabel>One verified record of your job search</SectionLabel>
           <Heading level={1} className="text-display">
             One record of what you&apos;ve actually done, and everything else
             generated only from it

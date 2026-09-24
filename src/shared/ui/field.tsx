@@ -59,12 +59,12 @@ function Field({ id, label, help, error, className, children }: FieldProps) {
       <Label htmlFor={id}>{label}</Label>
       {control}
       {help && (
-        <p id={helpId} className="text-sm text-muted-foreground">
+        <p id={helpId} className="text-xs text-muted-foreground">
           {help}
         </p>
       )}
       {error && (
-        <p id={errorId} role="alert" className="text-sm text-destructive">
+        <p id={errorId} role="alert" className="text-xs text-destructive">
           {error}
         </p>
       )}

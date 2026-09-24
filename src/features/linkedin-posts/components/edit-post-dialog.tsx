@@ -47,6 +47,7 @@ export function EditPostDialog({ post }: { post: Post }) {
           <DialogTitle>Edit post</DialogTitle>
         </DialogHeader>
         <Textarea
+          className="resize-none"
           value={content}
           onChange={(event) => setContent(event.target.value)}
           rows={8}
