@@ -50,7 +50,7 @@ function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
@@ -58,7 +58,7 @@ function ConfirmDialog({
         {children}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary">{cancelLabel}</Button>
+            <Button variant="quiet">{cancelLabel}</Button>
           </DialogClose>
           <AsyncButton
             type="button"
