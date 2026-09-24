@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -26,6 +27,7 @@ import {
   type ApplicationStatus,
 } from '@/entities/application/types';
 import { StageRing } from '@/entities/application/ui/stage-ring';
+import { JumpDialog } from '@/widgets/nav/jump-dialog';
 
 interface NavItem {
   href: string;
@@ -82,6 +84,7 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const hasLimit = usage.limit > 0;
+  const [isJumpDialogOpen, setIsJumpDialogOpen] = useState(false);
 
   // The only viewport rule in this shell (tokens.json's tablet breakpoint,
   // 768-1279): force icon-only regardless of the user's own toggle. Below
@@ -120,9 +123,9 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
         </IconButton>
       </div>
 
-      {/* Structural only (TASK-100) - TASK-101 wires this to the jump dialog. */}
       <button
         type="button"
+        onClick={() => setIsJumpDialogOpen(true)}
         className={cn(
           'flex h-7 shrink-0 items-center gap-2 rounded-lg border border-[var(--border-default)] px-2 text-xs text-muted-foreground',
           !isSidebarOpen && 'justify-center px-0',
@@ -133,6 +136,7 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
           Search or jump to…
         </span>
       </button>
+      <JumpDialog open={isJumpDialogOpen} onOpenChange={setIsJumpDialogOpen} />
 
       <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
         <SectionLabel
