@@ -1555,3 +1555,4 @@ Validation:
 - 2026-09-24: TASK-099 (empty state/skeleton/spinner restyle and new LockedPanel) merged via PR #256, merge commit f2fe359a40e3c1441b197d457ea5d84887317cd6.
 - 2026-09-24: TASK-100 (desktop app shell: sidebar, top bar, stage counts) merged via PR #257, merge commit 778a7508fab2d500d2a12ab374c55d9751657007.
 - 2026-09-24: TASK-102 (notifications popover restyle) merged via PR #259, merge commit 7a86e80df9f7fad3024e51b800b92c58cea2cf1f.
+- 2026-09-24: TASK-103 (add-offer dialog widget, moved inline form off the offers page) merged via PR #260, merge commit dcefc2a3d93d03e9cb80f40b8702f28822a6ae61.
