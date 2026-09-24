@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-24: TASK-101 merged via PR #258, merge commit d9970e29a453cc00941e1efefc544ce270c11f51 — jump dialog for searching offers and companies (TASK-101).
 - 2026-09-24: TASK-094 merged via PR #251, merge commit e0ba8840a6b1f8fcdd73e14f3b7d990906ec0471 — Tag,
   status text, TierMarker, StageRing and Meter.
 - 2026-09-24: TASK-093 merged via PR #250, merge commit 46371a6244585c7fbf40d1a5c83b00a4c1b8c329 — inputs/field/select
