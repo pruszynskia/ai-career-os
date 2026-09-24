@@ -1552,3 +1552,4 @@ Validation:
 - 2026-09-24: TASK-097 (GridTable head row, GroupHeader, "show N more") merged via PR #254, merge commit 5bdd1f13e99969796bc9445f26eab3316cd0fa76.
 - 2026-09-24: TASK-098 (overlays restyle and new Banner: Dialog/ConfirmDialog/Popover/Toaster) merged via PR #255, merge commit e46ee2324d7e37ef2691a9424efbb1c3e2133641.
 - 2026-09-24: TASK-099 (empty state/skeleton/spinner restyle and new LockedPanel) merged via PR #256, merge commit f2fe359a40e3c1441b197d457ea5d84887317cd6.
+- 2026-09-24: TASK-100 (desktop app shell: sidebar, top bar, stage counts) merged via PR #257, merge commit 778a7508fab2d500d2a12ab374c55d9751657007.
