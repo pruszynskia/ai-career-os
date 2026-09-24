@@ -9,14 +9,16 @@ import {
   OFFER_SORT_LABELS,
   offerSortOptions,
 } from '@/entities/job-offer/types';
-import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import {
   Select,
+  SegmentedControl,
+  SegmentedControlItem,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tag,
 } from '@/shared/ui/primitives';
 
 export function OfferFilters({
@@ -81,6 +83,10 @@ export function OfferFilters({
           ))}
         </SelectContent>
       </Select>
+      {/* This checkbox is the toolbar's only filter criterion today (fit/
+          company/status filters have no UI anywhere yet) - it fills the
+          "filter" toolbar slot rather than a placeholder popover with
+          nothing to filter by. */}
       <label className="flex items-center gap-1.5 text-sm">
         <input
           type="checkbox"
@@ -90,30 +96,24 @@ export function OfferFilters({
         />
         Favorites only
       </label>
-      <div
-        className="ml-auto flex items-center gap-1"
-        role="group"
+      {/* Grouping is fixed to fit tier (RecommendedAction) - GridTable has
+          no other grouping mode to switch to yet, so this is a status
+          readout rather than a control (do not invent a second tiering
+          scheme just to make it interactive). */}
+      <Tag className="max-md:hidden">
+        Group: <span className="font-medium text-foreground">Recommendation</span>
+      </Tag>
+      <span className="ml-auto" />
+      <SegmentedControl
+        value={view}
+        onValueChange={(value) =>
+          updateParams({ view: value === 'board' ? 'board' : undefined })
+        }
         aria-label="View"
       >
-        <Button
-          type="button"
-          size="sm"
-          variant={view === 'list' ? 'primary' : 'secondary'}
-          aria-pressed={view === 'list'}
-          onClick={() => updateParams({ view: undefined })}
-        >
-          List
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={view === 'board' ? 'primary' : 'secondary'}
-          aria-pressed={view === 'board'}
-          onClick={() => updateParams({ view: 'board' })}
-        >
-          Board
-        </Button>
-      </div>
+        <SegmentedControlItem value="list">List</SegmentedControlItem>
+        <SegmentedControlItem value="board">Board</SegmentedControlItem>
+      </SegmentedControl>
     </form>
   );
 }

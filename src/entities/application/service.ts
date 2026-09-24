@@ -122,11 +122,11 @@ export const applicationService = {
   async findByOffer(
     ownerId: string,
     jobOfferId: string,
-  ): Promise<Application | null> {
+  ): Promise<ApplicationBundle | null> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('applications')
-      .select('*')
+      .select(BUNDLE_SELECT)
       .eq('owner_id', ownerId)
       .eq('job_offer_id', jobOfferId)
       .order('created_at', { ascending: false })
@@ -134,6 +134,8 @@ export const applicationService = {
       .maybeSingle();
 
     if (error) throw error;
-    return data ? toApplication(data) : null;
+    return data
+      ? toApplicationBundle(data as unknown as Record<string, unknown>)
+      : null;
   },
 };
