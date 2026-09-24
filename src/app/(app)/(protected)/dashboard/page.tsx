@@ -103,7 +103,12 @@ export default async function DashboardPage() {
             <>
               <NeedsAttentionCard notifications={needsAttention} />
               <UpcomingInterviewsCard applications={upcoming} />
-              <RecentActivityCard events={recentActivity} />
+              {/* Not part of X-m-dashboard.dc.html's mobile board - only
+                  pipeline strip, Needs attention and Upcoming interviews
+                  stack there (TASK-126). */}
+              <div className="max-md:hidden">
+                <RecentActivityCard events={recentActivity} />
+              </div>
             </>
           ) : (
             <Card>
