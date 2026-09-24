@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ApplicationBundle } from '@/entities/application/types';
+import type { JobOffer } from '@/entities/job-offer/types';
+
 import {
   deriveFollowUpNudge,
+  deriveNudges,
   derivePendingRequestNudge,
 } from '@/features/notification/services/derive-nudges';
 
@@ -77,5 +81,68 @@ describe('derivePendingRequestNudge', () => {
     expect(
       derivePendingRequestNudge({ ...base, sentAt: daysAgo(5) }, NOW),
     ).toBeNull();
+  });
+});
+
+function offer(id: string, company: string): JobOffer {
+  return {
+    id,
+    ownerId: 'owner-1',
+    url: null,
+    source: 'RAW_TEXT',
+    rawContent: '',
+    company,
+    title: 'Engineer',
+    description: '',
+    matchScore: 80,
+    fit: null,
+    expiresAt: null,
+    isExpired: false,
+    isFavorite: false,
+    createdAt: daysAgo(20),
+    updatedAt: daysAgo(20),
+  };
+}
+
+function application(id: string, jobOffer: JobOffer): ApplicationBundle {
+  return {
+    id,
+    ownerId: 'owner-1',
+    jobOfferId: jobOffer.id,
+    sentCvId: 'cv-1',
+    recruiterMessage: '',
+    status: 'APPLIED',
+    notes: null,
+    createdAt: daysAgo(8),
+    updatedAt: daysAgo(8),
+    jobOffer,
+    sentCv: {} as ApplicationBundle['sentCv'],
+    isExpired: false,
+  };
+}
+
+describe('deriveNudges', () => {
+  // Both get-notifications.service.ts (popover) and the dashboard's Needs
+  // attention section (TASK-104) call this same aggregator - so the same
+  // fixture below always produces the identical nudge for either consumer.
+  it('derives the same follow-up nudge from applications/offers/statusEvents/outreachSends', () => {
+    const acmeOffer = offer('offer-1', 'Acme');
+    const app = application('app-1', acmeOffer);
+
+    const nudges = deriveNudges(
+      {
+        applications: [app],
+        offers: [acmeOffer],
+        statusEvents: [],
+        outreachSends: [],
+      },
+      NOW,
+    );
+
+    expect(nudges).toHaveLength(1);
+    expect(nudges[0]).toMatchObject({
+      id: 'followup-nudge-app-1-1',
+      href: '/offers/offer-1?followUp=1',
+    });
   });
 });

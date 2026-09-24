@@ -1,13 +1,27 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 import type { ResponseRateReadout } from '@/features/dashboard/services/response-rate-readout';
 
 import { MIN_SAMPLE_SIZE } from '@/features/dashboard/services/response-rate-readout';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Text, VStack } from '@/shared/ui/primitives';
-import { StatCard } from '@/shared/ui/stat-card';
+import {
+  Meter,
+  SegmentedControl,
+  SegmentedControlItem,
+  Text,
+  VStack,
+} from '@/shared/ui/primitives';
 
 // Below MIN_SAMPLE_SIZE a percentage is noise dressed up as insight
 // (TASK-085), so every group renders "Not enough data" instead of a rate -
@@ -18,32 +32,15 @@ function groupValue(group: { total: number; responseRate: number | null }) {
     : `${Math.round(group.responseRate * 100)}%`;
 }
 
-function GroupSection({
-  title,
-  groups,
-}: {
-  title: string;
-  groups: ResponseRateReadout['byFitBand'];
-}) {
-  if (groups.length === 0) return null;
-
-  return (
-    <VStack gap={2}>
-      <Text size="sm" weight="medium" color="muted">
-        {title}
-      </Text>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        {groups.map((group) => (
-          <StatCard
-            key={group.key}
-            label={`${group.label} (${group.total})`}
-            value={groupValue(group)}
-          />
-        ))}
-      </div>
-    </VStack>
-  );
-}
+// Which of ResponseRateReadout's three groupings the SegmentedControl
+// switches between - callback band leads, matching X-dashboard.dc.html's
+// default tab.
+const GROUPINGS = [
+  { key: 'byCallbackBand', label: 'Callback band' },
+  { key: 'byFitBand', label: 'Fit band' },
+  { key: 'byChannel', label: 'Channel' },
+] as const satisfies { key: keyof ResponseRateReadout; label: string }[];
+type GroupingKey = (typeof GROUPINGS)[number]['key'];
 
 // readout is null on the Free plan (TASK-088 gates the outcome readout
 // behind Pro) - shown as an inline upgrade prompt rather than hiding the
@@ -53,13 +50,20 @@ export function ResponseRateCard({
 }: {
   readout: ResponseRateReadout | null;
 }) {
+  const [grouping, setGrouping] = useState<GroupingKey>('byCallbackBand');
   const hasEnoughData =
     readout !== null && readout.totalConsidered >= MIN_SAMPLE_SIZE;
+  const groups = readout ? readout[grouping] : [];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Response rate</CardTitle>
+        <CardAction>
+          <Text size="xs" color="muted">
+            Pro
+          </Text>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {readout === null ? (
@@ -77,16 +81,46 @@ export function ResponseRateCard({
           />
         ) : (
           <VStack gap={4}>
-            <GroupSection title="By fit band" groups={readout.byFitBand} />
-            <GroupSection
-              title="By callback band"
-              groups={readout.byCallbackBand}
-            />
-            <GroupSection
-              title="By outreach channel"
-              groups={readout.byChannel}
-            />
-            <Text size="sm" color="muted">
+            <SegmentedControl
+              value={grouping}
+              onValueChange={(value) => setGrouping(value as GroupingKey)}
+              aria-label="Group response rate by"
+            >
+              {GROUPINGS.map(({ key, label }) => (
+                <SegmentedControlItem key={key} value={key}>
+                  {label}
+                </SegmentedControlItem>
+              ))}
+            </SegmentedControl>
+            {groups.length === 0 ? (
+              <EmptyState message="No data for this grouping yet." />
+            ) : (
+              <VStack gap={3}>
+                {groups.map((group) => (
+                  <VStack gap={1} key={group.key}>
+                    <div className="flex items-center justify-between text-[12.5px]">
+                      <Text as="span" size="sm" color="muted">
+                        {group.label} · {group.total}
+                      </Text>
+                      <Text as="span" size="sm" weight="medium">
+                        {groupValue(group)}
+                      </Text>
+                    </div>
+                    {group.responseRate !== null && (
+                      <Meter
+                        variant="inline"
+                        value={Math.round(group.responseRate * 100)}
+                      />
+                    )}
+                  </VStack>
+                ))}
+              </VStack>
+            )}
+            <Text
+              size="sm"
+              color="muted"
+              className="border-t border-border pt-3"
+            >
               Median days to first reply:{' '}
               {readout.medianDaysToFirstReply !== null
                 ? Math.round(readout.medianDaysToFirstReply)

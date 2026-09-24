@@ -5,10 +5,7 @@ import { applicationService } from '@/entities/application/service';
 import { jobOfferService } from '@/entities/job-offer/service';
 import { outreachMessageService } from '@/entities/outreach-message/service';
 import { postService } from '@/entities/post/service';
-import {
-  deriveFollowUpNudge,
-  derivePendingRequestNudge,
-} from '@/features/notification/services/derive-nudges';
+import { deriveNudges } from '@/features/notification/services/derive-nudges';
 import type { Notification } from '@/features/notification/types';
 
 const RECENT_MS = 24 * 60 * 60 * 1000;
@@ -124,67 +121,11 @@ export async function getNotifications(
     }
   }
 
-  // Latest status event per application, and latest send per offer -
-  // both nudges below key off whichever of these is most recent rather
-  // than a stored "last notified" timestamp (TASK-086).
-  const latestEventByApplication = new Map<string, Date>();
-  for (const event of statusEvents) {
-    const current = latestEventByApplication.get(event.applicationId);
-    if (!current || event.createdAt > current) {
-      latestEventByApplication.set(event.applicationId, event.createdAt);
-    }
-  }
-  const latestSendByOffer = new Map<string, Date>();
-  for (const send of outreachSends) {
-    if (send.status !== 'SENT') continue;
-    const current = latestSendByOffer.get(send.jobOfferId);
-    if (!current || send.createdAt > current) {
-      latestSendByOffer.set(send.jobOfferId, send.createdAt);
-    }
-  }
-
-  for (const application of applications) {
-    const latestStatusEventAt =
-      latestEventByApplication.get(application.id) ?? application.createdAt;
-    const nudge = deriveFollowUpNudge(
-      {
-        applicationId: application.id,
-        jobOfferId: application.jobOfferId,
-        company: application.jobOffer.company,
-        status: application.status,
-        latestStatusEventAt,
-        latestOutreachAt: latestSendByOffer.get(application.jobOfferId) ?? null,
-      },
-      now,
-    );
-    if (nudge) notifications.push(nudge);
-  }
-
-  const offerById = new Map(offers.map((offer) => [offer.id, offer]));
-  const applicationByOffer = new Map(
-    applications.map((application) => [application.jobOfferId, application]),
+  // Shared with the dashboard's Needs attention section (TASK-104) so both
+  // always agree on the same nudge for the same fixture.
+  notifications.push(
+    ...deriveNudges({ applications, offers, statusEvents, outreachSends }, now),
   );
-  for (const send of outreachSends) {
-    if (send.channel !== 'CONNECTION_NOTE' || send.status !== 'SENT') continue;
-    const offer = offerById.get(send.jobOfferId);
-    if (!offer) continue;
-    // "Still pending after 14 days" only holds while the application has
-    // had no reply at all - HR/TECHNICAL/TEAM/CEO_OR_MANAGER already got
-    // one even though those stages aren't terminal, same as any outcome.
-    const application = applicationByOffer.get(send.jobOfferId);
-    if (application && application.status !== 'APPLIED') continue;
-
-    const nudge = derivePendingRequestNudge(
-      {
-        outreachMessageId: send.id,
-        jobOfferId: send.jobOfferId,
-        company: offer.company,
-        sentAt: send.createdAt,
-      },
-      now,
-    );
-    if (nudge) notifications.push(nudge);
-  }
 
   return notifications.sort(
     (a, b) => b.occurredAt.getTime() - a.occurredAt.getTime(),
