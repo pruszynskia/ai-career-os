@@ -5,6 +5,7 @@ export * from './input';
 export * from './textarea';
 export * from './utils';
 export * from './empty-state';
+export * from './locked-panel';
 export * from './page-header';
 export * from './stat-card';
 export * from './list-row';

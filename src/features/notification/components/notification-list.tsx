@@ -64,7 +64,9 @@ export function NotificationList({
   const general = notifications.filter((n) => n.category === 'general');
 
   if (notifications.length === 0) {
-    return <EmptyState message="You're all caught up." />;
+    return (
+      <EmptyState message="You're all caught up." className="px-2 py-6" />
+    );
   }
 
   return (

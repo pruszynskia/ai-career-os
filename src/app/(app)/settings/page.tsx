@@ -39,7 +39,10 @@ export default async function SettingsPage() {
         ) : (
           <VStack gap={3}>
             <SectionLabel>Job preferences</SectionLabel>
-            <EmptyState message="Upload your CV on the Profile page to set job preferences." />
+            <EmptyState
+              message="Upload your CV on the Profile page to set job preferences."
+              className="px-0 py-4"
+            />
           </VStack>
         )}
 

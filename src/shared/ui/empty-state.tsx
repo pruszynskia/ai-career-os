@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { VStack } from '@/shared/ui/primitives/layout/stack';
 import { Text } from '@/shared/ui/primitives/typography/text';
+import { cn } from '@/shared/ui/utils';
 
 interface EmptyStateProps {
   message: string;
@@ -12,9 +13,16 @@ interface EmptyStateProps {
 
 function EmptyState({ message, icon, action, className }: EmptyStateProps) {
   return (
-    <VStack gap={2} className={className} data-slot="empty-state">
+    <VStack
+      align="start"
+      gap={3}
+      data-slot="empty-state"
+      className={cn('text-left', className)}
+    >
       {icon}
-      <Text color="muted">{message}</Text>
+      <Text color="muted" className="max-w-[420px]">
+        {message}
+      </Text>
       {action}
     </VStack>
   );
