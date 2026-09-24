@@ -77,6 +77,7 @@ export default async function DashboardPage() {
               <CardContent>
                 <EmptyState
                   message="Add your first job offer to start tracking applications, interviews and activity here."
+                  className="items-center px-8 py-16 text-center"
                   action={
                     <Button asChild size="sm">
                       <Link href="/offers">Add your first offer</Link>

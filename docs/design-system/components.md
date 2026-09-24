@@ -33,6 +33,29 @@ import { EmptyState } from '@/shared/ui';
 <EmptyState message="No applications yet." />
 ```
 
+## LockedPanel
+
+Purpose: the plan-gated "upgrade to unlock" overlay — a dimmed background
+(the real content, or a few `Skeleton variant="line"` placeholders by
+default) with a small raised card on top explaining what's locked. The
+caller decides the action/destination and whether to render the panel at
+all; `LockedPanel` is presentation only.
+
+Props:
+
+| Prop | Type | Required | Notes |
+|---|---|---|---|
+| `message` | `string` | yes | One sentence explaining what's behind the lock |
+| `action` | `React.ReactNode` | no | Upgrade CTA, e.g. a `Button` |
+| `children` | `React.ReactNode` | no | Dimmed stand-in content; defaults to generic skeleton lines |
+| `className` | `string` | no | Extra classes merged via `cn` |
+
+```tsx
+import { LockedPanel } from '@/shared/ui';
+
+<LockedPanel message="Upgrade to see response-rate trends." action={<Button>Upgrade</Button>} />
+```
+
 ## PageHeader
 
 Purpose: the title row at the top of a route — replaces a raw `<h1
@@ -253,6 +276,9 @@ rather than an extraction:
   a visual-language change outside this task's scope. Use the `Badge`
   primitive directly (see `src/shared/ui/primitives/README.md`) if a future
   screen needs one.
-- **Skeleton loaders** — no hand-rolled loading placeholder exists anywhere
-  to extract. The `Skeleton` primitive already exists and is ready to use
-  once a route adds a loading state.
+- **Skeleton loaders** — every route's `loading.tsx` now composes the
+  `Skeleton` primitive directly (`variant="line"` for text placeholders,
+  `variant="block"` for cards/images) with `aria-busy="true"` and an
+  `sr-only` loading label on the container instead of a shared wrapper
+  component; the placeholder shape differs enough per route that a wrapper
+  would just be a pass-through.
