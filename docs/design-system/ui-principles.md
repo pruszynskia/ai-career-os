@@ -50,9 +50,10 @@ token — `shadow-md` on the plain `--popover`/`border` combination only.
 ## Controls
 
 - 28px (`h-7`) is the dense, in-app default control height for `Button`,
-  `Input`, `Textarea` and `Select`'s trigger. `size="comfortable"` (32px,
-  the previous default) is reserved for primary/standalone actions, not
-  the default for in-app density.
+  `Input`, `Textarea` and `Select`'s trigger (`Button` `size="sm"`). The
+  32px step (`Button` `size="md"`) is reserved for primary/standalone
+  actions, not the default for in-app density. Icon-only buttons use
+  `IconButton`, not a `Button` size.
 - 6px radius (`rounded-lg`, i.e. `--radius`) is the default everywhere a
   control needs a radius (buttons, inputs, selects, chips). `rounded-xl`
   (12px, `tokens.json`'s `radius.lg`) is allowed on dialogs and product

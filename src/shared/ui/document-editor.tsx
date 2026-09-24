@@ -44,7 +44,7 @@ export function DocumentEditor({
       />
       <div className="flex gap-2">
         <Button
-          variant="secondary"
+          variant="primary"
           size="sm"
           disabled={saveMutation.isPending || draft === content}
           onClick={() => saveMutation.mutate()}
@@ -53,7 +53,7 @@ export function DocumentEditor({
           {saveMutation.isPending ? 'Saving…' : 'Save'}
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => downloadTextFile(downloadFilename, draft)}
         >

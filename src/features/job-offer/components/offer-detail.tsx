@@ -178,7 +178,7 @@ export function OfferDetail({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={offer.isFavorite ? 'default' : 'outline'}
+                variant={offer.isFavorite ? 'primary' : 'secondary'}
                 size="sm"
                 disabled={toggleFavoriteMutation.isPending}
                 onClick={() =>
@@ -193,7 +193,11 @@ export function OfferDetail({
               </Button>
               <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={openEditDialog}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={openEditDialog}
+                  >
                     Edit details
                   </Button>
                 </DialogTrigger>
@@ -276,7 +280,7 @@ export function OfferDetail({
                 <p className="text-2xl font-semibold">{matchScore}%</p>
               )}
               <Button
-                variant="secondary"
+                variant="quiet"
                 size="sm"
                 className="self-start"
                 disabled={matchMutation.isPending}
@@ -327,7 +331,7 @@ export function OfferDetail({
                 </p>
               )}
               <Button
-                variant="secondary"
+                variant="primary"
                 size="sm"
                 className="self-start"
                 disabled={!canTrackApplication || isTrackingApplication}
@@ -387,7 +391,7 @@ export function OfferDetail({
               Tailored CV
             </Heading>
             <Button
-              variant="secondary"
+              variant="primary"
               className="self-start"
               disabled={tailorCvMutation.isPending}
               onClick={() => tailorCvMutation.mutate(offer.id)}
@@ -441,7 +445,7 @@ export function OfferDetail({
               Cover letter
             </Heading>
             <Button
-              variant="secondary"
+              variant="primary"
               className="self-start"
               disabled={coverLetterMutation.isPending}
               onClick={() => coverLetterMutation.mutate(offer.id)}

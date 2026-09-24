@@ -11,7 +11,7 @@ export function PlanPostsButton() {
     <div className="flex flex-col gap-2 self-start">
       <Button
         type="button"
-        variant="outline"
+        variant="secondary"
         disabled={mutation.isPending}
         onClick={() => mutation.mutate()}
       >

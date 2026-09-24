@@ -30,14 +30,12 @@ export default function ErrorBoundary({
         An unexpected error occurred. Try again, or head back to the dashboard.
       </Text>
       <div className="mt-2 flex items-center gap-2">
-        <Button onClick={reset} size="comfortable">
+        <Button onClick={reset} size="md">
           Try again
         </Button>
         <Link
           href="/dashboard"
-          className={cn(
-            buttonVariants({ size: 'comfortable', variant: 'outline' }),
-          )}
+          className={cn(buttonVariants({ size: 'md', variant: 'secondary' }))}
         >
           Back to dashboard
         </Link>

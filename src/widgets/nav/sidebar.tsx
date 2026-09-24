@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
+import { IconButton } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 import { signOut } from '@/shared/auth/actions';
 import { useUiStore } from '@/shared/store/ui-store';
@@ -69,14 +70,13 @@ export function Sidebar({ notifications }: { notifications: Notification[] }) {
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
+        <IconButton
+          variant="quiet"
           onClick={toggleSidebar}
           aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         >
           {isSidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-        </Button>
+        </IconButton>
         <NotificationCenter notifications={notifications} />
       </div>
       <div className="flex flex-1 flex-col gap-4">
@@ -124,7 +124,7 @@ export function Sidebar({ notifications }: { notifications: Notification[] }) {
       <form action={signOut} className="mt-auto">
         <Button
           type="submit"
-          variant="ghost"
+          variant="quiet"
           className="w-full justify-start gap-2 text-muted-foreground"
         >
           <LogOut aria-hidden="true" className="size-4 shrink-0" />

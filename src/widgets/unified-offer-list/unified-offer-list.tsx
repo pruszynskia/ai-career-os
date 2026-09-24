@@ -106,7 +106,7 @@ export function UnifiedOfferList({
                   <Badge variant="outline">Not tracked</Badge>
                 )}
                 <Button
-                  variant={offer.isFavorite ? 'default' : 'outline'}
+                  variant={offer.isFavorite ? 'primary' : 'secondary'}
                   size="sm"
                   disabled={isTogglingThis}
                   onClick={() =>
@@ -131,7 +131,7 @@ export function UnifiedOfferList({
                   {application.recruiterMessage}
                 </p>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   className="shrink-0"
                   onClick={() =>

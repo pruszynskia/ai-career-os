@@ -131,7 +131,7 @@ export function FitReport({
               <AsyncButton
                 type="button"
                 size="sm"
-                variant="outline"
+                variant="secondary"
                 pending={addingSkill === skill}
                 disabled={addingSkill !== null && addingSkill !== skill}
                 onClick={() => onAddSkill(skill)}

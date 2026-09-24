@@ -35,7 +35,7 @@ function NotificationGroup({
             </Link>
             {notification.dismissible && onDismiss && (
               <IconButton
-                variant="ghost"
+                variant="quiet"
                 size="sm"
                 aria-label="Dismiss"
                 className="mt-1 shrink-0"

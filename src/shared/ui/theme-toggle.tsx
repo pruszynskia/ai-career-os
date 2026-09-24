@@ -39,7 +39,7 @@ function ThemeToggle() {
           key={value}
           type="button"
           size="sm"
-          variant={mounted && theme === value ? 'secondary' : 'ghost'}
+          variant={mounted && theme === value ? 'primary' : 'quiet'}
           aria-pressed={mounted && theme === value}
           onClick={() => setTheme(value)}
           className="gap-1.5"

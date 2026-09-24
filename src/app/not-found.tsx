@@ -22,10 +22,7 @@ export default function NotFound() {
       <Text color="muted">
         The page you are looking for does not exist or has moved.
       </Text>
-      <Link
-        href="/"
-        className={cn(buttonVariants({ size: 'comfortable' }), 'mt-2')}
-      >
+      <Link href="/" className={cn(buttonVariants({ size: 'md' }), 'mt-2')}>
         Back to home
       </Link>
     </main>

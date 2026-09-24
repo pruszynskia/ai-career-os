@@ -34,7 +34,7 @@ export function ApplicationNotes({
           disabled={updateNotesMutation.isPending}
         />
         <Button
-          variant="secondary"
+          variant="primary"
           className="self-start"
           disabled={updateNotesMutation.isPending}
           onClick={() =>

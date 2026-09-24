@@ -38,7 +38,7 @@ export function EditPostDialog({ post }: { post: Post }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="secondary" size="sm">
           Edit
         </Button>
       </DialogTrigger>
@@ -54,7 +54,7 @@ export function EditPostDialog({ post }: { post: Post }) {
         />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="secondary">Cancel</Button>
           </DialogClose>
           <Button
             type="button"

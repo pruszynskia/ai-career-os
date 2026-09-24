@@ -58,11 +58,11 @@ function ConfirmDialog({
         {children}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{cancelLabel}</Button>
+            <Button variant="secondary">{cancelLabel}</Button>
           </DialogClose>
           <AsyncButton
             type="button"
-            variant="destructive"
+            variant="danger"
             pending={pending}
             pendingLabel={pendingLabel}
             disabled={confirmDisabled || pending}

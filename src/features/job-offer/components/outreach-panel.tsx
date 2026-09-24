@@ -197,7 +197,7 @@ export function OutreachPanel({
           />
         </div>
         <Button
-          variant="secondary"
+          variant="primary"
           className="self-start"
           disabled={mutation.isPending}
           onClick={handleGenerate}
@@ -266,7 +266,7 @@ export function OutreachPanel({
                     {OUTREACH_CHANNEL_LABELS[channel]}
                   </Text>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() =>
                       handleCopy(
@@ -308,7 +308,7 @@ export function OutreachPanel({
             </CardTitle>
             <CardAction>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() =>
                   handleCopy(

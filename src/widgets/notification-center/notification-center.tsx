@@ -94,7 +94,7 @@ export function NotificationCenter({
       <div className="relative">
         <PopoverTrigger asChild>
           <IconButton
-            variant="ghost"
+            variant="quiet"
             aria-label={
               count > 0
                 ? `Notifications (${count} require action)`

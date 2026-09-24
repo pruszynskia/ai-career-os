@@ -5,6 +5,81 @@
 
 ## Current Sprint
 
+### Feature: TASK-092 — Button family: variant rename, size rename and every call site
+
+Status: **done** — green on typecheck/lint/test/build (163 tests passed).
+
+What shipped:
+
+- `src/shared/ui/button.tsx` — `buttonVariants` renamed
+  `default/outline/secondary/ghost/destructive/link` →
+  `primary/secondary/quiet/danger/danger-outline/danger-quiet/link`, sizes
+  `default/comfortable/xs/sm/lg/icon*` → `sm(28)/md(32)/lg(40)/touch(48)` plus
+  `icon-sm(28)/icon-md(32)/icon-touch(44)` (`docs/design-system/tokens.json`'s
+  `size.control`/`size.iconButton`, already vendored by TASK-090, needed no
+  edit). The name collision: today's `secondary` (filled `bg-secondary`) and
+  today's `outline` (bordered) are two different looks; the new scheme wants
+  `secondary` to mean what `outline` meant. Resolution, verified call site by
+  call site rather than assumed: every old `outline` string became `secondary`
+  (mechanical); every old `secondary` string was read in context and, in all
+  ~12 occurrences (offer-detail.tsx's match/track/tailor/cover-letter
+  actions, outreach-panel.tsx's draft action, document-editor.tsx's save,
+  who-you-know-panel.tsx's add-contact, optimize-document-panel.tsx,
+  application-notes.tsx), was already "the other action" semantically, so the
+  string stayed `secondary` and only the paint under it changed. `primary`
+  now carries distinct hover/pressed states via the not-yet-aliased
+  `--primary-hover`/`--primary-pressed` custom properties (arbitrary-value
+  `bg-[var(--primary-hover)]`, matching the existing `duration-[var(--dur)]`
+  convention in this codebase rather than adding a new `@theme` alias to
+  globals.css, which is out of this task's scope). `secondary`'s border uses
+  `border-[var(--border-default)]` for the same reason (`colors.md`:
+  "Border default … buttons (secondary)"). `danger` kept the existing
+  `bg-destructive/10` opacity treatment (unchanged look, renamed only);
+  `danger-outline`/`danger-quiet` are new siblings with no call site yet
+  (added per the task's deliverables for later tasks like TASK-096 to use).
+- `src/shared/ui/primitives/interaction/icon-button/IconButton.tsx` —
+  `size` prop `xs/sm/default/lg` → `sm/md/touch`; new `warningDot` boolean
+  renders a 6px destructive dot inset 6px from the top-right corner with a
+  2px `--background` ring (`pointer-events-none`, `aria-hidden`). No live
+  consumer (the notification bell lands in TASK-102, per the task's own
+  `do_not`).
+- `src/shared/ui/async-button.tsx` — min-width now holds during `pending`:
+  a `useLayoutEffect` (no deps, guarded by an equality check to avoid a
+  render loop) measures the button's rest-state `offsetWidth` into state on
+  every non-pending render, applied as inline `minWidth` only while pending.
+  State, not a ref, is read during render — this repo's `react-hooks/refs`
+  lint (React Compiler) rejects reading `ref.current` at render time.
+- Every call site across `src` updated in one pass (34 files total): no
+  `variant="default"|"outline"|"ghost"|"destructive"` or
+  `size="comfortable"|"xs"` (or the old `icon`/`icon-xs`/`icon-lg`/
+  `icon-comfortable` size keys) remains on any `Button`/`AsyncButton`/
+  `IconButton` call site, including ternary (`variant={cond ? 'default' :
+  'outline'}`) and `buttonVariants()` direct-call sites (`app/error.tsx`,
+  `app/not-found.tsx`). `Badge`'s own `variant`/`Text`'s own `size` props
+  (unrelated cva/prop, not this task's scope — Badge is TASK-094's job) were
+  left untouched by design, confirmed via grep.
+
+Not done (explicitly out of scope per `do_not`): Badge.tsx's own variants;
+building the notification bell/top-bar trigger that will consume
+`warningDot`; any click-behaviour change (restyle only).
+
+Not added: no DOM-rendering test for the warning-dot or the min-width-holds
+behaviour — this repo has no jsdom/testing-library in `package.json` and
+adding one is outside a single-task diff; verified instead by full
+typecheck/lint/test/build plus a source-level trace of both effects. Worth a
+manual/design-review pass on `/settings` (theme toggle), `/offers/[id]`
+(favorite/edit/match/track/tailor/cover-letter) and a notification badge
+consumer once TASK-102 exists.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning;
+  the new `AsyncButton` effect needed one justified `eslint-disable-next-line
+  react-hooks/exhaustive-deps`, commented inline)
+- `npm run test` — 163 passed, no new tests (see "Not added" above)
+- `npm run build` — pass
+
 ### Feature: TASK-090 — Vendor the Midnight Mint design-system spec into the repo
 
 Status: **done** — green on typecheck/lint/test/build (163 tests passed).

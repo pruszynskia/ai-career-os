@@ -25,7 +25,7 @@ export function DeleteOfferButton({
       open={isOpen}
       onOpenChange={setIsOpen}
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="secondary" size="sm">
           Delete
         </Button>
       }
