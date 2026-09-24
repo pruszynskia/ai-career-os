@@ -1557,3 +1557,4 @@ Validation:
 - 2026-09-24: TASK-102 (notifications popover restyle) merged via PR #259, merge commit 7a86e80df9f7fad3024e51b800b92c58cea2cf1f.
 - 2026-09-24: TASK-103 (add-offer dialog widget, moved inline form off the offers page) merged via PR #260, merge commit dcefc2a3d93d03e9cb80f40b8702f28822a6ae61.
 - 2026-09-24: TASK-123 (mobile app shell: header, bottom tab bar, add-offer bottom sheet) merged via PR #261, merge commit 2834647821f7a03b2b0565cc562d828233f6ae97.
+- 2026-09-24: TASK-126 (mobile layout for dashboard components) merged via PR #263, merge commit dc9b43b05023bbd83ffc7796027a9200e5f2e8df.
