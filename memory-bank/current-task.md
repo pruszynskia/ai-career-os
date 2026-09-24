@@ -1549,3 +1549,4 @@ Validation:
 - 2026-09-23: TASK-091 (rewrite globals.css to Midnight Mint tokens, drop Archivo) merged via PR #248, merge commit 9f9e4bd75d8e5d2ec9bd553631bddddf6f60f6d0.
 - 2026-09-24: TASK-095 (SegmentedControl and Tabs on radix-ui ToggleGroup/Tabs) merged via PR #252, merge commit 9d928e157337d62e29654baf247573b056fd602b.
 - 2026-09-24: TASK-096 (Surfaces: Card outlined, ListRow, StatCard, PageHeader/AppPageLayout) merged via PR #253, merge commit e601a56006283198688331fbf4a984958ab13933.
+- 2026-09-24: TASK-097 (GridTable head row, GroupHeader, "show N more") merged via PR #254, merge commit 5bdd1f13e99969796bc9445f26eab3316cd0fa76.
