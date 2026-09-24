@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-24: TASK-092 merged via PR #249, commit 99f498f.
 - 2026-09-23: TASK-077 merged via PR #201, commit 9cff79af09e600afda1c8ecce654c89214c4f0ac. Prod deploy verified (Vercel: success).
 - 2026-09-22: TASK-075 merged via PR #200, commit 2a9efae91284a995e9acefe76096432a7e881c6d.
 
