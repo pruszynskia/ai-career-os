@@ -3,4 +3,6 @@ export {
   PopoverTrigger,
   PopoverAnchor,
   PopoverContent,
+  PopoverHeader,
+  PopoverMenuItem,
 } from './Popover';

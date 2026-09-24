@@ -173,6 +173,12 @@ body {
   --ring: var(--primary);
   --radius: 0.375rem;
 
+  /* Overlay table (DESIGN-SYSTEM \S5) - scrim and shadow used by
+     dialog.tsx/Popover.tsx, values from tokens.json's shadows/color objects. */
+  --scrim: rgba(10, 14, 20, 0.32);
+  --shadow-overlay:
+    0 16px 48px rgba(10, 14, 20, 0.16), 0 2px 6px rgba(10, 14, 20, 0.08);
+
   /* Not in tokens.json's color object - shadcn-generic slots still read by
      out-of-scope components (Surface.tsx's raised Card tier, Button/Badge's
      secondary variant) - aliased to their closest Midnight Mint equivalent
@@ -234,6 +240,10 @@ body {
   --chart-track: #2d3642;
 
   --ring: var(--primary);
+
+  --scrim: rgba(0, 0, 0, 0.62);
+  --shadow-overlay:
+    0 16px 48px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
 
   --card: var(--popover);
   --card-foreground: var(--foreground);
