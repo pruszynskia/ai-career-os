@@ -93,8 +93,10 @@ Then `phase: "pr"`.
 `gh pr create` — base `main`, head the task branch, body from
 `templates/PR_DESCRIPTION.md` with `Closes #<issue>`, title
 `<type>(<scope>): <summary> (TASK-NNN)`. Store `pr`.
-- `autonomy == "pr-only"` → return
-  `{ "status": "STOP", "reason": "PR #<pr> ready for your review" }`.
+- `autonomy == "pr-only"` → `phase: "wait"`, return
+  `{ "status": "WAIT", "reason": "PR #<pr> open, awaiting Andrzej's manual merge" }`.
+  Do not stop the loop — the next tick polls the PR same as the auto-merge
+  path below, just without ever calling `gh pr merge`.
 - `autonomy == "auto-merge"` → run
   `./scripts/merge-gate.sh <pr> <review_verdict> <fix_round>`:
   - exit 0 → `gh pr merge <pr> --auto --merge --delete-branch`
@@ -106,7 +108,8 @@ Then `phase: "pr"`.
 ### `"wait"` → poll the PR
 `gh pr view <pr> --json state,mergedAt,mergeCommit`.
 - merged → `phase: "sync"`.
-- still `OPEN` → return `{ "status": "WAIT", "reason": "GitHub merging on green" }`.
+- still `OPEN` → return `{ "status": "WAIT", "reason": <"GitHub merging on green"
+  if autonomy == "auto-merge" else "awaiting Andrzej's manual merge"> }`.
 - `CLOSED` unmerged → `phase: "blocked"`, return `BLOCKED`.
 
 ### `"sync"` → land on main, then verify production
