@@ -1,5 +1,6 @@
 'use client';
 
+import type { ApplicationBundle } from '@/entities/application/types';
 import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { useUpdateOffer } from '@/features/job-offer/hooks/use-update-offer';
 import { AppPageLayout } from '@/shared/layouts';
+import { downloadTextFile } from '@/shared/utils/download-text-file';
 import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -46,6 +48,8 @@ export function OfferDetail({
   isTrackingApplication,
   applicationTimeline,
   applicationNotes,
+  application,
+  applicationStatus,
   alwaysIncludeWhenRelevant,
   onAddSkill,
   addingSkill,
@@ -66,6 +70,13 @@ export function OfferDetail({
   // import the application feature directly (ADR-008).
   applicationTimeline?: ReactNode;
   applicationNotes?: ReactNode;
+  // The tracked application (if any) — only its sentCv is read directly
+  // here (shared/utils/download-text-file, not a feature import). Status
+  // itself is edited via the render-prop below, same ADR-008 reason as
+  // applicationTimeline/applicationNotes: OfferDetail can't import the
+  // application feature's ApplicationStatusSelect directly.
+  application?: Pick<ApplicationBundle, 'sentCv'> | null;
+  applicationStatus?: ReactNode;
   // Same reason: the "add this absent-but-true skill" action writes to the
   // profile's evidence base, owned by the profile feature.
   alwaysIncludeWhenRelevant: string[];
@@ -309,48 +320,71 @@ export function OfferDetail({
               <Heading level={6} as="h2" className="text-muted-foreground">
                 Track application
               </Heading>
-              {!sentCv && (
-                <p className="text-sm text-muted-foreground">
-                  Upload a CV in Profile before tracking this application.
-                </p>
+              {application ? (
+                <>
+                  {applicationStatus}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="self-start"
+                    onClick={() =>
+                      downloadTextFile(
+                        'sent-cv.txt',
+                        application.sentCv.content,
+                      )
+                    }
+                  >
+                    Download sent CV
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {!sentCv && (
+                    <p className="text-sm text-muted-foreground">
+                      Upload a CV in Profile before tracking this
+                      application.
+                    </p>
+                  )}
+                  {isUsingMasterCvFallback && (
+                    <p className="text-sm text-muted-foreground">
+                      Tracking will use your master CV.
+                    </p>
+                  )}
+                  {sentCv && (
+                    // Recruiter messaging now happens in the outreach panel
+                    // above (TASK-083), which writes its own
+                    // outreach_messages rows rather than
+                    // applications.recruiter_message - tracking always
+                    // starts that column empty. This is always true, not a
+                    // fallback that varies, so it's a plain note rather
+                    // than conditional fallback copy.
+                    <p className="text-sm text-muted-foreground">
+                      Tracking starts with no recruiter message - draft one
+                      in Outreach above.
+                    </p>
+                  )}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="self-start"
+                    disabled={!canTrackApplication || isTrackingApplication}
+                    onClick={() =>
+                      sentCv &&
+                      onTrackApplication(
+                        {
+                          jobOfferId: offer.id,
+                          sentCvId: sentCv.id,
+                          recruiterMessage: '',
+                        },
+                        { onSuccess: () => router.push('/offers') },
+                      )
+                    }
+                  >
+                    {isTrackingApplication && <Spinner size="sm" />}
+                    {isTrackingApplication ? 'Creating…' : 'Track application'}
+                  </Button>
+                </>
               )}
-              {isUsingMasterCvFallback && (
-                <p className="text-sm text-muted-foreground">
-                  Tracking will use your master CV.
-                </p>
-              )}
-              {sentCv && (
-                // Recruiter messaging now happens in the outreach panel
-                // above (TASK-083), which writes its own outreach_messages
-                // rows rather than applications.recruiter_message -
-                // tracking always starts that column empty. This is always
-                // true, not a fallback that varies, so it's a plain note
-                // rather than conditional fallback copy.
-                <p className="text-sm text-muted-foreground">
-                  Tracking starts with no recruiter message - draft one in
-                  Outreach above.
-                </p>
-              )}
-              <Button
-                variant="primary"
-                size="sm"
-                className="self-start"
-                disabled={!canTrackApplication || isTrackingApplication}
-                onClick={() =>
-                  sentCv &&
-                  onTrackApplication(
-                    {
-                      jobOfferId: offer.id,
-                      sentCvId: sentCv.id,
-                      recruiterMessage: '',
-                    },
-                    { onSuccess: () => router.push('/offers') },
-                  )
-                }
-              >
-                {isTrackingApplication && <Spinner size="sm" />}
-                {isTrackingApplication ? 'Creating…' : 'Track application'}
-              </Button>
             </div>
           </CardContent>
         </Card>

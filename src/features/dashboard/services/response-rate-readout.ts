@@ -21,6 +21,11 @@ export interface ResponseRateGroup {
 export interface ResponseRateReadout {
   minSampleSize: number;
   totalConsidered: number;
+  // Every considered application, fit-scored or not (unlike byFitBand,
+  // which only buckets the ones with a fit) - the offers list KPI strip's
+  // single "Response rate" figure needs the whole account, not just the
+  // Pro-scored subset (TASK-105).
+  overallResponded: number;
   byFitBand: ResponseRateGroup[];
   byCallbackBand: ResponseRateGroup[];
   byChannel: ResponseRateGroup[];
@@ -148,8 +153,10 @@ export function computeResponseRateReadout(
     { total: number; responded: number }
   >();
 
+  let overallResponded = 0;
   for (const application of considered) {
     const responded = hasResponded(application.status);
+    if (responded) overallResponded += 1;
     const fit = application.jobOffer.fit;
 
     if (fit) {
@@ -179,6 +186,7 @@ export function computeResponseRateReadout(
   return {
     minSampleSize: MIN_SAMPLE_SIZE,
     totalConsidered: considered.length,
+    overallResponded,
     byFitBand: toGroups(fitBandBuckets, FIT_BAND_LABELS),
     byCallbackBand: toGroups(callbackBandBuckets, CALLBACK_BAND_LABELS),
     byChannel: toGroups(channelBuckets, CHANNEL_LABELS),

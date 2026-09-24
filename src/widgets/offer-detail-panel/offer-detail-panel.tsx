@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import type { Application } from '@/entities/application/types';
+import type { ApplicationBundle } from '@/entities/application/types';
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
 import type { Contact } from '@/entities/contact/types';
 import type { CvDocument } from '@/entities/cv-document/types';
@@ -10,6 +10,7 @@ import type { JobOffer } from '@/entities/job-offer/types';
 import type { EvidenceBase } from '@/entities/profile/types';
 
 import { ApplicationNotes } from '@/features/application/components/application-notes';
+import { ApplicationStatusSelect } from '@/features/application/components/application-status-select';
 import { ApplicationTimeline } from '@/features/application/components/application-timeline';
 import { useCreateApplication } from '@/features/application/hooks/use-create-application';
 import { WhoYouKnowPanel } from '@/features/contact/components/who-you-know-panel';
@@ -35,7 +36,7 @@ export function OfferDetailPanel({
   latestTailoredCv?: CvDocument;
   masterCv?: CvDocument;
   statusEvents: ApplicationStatusEvent[];
-  application: Application | null;
+  application: ApplicationBundle | null;
   evidence: Pick<EvidenceBase, 'neverInclude' | 'alwaysIncludeWhenRelevant'>;
   contacts: Contact[];
   interlockWarning: { contactName: string; messagedAt: Date } | null;
@@ -58,6 +59,15 @@ export function OfferDetailPanel({
         createApplicationMutation.mutate(input, options)
       }
       isTrackingApplication={createApplicationMutation.isPending}
+      application={application}
+      applicationStatus={
+        application ? (
+          <ApplicationStatusSelect
+            applicationId={application.id}
+            status={application.status}
+          />
+        ) : undefined
+      }
       applicationTimeline={
         statusEvents.length > 0 ? (
           <ApplicationTimeline events={statusEvents} />

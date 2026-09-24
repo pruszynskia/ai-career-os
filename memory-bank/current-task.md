@@ -11,6 +11,77 @@
 
 ## Current Sprint
 
+### Feature: TASK-105 — Offers list restyle: KPI strip, recommendation-mix Meter, tier-grouped GridTable
+
+Status: **done** — green on typecheck/lint/test/build (201 tests passed, 20
+new).
+
+What shipped:
+
+- `src/features/job-offer/components/offers-summary.tsx` (new) —
+  `OffersSummary`, the KPI strip (in progress / response rate / median first
+  reply / needs action) + recommendation-mix `Meter` above the toolbar
+  (X-offers.dc.html's "Summary" section). `inProgress` = tracked +
+  non-terminal (`isTerminalApplicationStatus`); `needsAction` is a documented
+  `ponytail:` heuristic (untracked + expired, or untracked + top fit tier) —
+  no per-offer nudge source exists on this screen (`derive-nudges.ts` is
+  dashboard-only, TASK-104). Response rate/median are Pro-gated
+  (`getResponseRateReadout`, same `EntitlementError`-catch page.tsx already
+  used for the dashboard) and just omitted on Free rather than thrown.
+  `aggregateResponseRate` takes a structural `{total,responded}[]` shape
+  instead of importing `ResponseRateReadout` from `features/dashboard`
+  (ADR-008 feature-to-feature isolation) — `page.tsx` passes
+  `readout.byFitBand`, which satisfies it structurally.
+- `src/features/job-offer/components/recommended-action-badge.tsx` —
+  `RECOMMENDED_ACTION_LABEL`/`RECOMMENDED_ACTION_TIER` now exported so the
+  list and summary share one action→tier/label source instead of a second
+  copy.
+- `src/widgets/unified-offer-list/unified-offer-list.tsx` — rewritten onto
+  `GridTable`/`GridTableGroupHeader`/`GridTableRow`/`GridTableShowMore`
+  (TASK-097), grouped by fit tier via the new exported `groupOffersByTier`.
+  Rows: favorite star, title (+ `Tag` "Expired", replacing the old
+  `Badge`), company, match `Meter`+score, callback score, `StageRing` +
+  status text (replacing the "Not tracked" `Badge`), updated date. Each
+  group caps at 5 visible rows with a `GridTableShowMore` expander;
+  groups are individually collapsible. Per-row status-select/delete/
+  download-sent-cv actions were dropped from the list (they don't exist in
+  the mockup's compact row either) — that functionality already lives on
+  `offer-detail.tsx`; TASK-106's preview pane is the next quick-glance
+  surface.
+- `src/features/job-offer/components/offer-filters.tsx` — List/Board toggle
+  now a real `SegmentedControl` (was two plain `Button`s driving the same
+  `view` query param). Added a static "Group: Recommendation" `Tag` (grouping
+  isn't user-selectable — GridTable has only the one tier grouping, so this
+  is a readout, not a control, per the task's explicit "do not invent a new
+  tiering scheme"). No new "Filter" control added — the existing
+  favorites-only checkbox is the only filterable field today, so it fills
+  that toolbar slot.
+- `src/app/(app)/(protected)/offers/page.tsx` — fetches
+  `getResponseRateReadout` alongside the existing offers/plan queries (same
+  `Promise.all`, no new query) and renders `OffersSummary` above
+  `UnifiedOfferList` in the list view only (board view, TASK-107, untouched).
+- `src/app/(app)/(protected)/offers/loading.tsx` — skeleton rebuilt to
+  mirror toolbar + summary strip + grouped-table shape instead of the old
+  flat card-list skeleton.
+- New tests: `offers-summary.test.ts` (`aggregateResponseRate` threshold/
+  aggregation branches), `unified-offer-list.test.ts` (`groupOffersByTier`
+  ordering and empty-tier dropping).
+
+Not done (explicitly out of scope): board view (`ApplicationBoard`,
+TASK-107), the offer preview pane (TASK-106), any new per-offer nudge/flag
+column (dashboard's `derive-nudges.ts` territory).
+
+Playwright MCP design-review loop not run (no Playwright MCP tool available
+in this session's tool set — same limitation as every prior UI task in this
+log). Worth a manual light/dark pass on `/offers` before merge.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 201 passed (20 new)
+- `npm run build` — pass
+
 ### Feature: TASK-094 — Tag, status text, TierMarker, StageRing and Meter
 
 Status: **done** — green on typecheck/lint/test/build (181 tests passed, 12
