@@ -1547,3 +1547,4 @@ Validation:
   - Minor fixes: reduced-motion block now also resets `--tw-enter-blur`/`--tw-exit-blur`/`--tw-ease` (previously only transform vars); the hardcoded-duration/easing guardrail grep no longer depends on `grep -P` negative-lookahead (PCRE-only, absent from stock BSD grep) — rewritten as two portable ERE checks.
   - All validation green (typecheck/lint/163 tests/build); the app's own `ugrep` shell alias supports `-P`, but the checklist must work with stock grep for anyone else who clones the repo.
 - 2026-09-23: TASK-091 (rewrite globals.css to Midnight Mint tokens, drop Archivo) merged via PR #248, merge commit 9f9e4bd75d8e5d2ec9bd553631bddddf6f60f6d0.
+- 2026-09-24: TASK-095 (SegmentedControl and Tabs on radix-ui ToggleGroup/Tabs) merged via PR #252, merge commit 9d928e157337d62e29654baf247573b056fd602b.
