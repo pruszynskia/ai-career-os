@@ -105,7 +105,9 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
     <nav
       aria-label="Main"
       className={cn(
-        'flex h-full flex-col gap-4 border-r border-border bg-sidebar p-2 transition-all',
+        // Below md: (768), the mobile shell (MobileHeader/MobileTabBar,
+        // TASK-123) replaces the sidebar entirely.
+        'hidden h-full flex-col gap-4 border-r border-border bg-sidebar p-2 transition-all md:flex',
         widthClassName,
       )}
     >
