@@ -6,10 +6,14 @@ import { useState } from 'react';
 import { useAddOffer } from '@/features/job-offer/hooks/use-add-offer';
 import { useDeleteOffer } from '@/features/job-offer/hooks/use-delete-offer';
 import type { FingerprintMatchSignal } from '@/shared/utils/offer-fingerprint';
-import { Spinner } from '@/shared/ui/primitives';
+import { Label, Spinner } from '@/shared/ui/primitives';
+import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@/shared/ui/segmented-control';
 import { Textarea } from '@/shared/ui/textarea';
 
 const SIGNAL_LABEL: Record<FingerprintMatchSignal, string> = {
@@ -24,7 +28,12 @@ interface DuplicateState {
   signal: FingerprintMatchSignal;
 }
 
-export function AddOfferForm() {
+interface AddOfferFormProps {
+  /** Called after a successful, non-duplicate submit (e.g. to close a host dialog). */
+  onSuccess?: () => void;
+}
+
+export function AddOfferForm({ onSuccess }: AddOfferFormProps = {}) {
   const [mode, setMode] = useState<'url' | 'raw-text'>('url');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
@@ -44,111 +53,111 @@ export function AddOfferForm() {
       onSuccess: (response) => {
         setUrl('');
         setRawText('');
-        setDuplicate(
+        const nextDuplicate =
           response.duplicateOfferId && response.duplicateMatchSignal
             ? {
                 existingOfferId: response.duplicateOfferId,
                 createdOfferId: response.jobOffer.id,
                 signal: response.duplicateMatchSignal,
               }
-            : null,
-        );
+            : null;
+        setDuplicate(nextDuplicate);
+        if (!nextDuplicate) onSuccess?.();
       },
     });
   }
 
   return (
-    <Card>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={mode === 'url' ? 'primary' : 'secondary'}
-              onClick={() => setMode('url')}
-            >
-              Paste URL
-            </Button>
-            <Button
-              type="button"
-              variant={mode === 'raw-text' ? 'primary' : 'secondary'}
-              onClick={() => setMode('raw-text')}
-            >
-              Paste text
-            </Button>
-          </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <SegmentedControl
+        aria-label="Offer source"
+        value={mode}
+        onValueChange={(value) => setMode(value as 'url' | 'raw-text')}
+        className="self-start"
+      >
+        <SegmentedControlItem value="url">Paste URL</SegmentedControlItem>
+        <SegmentedControlItem value="raw-text">Paste text</SegmentedControlItem>
+      </SegmentedControl>
 
-          {mode === 'url' ? (
-            <Input
-              type="url"
-              placeholder="https://company.com/careers/job-123"
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              disabled={mutation.isPending}
-            />
-          ) : (
-            <Textarea
-              placeholder="Paste the job offer text"
-              value={rawText}
-              onChange={(event) => setRawText(event.target.value)}
-              disabled={mutation.isPending}
-            />
-          )}
+      {mode === 'url' ? (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="add-offer-url">Job offer link</Label>
+          <Input
+            id="add-offer-url"
+            type="url"
+            placeholder="https://company.com/careers/job-123"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            disabled={mutation.isPending}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="add-offer-raw-text">Job offer text</Label>
+          <Textarea
+            id="add-offer-raw-text"
+            placeholder="Paste the job offer text"
+            value={rawText}
+            onChange={(event) => setRawText(event.target.value)}
+            disabled={mutation.isPending}
+          />
+        </div>
+      )}
 
-          <Button
-            type="submit"
-            disabled={
-              mutation.isPending ||
-              (mode === 'url' ? !url.trim() : !rawText.trim())
-            }
-            className="self-start"
-          >
-            {mutation.isPending && <Spinner size="sm" />}
-            {mutation.isPending ? 'Adding…' : 'Add offer'}
-          </Button>
+      <Button
+        type="submit"
+        disabled={
+          mutation.isPending ||
+          (mode === 'url' ? !url.trim() : !rawText.trim())
+        }
+        className="self-start"
+      >
+        {mutation.isPending && <Spinner size="sm" />}
+        {mutation.isPending ? 'Adding…' : 'Add offer'}
+      </Button>
 
-          {duplicate && (
-            <div className="flex flex-col gap-2 rounded-lg bg-warning p-3 text-sm text-warning-foreground">
-              <p role="status">
-                This matches {SIGNAL_LABEL[duplicate.signal]} of an offer you
-                already added.{' '}
-                <Link
-                  href={`/offers/${duplicate.existingOfferId}`}
-                  className="underline"
-                >
-                  View the existing offer
-                </Link>
-                .
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setDuplicate(null)}
-                >
-                  Keep both
-                </Button>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  disabled={deleteMutation.isPending}
-                  onClick={() =>
-                    deleteMutation.mutate(
-                      { id: duplicate.createdOfferId },
-                      { onSuccess: () => setDuplicate(null) },
-                    )
-                  }
-                >
-                  {deleteMutation.isPending && <Spinner size="sm" />}
-                  Delete this one
-                </Button>
-              </div>
+      {duplicate && (
+        <Banner
+          tone="warning"
+          actions={
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setDuplicate(null)}
+              >
+                Keep both
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                disabled={deleteMutation.isPending}
+                onClick={() =>
+                  deleteMutation.mutate(
+                    { id: duplicate.createdOfferId },
+                    { onSuccess: () => setDuplicate(null) },
+                  )
+                }
+              >
+                {deleteMutation.isPending && <Spinner size="sm" />}
+                Delete this one
+              </Button>
             </div>
-          )}
-        </form>
-      </CardContent>
-    </Card>
+          }
+        >
+          This matches {SIGNAL_LABEL[duplicate.signal]} of an offer you
+          already added.{' '}
+          <Link
+            href={`/offers/${duplicate.existingOfferId}`}
+            className="underline"
+          >
+            View the existing offer
+          </Link>
+          .
+        </Banner>
+      )}
+    </form>
   );
 }

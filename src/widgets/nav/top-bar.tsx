@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
+import { AddOfferDialog } from '@/widgets/add-offer-dialog/add-offer-dialog';
 import { NotificationCenter } from '@/widgets/notification-center/notification-center';
 import type { Notification } from '@/features/notification/types';
 
@@ -29,9 +30,21 @@ function breadcrumbLabel(pathname: string): string {
   );
 }
 
+// Route -> primary action (TASK-103). Layout.tsx renders TopBar as a
+// sibling of the page, not a parent, so a page can't pass this via
+// props/children - it's resolved from the route instead, same as the
+// breadcrumb label above. Falls back to the `children` slot (TASK-100) for
+// routes with no dedicated action yet.
+function primaryAction(pathname: string): ReactNode {
+  // Exact match only - /offers gets the trigger, /offers/[id] (detail page)
+  // does not.
+  if (pathname === '/offers') return <AddOfferDialog />;
+  return null;
+}
+
 interface TopBarProps {
   notifications: Notification[];
-  /** Primary action slot - structural only (TASK-100); empty unless a page passes one. */
+  /** Primary action slot (TASK-100), used when the route has no dedicated action. */
   children?: ReactNode;
 }
 
@@ -47,7 +60,7 @@ export function TopBar({ notifications, children }: TopBarProps) {
       </nav>
       <div className="grow" />
       <NotificationCenter notifications={notifications} />
-      {children}
+      {primaryAction(pathname) ?? children}
     </header>
   );
 }

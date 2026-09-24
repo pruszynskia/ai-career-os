@@ -1,6 +1,5 @@
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { offerSortOptions } from '@/entities/job-offer/types';
-import { AddOfferForm } from '@/features/job-offer/components/add-offer-form';
 import { OfferFilters } from '@/features/job-offer/components/offer-filters';
 import { listOffersWithApplication } from '@/features/job-offer/services/list-offers-with-application.service';
 import { getOwnerId } from '@/shared/auth/session';
@@ -54,8 +53,6 @@ export default async function OffersPage({
 
   return (
     <AppPageLayout title="Offers">
-      <AddOfferForm />
-
       <OfferFilters
         query={query ?? ''}
         sort={sortOption}
