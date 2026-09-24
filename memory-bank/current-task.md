@@ -1,7 +1,7 @@
 # Current Tasks
 
-- 2026-09-24: TASK-093 implemented (not yet merged) — inputs/field/select
-  restyle + SectionLabel.
+- 2026-09-24: TASK-093 merged via PR #250, merge commit 46371a6244585c7fbf40d1a5c83b00a4c1b8c329 — inputs/field/select
+  restyle + SectionLabel. Prod deploy verified (Vercel: success).
 - 2026-09-24: TASK-092 merged via PR #249, commit 99f498f.
 - 2026-09-23: TASK-077 merged via PR #201, commit 9cff79af09e600afda1c8ecce654c89214c4f0ac. Prod deploy verified (Vercel: success).
 - 2026-09-22: TASK-075 merged via PR #200, commit 2a9efae91284a995e9acefe76096432a7e881c6d.
