@@ -17,6 +17,7 @@ import {
   GridTableRow,
   gridTableNumericCellClassName,
 } from '@/shared/ui/grid-table';
+import { ListRow } from '@/shared/ui/list-row';
 import { Meter, Text } from '@/shared/ui/primitives';
 
 const COLUMNS = 'minmax(0,1fr) 150px 96px 76px';
@@ -31,14 +32,15 @@ export function UpcomingInterviewsCard({
       <CardHeader>
         <CardTitle>Upcoming interviews</CardTitle>
         <CardAction className="flex items-center gap-3">
-          <Text size="xs" color="muted">
+          <Text size="xs" color="muted" className="max-md:hidden">
             {applications.length} in progress past Applied
           </Text>
           <Link
             href="/offers"
             className="text-body-sm font-medium text-primary"
           >
-            All offers
+            <span className="md:hidden">All</span>
+            <span className="max-md:hidden">All offers</span>
           </Link>
         </CardAction>
       </CardHeader>
@@ -46,54 +48,75 @@ export function UpcomingInterviewsCard({
         {applications.length === 0 ? (
           <EmptyState message="No interviews in progress." className="px-4" />
         ) : (
-          <GridTable columns={COLUMNS}>
-            <GridTableHead>
-              <span>Role</span>
-              <span>Stage</span>
-              <span>Match</span>
-              <span className={gridTableNumericCellClassName}>Updated</span>
-            </GridTableHead>
-            {applications.map((application) => (
-              <GridTableRow key={application.id}>
-                <span className="truncate">
-                  <Link
-                    href={`/offers/${application.jobOffer.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {application.jobOffer.title}
-                  </Link>
-                  <span className="text-muted-foreground">
-                    {' '}
-                    · {application.jobOffer.company}
-                  </span>
-                </span>
-                <span className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                  <StageRing status={application.status} />
-                  {APPLICATION_STATUS_LABELS[application.status]}
-                </span>
-                {application.jobOffer.matchScore !== null ? (
-                  <span className="flex items-center gap-2">
-                    <Meter
-                      variant="inline"
-                      value={application.jobOffer.matchScore}
-                      className="w-10"
-                    />
-                    <span className={gridTableNumericCellClassName}>
-                      {application.jobOffer.matchScore}
+          <>
+            {/* Below md: same rows as the GridTable, condensed to a
+                single-line ListRow (X-m-dashboard.dc.html) - the table's
+                columns don't fit a phone width. */}
+            <div className="md:hidden">
+              {applications.map((application) => (
+                <ListRow
+                  key={application.id}
+                  href={`/offers/${application.jobOffer.id}`}
+                  leading={<StageRing status={application.status} />}
+                  title={application.jobOffer.title}
+                  supporting={`${application.jobOffer.company} · ${APPLICATION_STATUS_LABELS[application.status]}`}
+                  meta={
+                    application.jobOffer.matchScore !== null
+                      ? `${application.jobOffer.matchScore}%`
+                      : '—'
+                  }
+                />
+              ))}
+            </div>
+            <GridTable columns={COLUMNS} className="max-md:hidden">
+              <GridTableHead>
+                <span>Role</span>
+                <span>Stage</span>
+                <span>Match</span>
+                <span className={gridTableNumericCellClassName}>Updated</span>
+              </GridTableHead>
+              {applications.map((application) => (
+                <GridTableRow key={application.id}>
+                  <span className="truncate">
+                    <Link
+                      href={`/offers/${application.jobOffer.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {application.jobOffer.title}
+                    </Link>
+                    <span className="text-muted-foreground">
+                      {' '}
+                      · {application.jobOffer.company}
                     </span>
                   </span>
-                ) : (
-                  <span className={gridTableNumericCellClassName}>—</span>
-                )}
-                <span className={gridTableNumericCellClassName}>
-                  {application.updatedAt.toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              </GridTableRow>
-            ))}
-          </GridTable>
+                  <span className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
+                    <StageRing status={application.status} />
+                    {APPLICATION_STATUS_LABELS[application.status]}
+                  </span>
+                  {application.jobOffer.matchScore !== null ? (
+                    <span className="flex items-center gap-2">
+                      <Meter
+                        variant="inline"
+                        value={application.jobOffer.matchScore}
+                        className="w-10"
+                      />
+                      <span className={gridTableNumericCellClassName}>
+                        {application.jobOffer.matchScore}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={gridTableNumericCellClassName}>—</span>
+                  )}
+                  <span className={gridTableNumericCellClassName}>
+                    {application.updatedAt.toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </GridTableRow>
+              ))}
+            </GridTable>
+          </>
         )}
       </CardContent>
     </Card>
