@@ -27,15 +27,15 @@ function ListRow({
     <>
       {leading}
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium">{title}</span>
+        <span className="truncate text-[13px] font-medium">{title}</span>
         {supporting && (
-          <span className="truncate text-sm text-muted-foreground">
+          <span className="truncate text-[12.5px] text-muted-foreground">
             {supporting}
           </span>
         )}
       </span>
       {meta && (
-        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+        <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
           {meta}
         </span>
       )}
@@ -43,8 +43,10 @@ function ListRow({
   );
 
   const rowClassName = cn(
-    surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
-    'flex w-full items-center gap-3 last:border-b-0',
+    surfaceVariants({ elevation: 'ruled' }),
+    // 56px on mobile (touch target), 48px from md (768px) up - tokens.json
+    // size.row.listItem/listItemMobile.
+    'flex min-h-14 w-full items-center gap-3 px-4 py-2 last:border-b-0 md:min-h-12',
     href && 'hover:bg-muted/50',
     className,
   );
