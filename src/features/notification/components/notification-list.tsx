@@ -3,50 +3,42 @@ import { X } from 'lucide-react';
 
 import type { Notification } from '@/features/notification/types';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Badge, IconButton } from '@/shared/ui/primitives';
+import { IconButton } from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 
-function NotificationGroup({
-  title,
-  notifications,
-  badgeVariant,
+function NotificationRow({
+  notification,
   onDismiss,
 }: {
-  title: string;
-  notifications: Notification[];
-  badgeVariant: 'destructive' | 'outline';
+  notification: Notification;
   onDismiss?: (id: string) => void;
 }) {
-  if (notifications.length === 0) return null;
-
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-muted-foreground">{title}</p>
-      <ul className="flex flex-col gap-1">
-        {notifications.map((notification) => (
-          <li key={notification.id} className="flex items-start gap-1">
-            <Link
-              href={notification.href}
-              className="flex flex-1 items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-            >
-              <Badge variant={badgeVariant} className="mt-0.5 shrink-0">
-                {title === 'Action Required' ? '!' : 'i'}
-              </Badge>
-              <span>{notification.message}</span>
-            </Link>
-            {notification.dismissible && onDismiss && (
-              <IconButton
-                variant="quiet"
-                size="sm"
-                aria-label="Dismiss"
-                className="mt-1 shrink-0"
-                onClick={() => onDismiss(notification.id)}
-              >
-                <X />
-              </IconButton>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="flex items-start gap-2.5 border-b border-border px-3.5 py-2.5 last:border-b-0">
+      <span
+        aria-hidden="true"
+        className={cn(
+          'mt-1.5 size-[7px] shrink-0 rounded-full',
+          notification.category === 'action-required' && 'bg-warning',
+        )}
+      />
+      <Link
+        href={notification.href}
+        className="min-w-0 flex-1 text-body-sm hover:underline"
+      >
+        {notification.message}
+      </Link>
+      {notification.dismissible && onDismiss && (
+        <IconButton
+          variant="quiet"
+          size="sm"
+          aria-label="Dismiss"
+          className="-mt-0.5 shrink-0"
+          onClick={() => onDismiss(notification.id)}
+        >
+          <X />
+        </IconButton>
+      )}
     </div>
   );
 }
@@ -58,31 +50,29 @@ export function NotificationList({
   notifications: Notification[];
   onDismiss?: (id: string) => void;
 }) {
-  const actionRequired = notifications.filter(
-    (n) => n.category === 'action-required',
-  );
-  const general = notifications.filter((n) => n.category === 'general');
-
   if (notifications.length === 0) {
     return (
-      <EmptyState message="You're all caught up." className="px-2 py-6" />
+      <EmptyState message="You're all caught up." className="px-3.5 py-6" />
     );
   }
 
+  // Action-required rows lead, same order the mockup and the trigger's
+  // count already imply - no separate section headers, the dot carries
+  // the category now.
+  const ordered = [
+    ...notifications.filter((n) => n.category === 'action-required'),
+    ...notifications.filter((n) => n.category === 'general'),
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
-      <NotificationGroup
-        title="Action Required"
-        notifications={actionRequired}
-        badgeVariant="destructive"
-        onDismiss={onDismiss}
-      />
-      <NotificationGroup
-        title="General"
-        notifications={general}
-        badgeVariant="outline"
-        onDismiss={onDismiss}
-      />
+    <div className="flex flex-col">
+      {ordered.map((notification) => (
+        <NotificationRow
+          key={notification.id}
+          notification={notification}
+          onDismiss={onDismiss}
+        />
+      ))}
     </div>
   );
 }
