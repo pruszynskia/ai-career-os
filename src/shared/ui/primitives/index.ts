@@ -30,3 +30,12 @@ export * from './interaction/textarea';
 export * from './interaction/icon-button';
 export * from './interaction/select';
 export * from './interaction/popover';
+export {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@/shared/ui/segmented-control';
+export type {
+  SegmentedControlProps,
+  SegmentedControlItemProps,
+} from '@/shared/ui/segmented-control';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs';
