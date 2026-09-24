@@ -9583,7 +9583,7 @@ tasks:
     github:
       issue: "236"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnFo
-    status: in_progress
+    status: done
     priority: P2
     estimate: L
     milestone: "Mobile Redesign"
