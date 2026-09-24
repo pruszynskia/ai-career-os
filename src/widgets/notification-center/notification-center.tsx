@@ -6,11 +6,12 @@ import { Bell } from 'lucide-react';
 import { NotificationList } from '@/features/notification/components/notification-list';
 import type { Notification } from '@/features/notification/types';
 import {
-  Badge,
   IconButton,
   Popover,
   PopoverContent,
+  PopoverHeader,
   PopoverTrigger,
+  Tag,
 } from '@/shared/ui/primitives';
 
 // Dismissal has nowhere to live server-side without a new table or column
@@ -91,31 +92,28 @@ export function NotificationCenter({
 
   return (
     <Popover>
-      <div className="relative">
-        <PopoverTrigger asChild>
-          <IconButton
-            variant="quiet"
-            aria-label={
-              count > 0
-                ? `Notifications (${count} require action)`
-                : 'Notifications'
-            }
-          >
-            <Bell />
-          </IconButton>
-        </PopoverTrigger>
-        {count > 0 && (
-          <Badge
-            aria-hidden="true"
-            variant="destructive"
-            size="sm"
-            className="pointer-events-none absolute -top-1 -right-1 min-w-4 justify-center px-1"
-          >
-            {count}
-          </Badge>
-        )}
-      </div>
-      <PopoverContent align="start">
+      <PopoverTrigger asChild>
+        <IconButton
+          variant="quiet"
+          warningDot={count > 0}
+          aria-label={
+            count > 0
+              ? `Notifications (${count} require action)`
+              : 'Notifications'
+          }
+        >
+          <Bell />
+        </IconButton>
+      </PopoverTrigger>
+      <PopoverContent align="start" size="notifications">
+        <PopoverHeader className="justify-between gap-2">
+          Notifications
+          {count > 0 && (
+            <Tag size="sm" className="h-5 border-transparent px-0 text-warning">
+              {count} need action
+            </Tag>
+          )}
+        </PopoverHeader>
         <NotificationList notifications={visible} onDismiss={dismiss} />
       </PopoverContent>
     </Popover>
