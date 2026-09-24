@@ -1550,3 +1550,4 @@ Validation:
 - 2026-09-24: TASK-095 (SegmentedControl and Tabs on radix-ui ToggleGroup/Tabs) merged via PR #252, merge commit 9d928e157337d62e29654baf247573b056fd602b.
 - 2026-09-24: TASK-096 (Surfaces: Card outlined, ListRow, StatCard, PageHeader/AppPageLayout) merged via PR #253, merge commit e601a56006283198688331fbf4a984958ab13933.
 - 2026-09-24: TASK-097 (GridTable head row, GroupHeader, "show N more") merged via PR #254, merge commit 5bdd1f13e99969796bc9445f26eab3316cd0fa76.
+- 2026-09-24: TASK-098 (overlays restyle and new Banner: Dialog/ConfirmDialog/Popover/Toaster) merged via PR #255, merge commit e46ee2324d7e37ef2691a9424efbb1c3e2133641.
