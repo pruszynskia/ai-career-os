@@ -15,7 +15,7 @@ import {
   Grid,
   HStack,
   Heading,
-  Label,
+  SectionLabel,
   Text,
   VStack,
 } from '@/shared/ui/primitives';
@@ -59,9 +59,9 @@ export async function PricingTable() {
           <CardHeader>
             <VStack gap={2}>
               {plan.featured && (
-                <Label as="span" variant="meta" className="text-foreground">
+                <SectionLabel className="text-foreground">
                   Recommended
-                </Label>
+                </SectionLabel>
               )}
               <Heading
                 level={2}

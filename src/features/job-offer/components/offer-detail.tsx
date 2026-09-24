@@ -241,6 +241,7 @@ export function OfferDetail({
                       <Label htmlFor="offer-description">Description</Label>
                       <Textarea
                         id="offer-description"
+                        className="resize-none"
                         value={editValues.description}
                         onChange={(event) =>
                           setEditValues((values) => ({

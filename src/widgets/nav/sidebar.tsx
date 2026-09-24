@@ -19,7 +19,7 @@ import { IconButton } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 import { signOut } from '@/shared/auth/actions';
 import { useUiStore } from '@/shared/store/ui-store';
-import { Label } from '@/shared/ui/primitives';
+import { SectionLabel } from '@/shared/ui/primitives';
 import type { Notification } from '@/features/notification/types';
 import { NotificationCenter } from '@/widgets/notification-center/notification-center';
 
@@ -82,14 +82,12 @@ export function Sidebar({ notifications }: { notifications: Notification[] }) {
       <div className="flex flex-1 flex-col gap-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="flex flex-col gap-1">
-            <Label
-              as="span"
+            <SectionLabel
               id={`nav-group-${group.label}`}
-              variant="meta"
               className={cn('px-2', isSidebarOpen ? undefined : 'sr-only')}
             >
               {group.label}
-            </Label>
+            </SectionLabel>
             <ul
               role="group"
               aria-labelledby={`nav-group-${group.label}`}

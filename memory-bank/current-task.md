@@ -1,10 +1,94 @@
 # Current Tasks
 
+- 2026-09-24: TASK-093 implemented (not yet merged) — inputs/field/select
+  restyle + SectionLabel.
 - 2026-09-24: TASK-092 merged via PR #249, commit 99f498f.
 - 2026-09-23: TASK-077 merged via PR #201, commit 9cff79af09e600afda1c8ecce654c89214c4f0ac. Prod deploy verified (Vercel: success).
 - 2026-09-22: TASK-075 merged via PR #200, commit 2a9efae91284a995e9acefe76096432a7e881c6d.
 
 ## Current Sprint
+
+### Feature: TASK-093 — Inputs, Field, Select restyle and Label meta retirement into SectionLabel
+
+Status: **done** — green on typecheck/lint/test/build (169 tests passed, 3
+new).
+
+What shipped:
+
+- `src/shared/ui/input.tsx` — `inputVariants` size keys `default(28)/
+  comfortable(32)` → `md(32)/lg(40)/touch(48)` (`tokens.json`'s
+  `size.control`), `touch` forces `text-base` (16px) so iOS doesn't
+  auto-zoom; `md`/`lg` stay `text-sm`. Background moved from
+  `bg-transparent`/`dark:bg-input/30` to `bg-background` (white in light —
+  `--background` is `#fff`) / `dark:bg-[var(--surface-sunken)]` (arbitrary
+  value, since `--surface-sunken` isn't yet aliased into the Tailwind theme —
+  same convention TASK-092 used for `--primary-hover`). Radius (`rounded-lg`
+  = 6px via the existing `--radius` chain) and `border-input` were already
+  correct, untouched.
+- `src/shared/ui/textarea.tsx` — same size rename (`min-h-20/24` kept, just
+  relabeled `md`/`lg`, `touch` added at `min-h-24`/`text-base`), same
+  background change, plus `resize-none` added to the base classes (every
+  `X-*.dc.html` mockup's `.ta` is `resize:none`). New: an optional character
+  count — when `maxLength` is passed, `Textarea` renders itself wrapped in a
+  `flex flex-col gap-1` with a `count/maxLength` caption below (controlled
+  count read straight from `value.length`; uncontrolled falls back to local
+  state seeded from `defaultValue.length` and updated `onChange`). No
+  existing call site passes `maxLength`, so this is purely additive.
+  `src/shared/ui/textarea.test.tsx` (new) covers both branches.
+- `src/shared/ui/primitives/interaction/select/Select.tsx` —
+  `selectTriggerVariants` size keys `default/comfortable` → `md/lg` (no
+  `touch` — the task's own `tasks:` step only asked for `md/lg` here);
+  border unified to `border-input` in both themes (was `border-border`
+  light / `border-input` dark) and background to the same
+  `bg-background`/`dark:bg-[var(--surface-sunken)]` pair as Input.
+  `SelectItem` fixed at `h-8` (32px) — was a `py-1.5`-driven variable
+  height; the existing right-aligned `CheckIcon` `ItemIndicator` already
+  satisfies "check on the selected item," untouched. `SelectContent`'s
+  radius/border left alone — `Dialog`/`Popover` are still on the old
+  `rounded-lg` overlay treatment (not yet migrated to `tokens.json`
+  `radius.md`=8), so bumping only the select menu would have been an
+  inconsistent one-off outside this task's scope.
+- `src/shared/ui/primitives/typography/label/Label.tsx` — `meta` variant
+  deleted from `labelVariants`; `form` (now the only key) restyled per
+  `X-settings.dc.html`'s `.lbl` (12.5px/500/secondary text) to the closest
+  existing step, `text-xs` (12px) + `text-[var(--foreground-secondary)]`
+  (also not yet aliased into the Tailwind theme).
+- `src/shared/ui/section-label.tsx` (new) — `SectionLabel`, a plain `<span>`
+  wrapper (`text-xs font-medium text-muted-foreground`, matches the
+  mockups' `.sec` class exactly: 12px/500/muted). Deliberately not a Label
+  variant per the task's own prompt. Exported via
+  `src/shared/ui/primitives/index.ts` (re-export shim, same pattern already
+  used there for Input/Textarea).
+- All 6 `variant="meta"` call sites swapped to `<SectionLabel>`:
+  `settings/page.tsx` (×2), `(marketing)/page.tsx`, `pricing-table.tsx`,
+  `page-header.tsx`, `sidebar.tsx` (kept its `id` prop, dropped the now
+  redundant `as="span"`). `grep -rn 'variant="meta"' src --include="*.tsx"`
+  returns no matches (verified post-change, including two explanatory code
+  comments that had to be reworded so they didn't themselves match the
+  literal grep the acceptance criterion runs).
+- `src/shared/ui/field.tsx` — `help`/`error` text dropped from `text-sm`
+  (14px) to `text-xs` (12px), matching `X-settings.dc.html`'s `.help` (12px
+  muted). Gap was already `gap-1.5` (6px) — no change needed there. Public
+  API (`id`/`label`/`help`/`error`/`children`, the `cloneElement`/
+  render-prop plumbing) untouched, per the task's own `do_not`.
+
+Not done (explicitly out of scope per `do_not`/task boundaries): Badge/Tag
+(TASK-094); no new form-validation library; `docs/design-system/tokens.json`
+needed no edit (its `size.control` table already had `md/lg/touch =
+32/40/48`, and no other value in it was wrong) — left byte-identical, still
+listed in `scope:` only as the verification source.
+
+Playwright MCP design-review loop not run (no Playwright MCP tool available
+in this session's tool set — same limitation as every prior UI task in this
+log). Worth a manual light/dark pass on `/settings`, `/`, `/pricing` and any
+form (`/offers/[id]`'s edit dialogs, job-preferences form) before merge.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 169 passed (3 new, in `textarea.test.tsx`)
+- `npm run build` — pass
 
 ### Feature: TASK-092 — Button family: variant rename, size rename and every call site
 
