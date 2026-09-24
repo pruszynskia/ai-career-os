@@ -19,10 +19,14 @@ const surfaceVariants = cva('text-card-foreground', {
       // A single hairline divider for rows/sections in a list - never a
       // full border, never a shadow.
       ruled: 'border-b border-border',
-      // Reserved for content that genuinely needs to read as a distinct
-      // object (Card). No shadow here - shadow is for true overlays only
+      // Reserved for content that genuinely needs to read as a filled,
+      // shadow-free box (e.g. the application board's kanban columns). No
+      // shadow here - shadow is for true overlays only
       // (dialog/popover/select/toaster).
       raised: 'rounded-lg border border-border bg-card',
+      // Transparent card: 1px border-default hairline, radius 8, no fill.
+      // Used by Card - see DESIGN-SYSTEM.md \S4.12 "outlined" spec.
+      outlined: 'rounded-[8px] border border-[var(--border-default)]',
     },
   },
   defaultVariants: {
