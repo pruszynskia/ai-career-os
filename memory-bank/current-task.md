@@ -1688,3 +1688,4 @@ Validation:
 - 2026-09-24: TASK-123 (mobile app shell: header, bottom tab bar, add-offer bottom sheet) merged via PR #261, merge commit 2834647821f7a03b2b0565cc562d828233f6ae97.
 - 2026-09-24: TASK-126 (mobile layout for dashboard components) merged via PR #263, merge commit dc9b43b05023bbd83ffc7796027a9200e5f2e8df.
 - 2026-09-24: TASK-105 (offers list restyle: KPI strip, recommendation-mix meter, tier-grouped GridTable) merged via PR #264, merge commit 008c0ee53bd0feb705ab256143f24645903aa1f2.
+- 2026-09-25: TASK-106 (selectable offer preview pane on the offers list) merged via PR #265, merge commit dccdeaa609bcd60e20939c6dcf02deb698c6d464.
