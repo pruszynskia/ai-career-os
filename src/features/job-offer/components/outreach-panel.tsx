@@ -14,24 +14,19 @@ import { useDraftFollowUp } from '@/features/job-offer/hooks/use-draft-follow-up
 import { useMarkOutreachSent } from '@/features/job-offer/hooks/use-mark-outreach-sent';
 import { useOutreach } from '@/features/job-offer/hooks/use-outreach';
 import { CHANNEL_BUDGETS } from '@/shared/ai/outreach-validator';
+import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import {
   Card,
   CardAction,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
-import {
-  Heading,
-  HStack,
-  Label,
-  Spinner,
-  Surface,
-  Text,
-} from '@/shared/ui/primitives';
+import { Grid, Heading, Label, Spinner, Text } from '@/shared/ui/primitives';
 
 const CHANNEL_ORDER: OutreachChannel[] = [
   'CONNECTION_NOTE',
@@ -208,12 +203,12 @@ export function OutreachPanel({
       </div>
 
       {showInterlockWarning && interlockWarning && (
-        <Text size="sm" color="warning">
+        <Banner tone="warning">
           {interlockWarning.contactName} at this company was already messaged on{' '}
           {interlockWarning.messagedAt.toLocaleDateString()} - contacting a
           second person here within 30 days may look like spam. This is only a
           warning; nothing is blocked.
-        </Text>
+        </Banner>
       )}
 
       {gated && (
@@ -247,50 +242,63 @@ export function OutreachPanel({
       )}
 
       {mutation.isSuccess && (
-        <div className="flex flex-col">
+        <Grid cols={1} colsMd={3} gap={4}>
           {CHANNEL_ORDER.map((channel) => {
             const message = messagesByChannel.get(channel);
             if (!message) return null;
             const budget = CHANNEL_BUDGETS[channel];
             const overBudget = message.body.length > budget.hardMax;
+            const markedThisMessage =
+              markSentMutation.isSuccess &&
+              markSentMutation.variables?.messageId === message.id;
 
             return (
-              <Surface
-                key={channel}
-                elevation="ruled"
-                padding="md"
-                className="flex flex-col gap-2 last:border-b-0"
-              >
-                <HStack justify="between" align="center">
-                  <Text size="base" weight="medium">
-                    {OUTREACH_CHANNEL_LABELS[channel]}
+              <Card key={channel} size="sm">
+                <CardHeader>
+                  <CardTitle>{OUTREACH_CHANNEL_LABELS[channel]}</CardTitle>
+                  <CardAction>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        handleCopy(
+                          message.subject
+                            ? `${message.subject}\n\n${message.body}`
+                            : message.body,
+                          message.id,
+                        )
+                      }
+                    >
+                      {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  {message.subject && (
+                    <p className="text-sm font-medium">{message.subject}</p>
+                  )}
+                  <p className="whitespace-pre-wrap text-sm">
+                    {message.body}
+                  </p>
+                </CardContent>
+                <CardFooter className="justify-between bg-transparent">
+                  <Text color={overBudget ? 'destructive' : 'muted'} size="sm">
+                    {message.body.length} / {budget.hardMax} characters
                   </Text>
                   <Button
-                    variant="secondary"
+                    variant="quiet"
                     size="sm"
                     onClick={() =>
-                      handleCopy(
-                        message.subject
-                          ? `${message.subject}\n\n${message.body}`
-                          : message.body,
-                        message.id,
-                      )
+                      markSentMutation.mutate({ offerId, messageId: message.id })
                     }
                   >
-                    {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
+                    {markedThisMessage ? 'Marked as sent' : 'Mark as sent'}
                   </Button>
-                </HStack>
-                {message.subject && (
-                  <p className="text-sm font-medium">{message.subject}</p>
-                )}
-                <p className="whitespace-pre-wrap text-sm">{message.body}</p>
-                <Text color={overBudget ? 'destructive' : 'muted'} size="sm">
-                  {message.body.length} / {budget.hardMax} characters
-                </Text>
-              </Surface>
+                </CardFooter>
+              </Card>
             );
           })}
-        </div>
+        </Grid>
       )}
 
       {followUpMutation.isPending && (
