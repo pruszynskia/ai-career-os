@@ -11,6 +11,64 @@
 
 ## Current Sprint
 
+### Feature: TASK-106 — Offer preview pane on the offers list
+
+Status: **done** — green on typecheck/lint/test/build (201 tests passed, no
+new tests — presentation-only diff, `groupOffersByTier`'s existing test
+coverage is unaffected).
+
+What shipped:
+
+- `src/widgets/unified-offer-list/unified-offer-list.tsx` — `GridTableRow`
+  is now clickable (`role="button"`, `tabIndex`, `aria-pressed`, `Enter`/
+  `Space` via `onKeyDown`) and sets `selectedId` state instead of doing
+  nothing; the favorite star button and the title `Link` both
+  `stopPropagation()` so favoriting or the existing direct-navigation title
+  link keep their old behavior unchanged (title still navigates straight to
+  `/offers/[id]` on click — a deliberate compatibility keep, not a miss: it
+  preserves the one-tap-to-detail path on <768px, where the pane is
+  `hidden`, per `tokens.json`'s own breakpoint rule "<768: preview pane
+  becomes a full page"). New `OfferPreviewPane` (local, unexported)
+  component renders company/title/dates, a match/callback stat pair
+  (callback gated behind the existing `canViewFitDetail` prop),
+  `RecommendedActionBadge` when `fit` is present, `StageRing` + status text,
+  and a `View full offer` `Button asChild` linking `/offers/${id}` — the
+  task's required link-through control. Built entirely from the
+  already-selected `OfferWithApplication` (an `Array.find` over the same
+  `offers` prop `page.tsx` already fetches) — no new data fetch on
+  selection. Pane is `hidden md:flex` (344px, `border-l`) at desktop;
+  `min-[768px]:max-[1279px]:fixed inset-y-0 right-0 z-50` plus a
+  `min-[768px]:max-[1279px]:block` scrim turns it into an overlay drawer in
+  the tablet range only, reusing the same arbitrary-breakpoint-variant
+  convention `nav/sidebar.tsx` (TASK-100) already established for its
+  icon-collapse, per the task's explicit instruction to reuse that
+  breakpoint rather than invent a new one.
+- `src/app/(app)/(protected)/offers/page.tsx` — not touched; `visibleOffers`
+  (already fit-stripped for Free) was already exactly what
+  `UnifiedOfferList` needed, no prop changes required.
+
+Not done (explicitly out of scope per `do_not`): no per-offer fetch on
+selection; the offer detail page/shell (TASK-108) untouched; no fit-criteria
+breakdown table or Draft-outreach/CV/Letter/Stage action buttons in the pane
+(mockup shows them, but they're detail-page actions per TASK-108's own scope
+line, not this list-preview task's "content matches the selected offer"
+acceptance bar).
+
+Playwright MCP design-review loop not run (no Playwright MCP tool available
+in this session's tool set — same limitation as every prior UI task in this
+log; `/offers` requires an authenticated session, confirmed via a plain
+`curl` 307-to-sign-in). Worth a manual light/dark, desktop/tablet-width pass
+on `/offers` before merge — the task's own `done:` line asks for exactly
+that.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 201 passed, no new (no new branching logic beyond
+  presentation/selection state)
+- `npm run build` — pass
+
 ### Feature: TASK-105 — Offers list restyle: KPI strip, recommendation-mix Meter, tier-grouped GridTable
 
 Status: **done** — green on typecheck/lint/test/build (201 tests passed, 20
