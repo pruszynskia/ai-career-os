@@ -1761,3 +1761,4 @@ Validation:
 - 2026-09-24: TASK-126 (mobile layout for dashboard components) merged via PR #263, merge commit dc9b43b05023bbd83ffc7796027a9200e5f2e8df.
 - 2026-09-24: TASK-105 (offers list restyle: KPI strip, recommendation-mix meter, tier-grouped GridTable) merged via PR #264, merge commit 008c0ee53bd0feb705ab256143f24645903aa1f2.
 - 2026-09-25: TASK-106 (selectable offer preview pane on the offers list) merged via PR #265, merge commit dccdeaa609bcd60e20939c6dcf02deb698c6d464.
+- 2026-09-25: TASK-107 (offers board restyle: flat cards, capped lanes, sunken closed lane, drop toast) merged via PR #267, merge commit 69553758222507e5bb67fda446c44bb74a62e172.
