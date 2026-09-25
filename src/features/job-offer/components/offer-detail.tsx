@@ -31,8 +31,8 @@ import {
   DialogTrigger,
 } from '@/shared/ui/dialog';
 import { DocumentEditor } from '@/shared/ui/document-editor';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
+import { LockedPanel } from '@/shared/ui/locked-panel';
 import { StatCard } from '@/shared/ui/stat-card';
 import { Textarea } from '@/shared/ui/textarea';
 import {
@@ -379,7 +379,7 @@ export function OfferDetail({
             ) : !canViewFitDetail ? (
               // Free: always the upgrade prompt, regardless of whether fit
               // was ever computed for this offer.
-              <EmptyState
+              <LockedPanel
                 message="See the full fit report - criteria breakdown, callback probability and missing skills - on Pro. Your match score stays free."
                 action={
                   <Button asChild size="sm">
