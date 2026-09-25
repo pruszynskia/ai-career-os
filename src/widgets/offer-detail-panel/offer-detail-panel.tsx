@@ -73,6 +73,7 @@ export function OfferDetailPanel({
           <ApplicationTimeline events={statusEvents} />
         ) : undefined
       }
+      applicationStatusEventCount={statusEvents.length}
       applicationNotes={
         application ? (
           <ApplicationNotes
