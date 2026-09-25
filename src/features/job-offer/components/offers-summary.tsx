@@ -119,7 +119,7 @@ export function OffersSummary({
       aria-label="Offers summary"
       className="flex flex-col gap-4 px-4 py-3.5 md:flex-row md:items-center"
     >
-      <div className="flex shrink-0">
+      <div className="flex flex-wrap gap-y-2 shrink-0">
         <KpiItem label="In progress" value={inProgressCount} />
         {responseRatePercent !== null && (
           <KpiItem label="Response rate" value={`${responseRatePercent}%`} />
@@ -149,7 +149,8 @@ export function OffersSummary({
           role="img"
           aria-label={[
             ...MIX_TIERS.map(
-              (tier) => `${mixCounts.get(tier) ?? 0} ${TIER_LABEL[tier].toLowerCase()}`,
+              (tier) =>
+                `${mixCounts.get(tier) ?? 0} ${TIER_LABEL[tier].toLowerCase()}`,
             ),
             `${notScoredCount} not scored`,
           ].join(', ')}

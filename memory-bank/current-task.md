@@ -11,6 +11,77 @@
 
 ## Current Sprint
 
+### Feature: TASK-127 — Mobile offers list: sticky tier headers and full-page preview
+
+Status: **done** — green on typecheck/lint/test/build (201 tests passed, no
+new tests — presentation/routing diff over TASK-105/106's existing
+`groupOffersByTier` coverage).
+
+What shipped:
+
+- `src/widgets/unified-offer-list/unified-offer-list.tsx` (not in the task's
+  `scope:` list, but touching it was unavoidable — this is where
+  TASK-105/106 built the tier-grouped `GridTable` and the preview pane the
+  deliverables require changing) — added a `md:hidden` single-column list
+  block above the existing `GridTable`, iterating the same
+  `groupOffersByTier` groups: `GridTableGroupHeader` reused as-is with
+  `sticky top-0 z-10` added via its existing `className` prop (no component
+  change, per the task's own note that TASK-097's group header doesn't need
+  to change), and each row is a `Tag`-wrapped `StageRing` + status label
+  ("stage chip") replacing the desktop row's plain `StageRing` + text. A row
+  tap does `router.push('/offers/[id]/preview')` instead of
+  `setSelectedId`. The existing desktop/tablet block (`GridTable` + TASK-106
+  pane/drawer) is now `hidden items-start gap-4 md:flex` — since that whole
+  container is `display:none` below 768, the pane/drawer's old
+  `max-[767px]:fixed …` full-screen-overlay styles were dead code and were
+  deleted rather than left unreachable.
+- `OfferPreviewPane` is now exported and takes an optional `closeHref`
+  (renders a `Link`-based back button via `IconButton asChild`) alongside
+  the existing `onClose` callback — a Server Component page can't pass a
+  function prop across the RSC boundary, so the new full page needed a
+  serializable alternative to TASK-106's `onClose`.
+- `src/app/(app)/(protected)/offers/[id]/preview/page.tsx` (new) — fetches
+  via `getOfferOrThrow(id)` + `applicationService.findByOffer(ownerId, id)`
+  (the same two reads `offers/[id]/page.tsx` already does for its own
+  application lookup) rather than a second `listOffersWithApplication`-style
+  query built for a whole list; applies the same Pro-only `fit` strip as the
+  list page, then renders `OfferPreviewPane` with `closeHref="/offers"`.
+- `src/app/(app)/(protected)/offers/page.tsx` — not touched; nothing needed
+  a prop change (`OffersSummary`/`OfferFilters` already collapse for mobile
+  from TASK-105/106).
+
+Not done (explicitly out of scope per `do_not`/task boundary): tier
+grouping, filter, sort and group-by logic unchanged; TASK-128's mobile
+offer-detail back-header/KPI-pair/sticky-actions shell is a separate task.
+
+Playwright MCP design-review loop not run (no Playwright MCP tool available
+in this session's tool set — same limitation as every prior UI task in this
+log; both `/offers` and `/offers/[id]/preview` require an authenticated
+session, confirmed via a plain `curl` 307-to-sign-in). Worth a manual
+sub-768px, light/dark pass on both routes before merge — the task's own
+`done:` line asks for exactly that.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 201 passed, no new
+- `npm run build` — pass (`/offers/[id]/preview` registered as a route)
+
+Review-fix pass (addresses the entries above, which described the first
+draft): the preview page no longer goes `md:hidden` blank at 768px+ (now
+`fixed inset-0` below 768, a plain `md:static` card above it, so a rotated
+phone or a bookmarked link always gets a real page instead of nothing);
+`closeHref` forwards the list's `q`/`sort`/`favorite` params instead of
+always resetting to `/offers`; each mobile tier group is wrapped in its own
+`relative` div so its `sticky` header releases at the group boundary instead
+of stacking over the next group's header; the mobile row picked up
+`role="button"`/`tabIndex`/`onKeyDown` (Enter/Space) for keyboard/AT access;
+and `selectedId` now clears on a resize below 768 so the Tab-trap listener
+doesn't keep running against a pane that's gone `hidden`. Left alone as
+out-of-scope for this task: `offer-filters.tsx`'s `max-md:hidden` Group tag
+(pre-existing from TASK-105, not touched by this diff).
+
 ### Feature: TASK-106 — Offer preview pane on the offers list
 
 Status: **done** — green on typecheck/lint/test/build (201 tests passed, no
