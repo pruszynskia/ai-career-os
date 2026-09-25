@@ -5,7 +5,7 @@ import type { CvDocument } from '@/entities/cv-document/types';
 import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Star } from 'lucide-react';
 
 import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
@@ -104,7 +104,10 @@ export function OfferDetail({
   // before TASK-108 - `status`/`createdAt` are read too now, for the rail's
   // read-only Application card (the header's own stage control stays the
   // render-prop `applicationStatus` below, same ADR-008 reason).
-  application?: Pick<ApplicationBundle, 'sentCv' | 'status' | 'createdAt'> | null;
+  application?: Pick<
+    ApplicationBundle,
+    'sentCv' | 'status' | 'createdAt'
+  > | null;
   applicationStatus?: ReactNode;
   // Same reason: the "add this absent-but-true skill" action writes to the
   // profile's evidence base, owned by the profile feature.
@@ -138,6 +141,12 @@ export function OfferDetail({
   const searchParams = useSearchParams();
   const [matchScore, setMatchScore] = useState(offer.matchScore);
   const [fit, setFit] = useState(offer.fit);
+  // Holds the last generated letter across a Regenerate click (review fix,
+  // TASK-110) - useMutation.mutate() resets isSuccess/data to their initial
+  // state before the new request resolves, so reading
+  // coverLetterMutation.data directly would hide the existing letter (and
+  // the header's "Regenerating…" label) for the duration of the request.
+  const [coverLetterDoc, setCoverLetterDoc] = useState<CvDocument | null>(null);
   const [selectedContact, setSelectedContact] = useState<{
     name: string;
     profileUrl: string | null;
@@ -147,6 +156,11 @@ export function OfferDetail({
   const coverLetterMutation = useCoverLetter();
   const toggleFavoriteMutation = useToggleFavorite();
   const updateOfferMutation = useUpdateOffer();
+  // Focuses the cover letter's DocumentEditor textarea for the header's
+  // "Edit" action - DocumentEditor has no separate view/edit mode to toggle
+  // (it's always an editable Textarea), so "Edit" just moves focus into it
+  // rather than duplicating a save/edit mechanism it already owns.
+  const coverLetterEditorRef = useRef<HTMLDivElement>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editValues, setEditValues] = useState({
     company: offer.company,
@@ -196,11 +210,7 @@ export function OfferDetail({
     // switch behind a round trip. Next.js's router intercepts direct
     // history.replaceState calls and updates useSearchParams without a
     // server fetch.
-    window.history.replaceState(
-      null,
-      '',
-      `${pathname}?${params.toString()}`,
-    );
+    window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
   }
 
   function openEditDialog() {
@@ -462,27 +472,87 @@ export function OfferDetail({
             forceMount
             className="flex flex-col gap-3 data-[state=inactive]:hidden"
           >
-            <Heading level={4} as="h2">
-              Cover letter
-            </Heading>
-            <Button
-              variant="primary"
-              className="self-start"
-              disabled={coverLetterMutation.isPending}
-              onClick={() => coverLetterMutation.mutate(offer.id)}
-            >
-              {coverLetterMutation.isPending && <Spinner size="sm" />}
-              {coverLetterMutation.isPending
-                ? 'Generating…'
-                : 'Generate cover letter'}
-            </Button>
-            {coverLetterMutation.isSuccess && (
-              <DocumentEditor
-                key={coverLetterMutation.data.cvDocument.id}
-                documentId={coverLetterMutation.data.cvDocument.id}
-                content={coverLetterMutation.data.cvDocument.content}
-                downloadFilename="cover-letter.txt"
-              />
+            {coverLetterDoc ? (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-col gap-0.5">
+                    <Heading level={4} as="h2">
+                      Cover letter
+                    </Heading>
+                    <Text size="xs" color="muted">
+                      Generated{' '}
+                      {new Date(coverLetterDoc.createdAt).toLocaleDateString(
+                        'en-GB',
+                        { day: 'numeric', month: 'short' },
+                      )}{' '}
+                      · 1 AI action
+                    </Text>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="quiet"
+                      size="sm"
+                      disabled={coverLetterMutation.isPending}
+                      onClick={() =>
+                        coverLetterMutation.mutate(offer.id, {
+                          onSuccess: (data) =>
+                            setCoverLetterDoc(data.cvDocument),
+                        })
+                      }
+                    >
+                      {coverLetterMutation.isPending && <Spinner size="sm" />}
+                      {coverLetterMutation.isPending
+                        ? 'Regenerating…'
+                        : 'Regenerate'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        coverLetterEditorRef.current
+                          ?.querySelector('textarea')
+                          ?.focus()
+                      }
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+                <div ref={coverLetterEditorRef}>
+                  <DocumentEditor
+                    key={coverLetterDoc.id}
+                    documentId={coverLetterDoc.id}
+                    content={coverLetterDoc.content}
+                    downloadFilename="cover-letter.txt"
+                    onSaved={(content) =>
+                      setCoverLetterDoc((doc) =>
+                        doc ? { ...doc, content } : doc,
+                      )
+                    }
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <Heading level={4} as="h2">
+                  Cover letter
+                </Heading>
+                <Button
+                  variant="primary"
+                  className="self-start"
+                  disabled={coverLetterMutation.isPending}
+                  onClick={() =>
+                    coverLetterMutation.mutate(offer.id, {
+                      onSuccess: (data) => setCoverLetterDoc(data.cvDocument),
+                    })
+                  }
+                >
+                  {coverLetterMutation.isPending && <Spinner size="sm" />}
+                  {coverLetterMutation.isPending
+                    ? 'Generating…'
+                    : 'Generate cover letter'}
+                </Button>
+              </>
             )}
           </TabsContent>
 
@@ -580,8 +650,7 @@ export function OfferDetail({
                 <>
                   {!sentCv && (
                     <Text size="sm" color="muted">
-                      Upload a CV in Profile before tracking this
-                      application.
+                      Upload a CV in Profile before tracking this application.
                     </Text>
                   )}
                   {isUsingMasterCvFallback && (
@@ -597,8 +666,8 @@ export function OfferDetail({
                     // not a fallback that varies, so it's a plain note
                     // rather than conditional fallback copy.
                     <Text size="sm" color="muted">
-                      Tracking starts with no recruiter message - draft one
-                      in Outreach.
+                      Tracking starts with no recruiter message - draft one in
+                      Outreach.
                     </Text>
                   )}
                   <Button
