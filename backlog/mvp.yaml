@@ -8409,7 +8409,7 @@ tasks:
     github:
       issue: "221"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8Umoc
-    status: in_progress
+    status: done
     priority: P1
     estimate: XL
     milestone: "Design System Redesign"
