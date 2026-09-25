@@ -18,7 +18,7 @@ import { TailoringReport } from '@/features/document/components/tailoring-report
 import { OfferDetail } from '@/features/job-offer/components/offer-detail';
 import { useAddEvidenceSkill } from '@/features/profile/hooks/use-add-evidence-skill';
 import { Button } from '@/shared/ui/button';
-import { EmptyState } from '@/shared/ui/empty-state';
+import { LockedPanel } from '@/shared/ui/locked-panel';
 
 export function OfferDetailPanel({
   offer,
@@ -96,9 +96,8 @@ export function OfferDetailPanel({
       renderTailoringReport={(report) =>
         report ? (
           <TailoringReport report={report} />
-        ) : canViewTailoringReport ? // Pro with no report yet (fit unscored): nothing to gate, stay silent.
-        null : (
-          <EmptyState
+        ) : canViewTailoringReport ? null : ( // Pro with no report yet (fit unscored): nothing to gate, stay silent.
+          <LockedPanel
             message="See the tailoring report - keyword coverage and evidence trace - on Pro."
             action={
               <Button asChild size="sm">
