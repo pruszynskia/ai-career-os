@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Star, X } from 'lucide-react';
+import { ArrowLeft, Star, X } from 'lucide-react';
 
 import type { OfferWithApplication } from '@/features/job-offer/types';
 import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
@@ -43,6 +44,22 @@ interface OfferTierGroup {
   offers: OfferWithApplication[];
 }
 
+// Exported for a focused unit test (TASK-127): the mobile row's tap target
+// and its "back" link both depend on this forwarding the list's own q/sort/
+// favorite params to the full-page preview route unchanged.
+export function buildOfferPreviewHref(
+  offerId: string,
+  searchParams: URLSearchParams,
+): string {
+  const previewParams = new URLSearchParams();
+  for (const key of ['q', 'sort', 'favorite']) {
+    const value = searchParams.get(key);
+    if (value) previewParams.set(key, value);
+  }
+  const previewQuery = previewParams.toString();
+  return `/offers/${offerId}/preview${previewQuery ? `?${previewQuery}` : ''}`;
+}
+
 // Exported for a focused unit test on the grouping/ordering logic.
 export function groupOffersByTier(
   offers: OfferWithApplication[],
@@ -60,6 +77,46 @@ export function groupOffersByTier(
     tier,
     offers: buckets.get(tier) ?? [],
   })).filter((group) => group.offers.length > 0);
+}
+
+// Shared by both the mobile row and the desktop GridTableRow below - same
+// star toggle, same aria-label/aria-pressed, just a `shrink-0` the desktop
+// grid layout doesn't need. One copy so the two rows can't drift apart.
+function OfferFavoriteButton({
+  offer,
+  isPending,
+  onToggle,
+  className,
+}: {
+  offer: OfferWithApplication;
+  isPending: boolean;
+  onToggle: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={
+        offer.isFavorite ? 'Remove from favorites' : 'Add to favorites'
+      }
+      aria-pressed={offer.isFavorite}
+      disabled={isPending}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
+      className={cn(
+        'flex size-4 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-50',
+        offer.isFavorite && 'text-foreground',
+        className,
+      )}
+    >
+      <Star
+        aria-hidden="true"
+        className={cn('size-3.5', offer.isFavorite && 'fill-current')}
+      />
+    </button>
+  );
 }
 
 function average(values: number[]): number {
@@ -93,14 +150,22 @@ function groupMeta(
 // breakpoint.rules, same pattern as the sidebar's icon-collapse in
 // nav/sidebar.tsx). Built entirely from the offer object the page already
 // fetched - no per-offer fetch on selection.
-function OfferPreviewPane({
+//
+// Below 768 (TASK-127) this same content is reused (exported) for a real
+// `offers/[id]/preview` page instead of an in-place pane - that route's
+// page.tsx is a Server Component, so it renders this Client Component with
+// `closeHref` (a Link-based back button) instead of an `onClose` callback,
+// which can't cross the server/client boundary.
+export function OfferPreviewPane({
   offer,
   canViewFitDetail,
   onClose,
+  closeHref,
 }: {
   offer: OfferWithApplication;
   canViewFitDetail: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  closeHref?: string;
 }) {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -116,10 +181,17 @@ function OfferPreviewPane({
         <IconButton
           variant="quiet"
           size="sm"
-          aria-label="Close preview"
+          aria-label={closeHref ? 'Back to offers' : 'Close preview'}
           onClick={onClose}
+          asChild={Boolean(closeHref)}
         >
-          <X className="size-[13px]" />
+          {closeHref ? (
+            <Link href={closeHref}>
+              <ArrowLeft className="size-[13px]" />
+            </Link>
+          ) : (
+            <X className="size-[13px]" />
+          )}
         </IconButton>
       </div>
       <div className="flex flex-col gap-3 px-4 py-3.5">
@@ -186,6 +258,8 @@ export function UnifiedOfferList({
   canViewFitDetail?: boolean;
   isFiltered?: boolean;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const favoriteMutation = useToggleFavorite();
   const [collapsedTiers, setCollapsedTiers] = useState<Set<string>>(new Set());
   const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
@@ -206,6 +280,19 @@ export function UnifiedOfferList({
     const query = window.matchMedia('(max-width: 1279px)');
     const onChange = (event: MediaQueryListEvent) =>
       setIsOverlay(event.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+
+  // Below 768 this pane/drawer is `hidden` (TASK-127 routes to a full page
+  // instead) - if a resize crosses that breakpoint while a desktop/tablet
+  // selection is open, drop it so the Escape/Tab-trap listener below doesn't
+  // keep running against a now-hidden pane.
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const onChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setSelectedId(null);
+    };
     query.addEventListener('change', onChange);
     return () => query.removeEventListener('change', onChange);
   }, []);
@@ -272,7 +359,125 @@ export function UnifiedOfferList({
           .
         </p>
       )}
-      <div className="flex items-start gap-4">
+      {/* Below 768 (TASK-127): single-column list with sticky tier headers
+        and stage chips, per X-m-offers.dc.html - replaces the GridTable and
+        routes a tap to a full preview page instead of TASK-106's pane. */}
+      <div className="md:hidden">
+        {groups.map(({ tier, offers: groupOffers }) => {
+          const key = String(tier);
+          const collapsed = collapsedTiers.has(key);
+          const expanded = expandedTiers.has(key);
+          const visibleOffers = expanded
+            ? groupOffers
+            : groupOffers.slice(0, VISIBLE_PER_GROUP);
+          const remaining = groupOffers.length - visibleOffers.length;
+
+          return (
+            // Each tier group is its own `relative` box (not a bare
+            // Fragment) so `sticky top-0` on its header only sticks for the
+            // height of this group - once the group scrolls past, the
+            // header leaves with it instead of stacking on top of the next
+            // group's header.
+            <div key={key} className="relative">
+              <GridTableGroupHeader
+                tier={tier}
+                label={tier === null ? 'Not scored' : TIER_LABEL[tier]}
+                count={groupOffers.length}
+                meta={groupMeta(groupOffers, tier)}
+                collapsed={collapsed}
+                onCollapsedChange={(next) =>
+                  setCollapsedTiers((prev) => {
+                    const copy = new Set(prev);
+                    if (next) copy.add(key);
+                    else copy.delete(key);
+                    return copy;
+                  })
+                }
+                className="sticky top-0 z-10"
+              />
+              {!collapsed &&
+                visibleOffers.map((offer) => {
+                  const isTogglingThis =
+                    favoriteMutation.isPending &&
+                    favoriteMutation.variables?.id === offer.id;
+                  const previewHref = buildOfferPreviewHref(
+                    offer.id,
+                    searchParams,
+                  );
+
+                  return (
+                    // No role="button"/tabIndex/onKeyDown here (matches the
+                    // desktop GridTableRow convention below): the row is
+                    // mouse-clickable to open the preview, while the
+                    // favorite button and title Link stay the only keyboard
+                    // targets - avoids nesting a button/link inside a
+                    // role="button" and the keydown-bubbling bug that came
+                    // with it.
+                    <div
+                      key={offer.id}
+                      onClick={() => router.push(previewHref)}
+                      className="flex cursor-pointer items-center gap-3 border-b border-border px-4 py-2.5 hover:bg-muted"
+                    >
+                      <OfferFavoriteButton
+                        offer={offer}
+                        isPending={isTogglingThis}
+                        onToggle={() =>
+                          favoriteMutation.mutate({
+                            id: offer.id,
+                            isFavorite: !offer.isFavorite,
+                          })
+                        }
+                        className="shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/offers/${offer.id}`}
+                            onClick={(event) => event.stopPropagation()}
+                            className="truncate font-medium hover:underline"
+                          >
+                            {offer.title}
+                          </Link>
+                          {offer.isExpired && <Tag size="sm">Expired</Tag>}
+                        </div>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {offer.company}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                          {offer.matchScore ?? '—'}
+                          {offer.fit && ` · ${offer.fit.hrCallbackProbability}`}
+                        </span>
+                        <Tag size="sm" className="gap-1.5">
+                          <StageRing
+                            status={offer.application?.status ?? null}
+                          />
+                          {offer.application
+                            ? APPLICATION_STATUS_LABELS[
+                                offer.application.status
+                              ]
+                            : 'Not tracked'}
+                        </Tag>
+                      </div>
+                    </div>
+                  );
+                })}
+              {!collapsed && remaining > 0 && (
+                <GridTableShowMore
+                  count={remaining}
+                  onClick={() =>
+                    setExpandedTiers((prev) => new Set(prev).add(key))
+                  }
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* 768+ (TASK-105/106): GridTable with an inline pane (1280+) or an
+        overlay drawer (768-1279). */}
+      <div className="hidden items-start gap-4 md:flex">
         <div className="min-w-0 flex-1">
           <GridTable columns={COLUMNS}>
             <GridTableHead>
@@ -323,35 +528,16 @@ export function UnifiedOfferList({
                           onClick={() => setSelectedId(offer.id)}
                           className="cursor-pointer"
                         >
-                          <button
-                            type="button"
-                            aria-label={
-                              offer.isFavorite
-                                ? 'Remove from favorites'
-                                : 'Add to favorites'
-                            }
-                            aria-pressed={offer.isFavorite}
-                            disabled={isTogglingThis}
-                            onClick={(event) => {
-                              event.stopPropagation();
+                          <OfferFavoriteButton
+                            offer={offer}
+                            isPending={isTogglingThis}
+                            onToggle={() =>
                               favoriteMutation.mutate({
                                 id: offer.id,
                                 isFavorite: !offer.isFavorite,
-                              });
-                            }}
-                            className={cn(
-                              'flex size-4 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-50',
-                              offer.isFavorite && 'text-foreground',
-                            )}
-                          >
-                            <Star
-                              aria-hidden="true"
-                              className={cn(
-                                'size-3.5',
-                                offer.isFavorite && 'fill-current',
-                              )}
-                            />
-                          </button>
+                              })
+                            }
+                          />
                           <span className="flex min-w-0 items-center gap-2">
                             <Link
                               href={`/offers/${offer.id}`}
@@ -419,11 +605,10 @@ export function UnifiedOfferList({
         {selectedOffer && (
           <>
             {/* Tablet-only (768-1279) scrim behind the drawer - the pane
-              itself is `fixed` only in that same range (see below), so the
-              scrim only needs to render there too. Below 768 the pane fills
-              the screen down to the 76px mobile tab bar (mobile-tab-bar.tsx)
-              instead of covering it; at and above 1280 it's inline, not an
-              overlay. */}
+              itself is `fixed` only in that same range (see below); at and
+              above 1280 it's inline, not an overlay. This whole container is
+              `hidden` below 768 (TASK-127 routes to a full page there
+              instead), so no mobile-specific styling is needed here. */}
             <div
               aria-hidden="true"
               onClick={() => setSelectedId(null)}
@@ -432,13 +617,13 @@ export function UnifiedOfferList({
             <aside
               ref={paneRef}
               tabIndex={-1}
-              // Only an overlay (drawer/full-page, <1280px) is a real modal -
-              // the inline 1280px+ pane sits beside a still-interactive list,
-              // so it keeps neither role nor aria-modal.
+              // Only the tablet drawer (768-1279) is a real modal - the
+              // inline 1280px+ pane sits beside a still-interactive list, so
+              // it keeps neither role nor aria-modal.
               role={isOverlay ? 'dialog' : undefined}
               aria-modal={isOverlay ? true : undefined}
               aria-label={`Preview: ${selectedOffer.title} at ${selectedOffer.company}`}
-              className="flex w-full shrink-0 border-l border-border bg-popover outline-none max-[767px]:fixed max-[767px]:inset-x-0 max-[767px]:top-0 max-[767px]:bottom-[76px] max-[767px]:z-50 max-[767px]:shadow-[var(--shadow-overlay)] min-[768px]:max-[1279px]:fixed min-[768px]:max-[1279px]:inset-y-0 min-[768px]:max-[1279px]:right-0 min-[768px]:max-[1279px]:z-50 min-[768px]:max-[1279px]:w-[344px] min-[768px]:max-[1279px]:shadow-[var(--shadow-overlay)] min-[1280px]:sticky min-[1280px]:top-4 min-[1280px]:w-[344px] min-[1280px]:max-h-[calc(100vh-2rem)]"
+              className="flex w-full shrink-0 border-l border-border bg-popover outline-none min-[768px]:max-[1279px]:fixed min-[768px]:max-[1279px]:inset-y-0 min-[768px]:max-[1279px]:right-0 min-[768px]:max-[1279px]:z-50 min-[768px]:max-[1279px]:w-[344px] min-[768px]:max-[1279px]:shadow-[var(--shadow-overlay)] min-[1280px]:sticky min-[1280px]:top-4 min-[1280px]:w-[344px] min-[1280px]:max-h-[calc(100vh-2rem)]"
             >
               <OfferPreviewPane
                 offer={selectedOffer}

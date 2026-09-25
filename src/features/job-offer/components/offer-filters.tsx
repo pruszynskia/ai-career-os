@@ -100,8 +100,9 @@ export function OfferFilters({
           no other grouping mode to switch to yet, so this is a status
           readout rather than a control (do not invent a second tiering
           scheme just to make it interactive). */}
-      <Tag className="max-md:hidden">
-        Group: <span className="font-medium text-foreground">Recommendation</span>
+      <Tag>
+        Group:{' '}
+        <span className="font-medium text-foreground">Recommendation</span>
       </Tag>
       <span className="ml-auto" />
       <SegmentedControl

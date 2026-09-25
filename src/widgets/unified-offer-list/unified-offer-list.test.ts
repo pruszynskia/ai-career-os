@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { OfferWithApplication } from '@/features/job-offer/types';
 
-import { groupOffersByTier } from './unified-offer-list';
+import { buildOfferPreviewHref, groupOffersByTier } from './unified-offer-list';
 
 function offer(
   id: string,
@@ -53,5 +53,22 @@ describe('groupOffersByTier', () => {
 
   it('returns no groups for an empty offer list', () => {
     expect(groupOffersByTier([])).toEqual([]);
+  });
+});
+
+describe('buildOfferPreviewHref', () => {
+  it('links to the offer preview page with no query when none is set', () => {
+    expect(buildOfferPreviewHref('offer-1', new URLSearchParams())).toBe(
+      '/offers/offer-1/preview',
+    );
+  });
+
+  it('forwards q/sort/favorite so the preview "back" link keeps the filtered view', () => {
+    const searchParams = new URLSearchParams(
+      'q=engineer&sort=matchScore&favorite=1&view=board',
+    );
+    expect(buildOfferPreviewHref('offer-1', searchParams)).toBe(
+      '/offers/offer-1/preview?q=engineer&sort=matchScore&favorite=1',
+    );
   });
 });
