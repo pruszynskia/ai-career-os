@@ -20,6 +20,7 @@ export function CheckoutButton({
       <Button
         type="button"
         variant={featured ? 'primary' : 'secondary'}
+        size="lg"
         className="w-full"
         onClick={() => mutate(plan)}
         disabled={isPending}
