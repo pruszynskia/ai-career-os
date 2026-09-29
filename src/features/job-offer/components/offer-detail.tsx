@@ -6,7 +6,7 @@ import type { JobOffer } from '@/entities/job-offer/types';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useRef, useState, type ReactNode } from 'react';
-import { Star } from 'lucide-react';
+import { ChevronLeft, MoreHorizontal, Star } from 'lucide-react';
 
 import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
 import { StageRing } from '@/entities/application/ui/stage-ring';
@@ -40,6 +40,9 @@ import {
   Heading,
   IconButton,
   Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Spinner,
   Tabs,
   TabsContent,
@@ -161,6 +164,11 @@ export function OfferDetail({
   // (it's always an editable Textarea), so "Edit" just moves focus into it
   // rather than duplicating a save/edit mechanism it already owns.
   const coverLetterEditorRef = useRef<HTMLDivElement>(null);
+  // Remembers whichever button (desktop row or mobile overflow menu, TASK-128)
+  // actually opened the edit dialog, so focus returns there on close instead
+  // of Radix's default of the md:flex row's trigger, which is display:none
+  // on mobile and can't receive focus.
+  const editTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editValues, setEditValues] = useState({
     company: offer.company,
@@ -213,7 +221,8 @@ export function OfferDetail({
     window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
   }
 
-  function openEditDialog() {
+  function openEditDialog(trigger?: HTMLButtonElement | null) {
+    editTriggerRef.current = trigger ?? null;
     setEditValues({
       company: offer.company,
       title: offer.title,
@@ -236,6 +245,58 @@ export function OfferDetail({
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
       <div className="sticky top-0 z-10 flex flex-col gap-4 bg-background pb-4">
+        {/* Mobile back-header (TASK-128) - the desktop actions row below
+            (favorite/edit/stage/delete) collapses to a back link plus a
+            favorite star and an overflow menu for edit/delete; the stage
+            control moves to the sticky bottom bar. */}
+        <div className="flex items-center gap-1 md:hidden">
+          <Link
+            href="/offers"
+            className="-ml-2 flex h-11 items-center gap-1 px-2 text-body-sm text-muted-foreground"
+          >
+            <ChevronLeft aria-hidden="true" className="size-[18px]" />
+            Offers
+          </Link>
+          <div className="grow" />
+          <IconButton
+            size="touch"
+            aria-label={
+              offer.isFavorite ? 'Remove from favorites' : 'Add to favorites'
+            }
+            aria-pressed={offer.isFavorite}
+            variant={offer.isFavorite ? 'primary' : 'secondary'}
+            disabled={toggleFavoriteMutation.isPending}
+            onClick={() =>
+              toggleFavoriteMutation.mutate({
+                id: offer.id,
+                isFavorite: !offer.isFavorite,
+              })
+            }
+          >
+            <Star
+              aria-hidden="true"
+              className={offer.isFavorite ? 'fill-current' : undefined}
+            />
+          </IconButton>
+          <Popover>
+            <PopoverTrigger asChild>
+              <IconButton size="touch" aria-label="More actions">
+                <MoreHorizontal aria-hidden="true" />
+              </IconButton>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="flex flex-col gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={(event) => openEditDialog(event.currentTarget)}
+              >
+                Edit details
+              </Button>
+              <DeleteOfferButton offerId={offer.id} redirectTo="/offers" />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Text size="sm" color="muted">
@@ -254,7 +315,7 @@ export function OfferDetail({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
             <IconButton
               aria-label={
                 offer.isFavorite ? 'Remove from favorites' : 'Add to favorites'
@@ -277,11 +338,22 @@ export function OfferDetail({
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
-                <Button variant="secondary" size="sm" onClick={openEditDialog}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={(event) => openEditDialog(event.currentTarget)}
+                >
                   Edit details
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent
+                onCloseAutoFocus={(event) => {
+                  if (editTriggerRef.current) {
+                    event.preventDefault();
+                    editTriggerRef.current.focus();
+                  }
+                }}
+              >
                 <DialogHeader>
                   <DialogTitle>Edit offer details</DialogTitle>
                 </DialogHeader>
@@ -374,6 +446,29 @@ export function OfferDetail({
           </TabsTrigger>
         </TabsList>
       </div>
+
+      {/* Mobile match/callback KPI pair (TASK-128) - the rail's own
+          StatCard grid below is desktop-only; this reads the same
+          matchScore/fit state, not a second fetch. Kept out of the sticky
+          header above (unlike the mockup, which has no sticky at all) so
+          the pinned area stays limited to nav + tabs. */}
+      <Grid
+        cols={2}
+        className="mb-4 divide-x divide-border rounded-[10px] border border-border md:hidden"
+      >
+        <div className="p-3">
+          <StatCard
+            label="Match"
+            value={matchScore !== null ? `${matchScore}%` : 'Unknown'}
+          />
+        </div>
+        <div className="p-3">
+          <StatCard
+            label="Callback"
+            value={fit ? `${fit.hrCallbackProbability}%` : 'Unknown'}
+          />
+        </div>
+      </Grid>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="min-w-0">
@@ -578,7 +673,10 @@ export function OfferDetail({
         <aside className="flex flex-col gap-4">
           <Card>
             <CardContent className="flex flex-col gap-3 pt-4">
-              <Grid cols={2} gap={3}>
+              {/* Duplicated by the mobile KPI pair above the tabs
+                  (TASK-128) - hidden here below md: so the numbers don't
+                  render twice. */}
+              <Grid cols={2} gap={3} className="max-md:hidden">
                 <StatCard
                   label="Match"
                   value={matchScore !== null ? `${matchScore}%` : 'Unknown'}
@@ -719,6 +817,23 @@ export function OfferDetail({
             </CardContent>
           </Card>
         </aside>
+      </div>
+
+      {/* Mobile sticky bottom action bar (TASK-128) - the desktop header's
+          stage control, relocated below md: and reusing the same
+          applicationStatus node/handler. */}
+      <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-between gap-3 border-t border-border bg-sidebar px-4 py-3 max-md:bottom-[76px] md:hidden">
+        <Text size="sm" color="muted">
+          Stage
+        </Text>
+        <div
+          role="group"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground"
+          aria-label="Application stage"
+        >
+          <StageRing status={application?.status ?? null} />
+          {application ? applicationStatus : 'Not tracked'}
+        </div>
       </div>
     </Tabs>
   );

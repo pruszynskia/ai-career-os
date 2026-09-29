@@ -61,6 +61,15 @@ function pageTitle(pathname: string): string {
   );
 }
 
+// Offer detail (/offers/[id], not the /offers list or /offers/[id]/preview
+// full-bleed page) renders its own back-header (offer-detail.tsx, TASK-128)
+// with the same "back to Offers" affordance, so this generic title bar
+// would just duplicate it.
+function isOfferDetailPath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean);
+  return segments.length === 2 && segments[0] === 'offers';
+}
+
 /** 56px mobile header - page title + notifications. Sibling of TopBar, shown max-md: only. */
 export function MobileHeader({
   notifications,
@@ -68,6 +77,8 @@ export function MobileHeader({
   notifications: Notification[];
 }) {
   const pathname = usePathname();
+
+  if (isOfferDetailPath(pathname)) return null;
 
   return (
     <header className="flex h-[56px] shrink-0 items-center gap-2.5 border-b border-border px-4 md:hidden">
