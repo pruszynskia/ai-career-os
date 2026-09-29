@@ -9309,7 +9309,7 @@ tasks:
     github:
       issue: "233"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnAE
-    status: in_progress
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Redesign"
@@ -9387,7 +9387,7 @@ tasks:
     github:
       issue: "234"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnC8
-    status: in_progress
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Redesign"
