@@ -1,6 +1,8 @@
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { requestPasswordReset } from '@/shared/auth/actions';
+import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
@@ -15,45 +17,50 @@ export default async function ForgotPasswordPage({
   const { sent, error } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-7 p-6">
+      <Link href="/" className="text-sm font-semibold tracking-tight">
+        Career OS
+      </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <Heading level={4} as="h1" className="font-medium">
+          <Heading level={3} as="h1">
             Reset password
           </Heading>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           {error === 'expired' && (
-            <p role="alert" className="mb-4 text-sm text-destructive">
+            <Banner tone="warning">
               That link has expired or was already used. Request a new one
               below.
-            </p>
+            </Banner>
           )}
           {error === 'rate_limit' && (
-            <p role="alert" className="mb-4 text-sm text-destructive">
+            <Banner tone="danger">
               Too many attempts. Please wait a minute and try again.
-            </p>
+            </Banner>
+          )}
+          {sent && (
+            <Banner tone="success">
+              If that email has an account, a reset link is on its way.
+            </Banner>
           )}
           <form action={requestPasswordReset} className="flex flex-col gap-4">
             <Field id="email" label="Email">
               <Input name="email" type="email" placeholder="Email" required />
             </Field>
-            <Button type="submit" className="mt-1">
+            <Button type="submit" size="lg" className="mt-1 w-full">
               Send reset link
             </Button>
           </form>
-          {sent && (
-            <p role="status" className="mt-4 text-sm text-muted-foreground">
-              If that email has an account, a reset link is on its way.
-            </p>
-          )}
-          <p className="mt-4 text-sm text-muted-foreground">
-            <Link href="/sign-in" className="underline">
-              Back to sign in
-            </Link>
-          </p>
         </CardContent>
       </Card>
+      <Link
+        href="/sign-in"
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-3.5" />
+        Back to sign in
+      </Link>
     </main>
   );
 }

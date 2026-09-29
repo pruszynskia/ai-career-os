@@ -12,19 +12,26 @@ export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <Text size="sm" weight="medium" color="muted" className="font-mono">
-        404
-      </Text>
-      <Heading level={2} as="h1">
-        Page not found
-      </Heading>
-      <Text color="muted">
-        The page you are looking for does not exist or has moved.
-      </Text>
-      <Link href="/" className={cn(buttonVariants({ size: 'md' }), 'mt-2')}>
-        Back to home
-      </Link>
+    <main className="flex min-h-screen flex-col">
+      <header className="flex h-16 shrink-0 items-center border-b px-8">
+        <Link href="/">
+          <Heading level={3}>Career OS</Heading>
+        </Link>
+      </header>
+      <div className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center gap-3.5 px-6 text-center">
+        <Text size="sm" weight="medium" color="muted" className="tabular-nums">
+          404
+        </Text>
+        <Heading level={1} as="h1">
+          Page not found
+        </Heading>
+        <Text color="muted">
+          The page you are looking for does not exist or has moved.
+        </Text>
+        <Link href="/" className={cn(buttonVariants({ size: 'lg' }), 'mt-2')}>
+          Back to home
+        </Link>
+      </div>
     </main>
   );
 }
