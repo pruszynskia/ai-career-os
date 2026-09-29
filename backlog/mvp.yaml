@@ -8847,7 +8847,7 @@ tasks:
     github:
       issue: "227"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um0M
-    status: in_progress
+    status: done
     priority: P2
     estimate: L
     milestone: "Design System Redesign"

@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-29: TASK-114 merged via PR #275, merge commit 2867ccaf231dbe392250b567bc3021f26296ec61 — posts screen as a composer rail with filtered claim-tagged rows.
 - 2026-09-29: TASK-113 merged via PR #274, merge commit ad8d7b3a7332249f5f1303b57ca98f54be321171 — documents screen as a split list/reader view with filtering and search.
 - 2026-09-25: TASK-109 merged via PR #269, merge commit 5dc922c6a4fa8a241c14efe2b36486fa3d84aa7e — fit report tab restyle: grouped GridTable, divergence banner, and locked panel on Free.
 - 2026-09-25: TASK-127 merged via PR #266, merge commit b76cbfde86897755daed13ef247b69477a590a6f — mobile offers list with sticky tier headers and full-page preview.
