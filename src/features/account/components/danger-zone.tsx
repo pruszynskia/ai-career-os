@@ -74,9 +74,9 @@ export function DangerZone() {
   }
 
   return (
-    <Card>
+    <Card className="border-[var(--destructive-subtle)]">
       <CardHeader>
-        <CardTitle>Danger zone</CardTitle>
+        <CardTitle className="text-destructive">Danger zone</CardTitle>
       </CardHeader>
       <CardContent>
         <VStack gap={4}>

@@ -4,12 +4,12 @@ import { useSyncExternalStore } from 'react';
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
-import { Button } from '@/shared/ui/button';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/primitives';
 
 const OPTIONS = [
-  { value: 'dark', label: 'Dark', icon: MoonIcon },
-  { value: 'light', label: 'Light', icon: SunIcon },
   { value: 'system', label: 'System', icon: MonitorIcon },
+  { value: 'light', label: 'Light', icon: SunIcon },
+  { value: 'dark', label: 'Dark', icon: MoonIcon },
 ] as const;
 
 const noopSubscribe = () => () => {};
@@ -29,26 +29,18 @@ function ThemeToggle() {
   );
 
   return (
-    <div
-      role="group"
+    <SegmentedControl
       aria-label="Theme"
-      className="inline-flex gap-0.5 rounded-lg border border-border bg-background p-0.5 dark:border-input dark:bg-input/30"
+      value={mounted ? theme ?? 'system' : 'system'}
+      onValueChange={(value) => setTheme(value)}
     >
       {OPTIONS.map(({ value, label, icon: Icon }) => (
-        <Button
-          key={value}
-          type="button"
-          size="sm"
-          variant={mounted && theme === value ? 'primary' : 'quiet'}
-          aria-pressed={mounted && theme === value}
-          onClick={() => setTheme(value)}
-          className="gap-1.5"
-        >
-          <Icon />
+        <SegmentedControlItem key={value} value={value} className="gap-1.5">
+          <Icon aria-hidden="true" className="size-3.5" />
           {label}
-        </Button>
+        </SegmentedControlItem>
       ))}
-    </div>
+    </SegmentedControl>
   );
 }
 
