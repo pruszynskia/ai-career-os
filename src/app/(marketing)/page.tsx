@@ -113,15 +113,19 @@ export default async function LandingPage() {
           align="start"
           className="md:col-span-4 md:justify-end md:pt-12"
         >
-          <HStack gap={2}>
-            <Button asChild>
+          <HStack gap={2} className="max-md:w-full max-md:flex-col">
+            <Button asChild className="max-md:w-full">
               <Link href="/sign-up">Create your account</Link>
             </Button>
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" className="max-md:w-full">
               <Link href="/pricing">See pricing</Link>
             </Button>
           </HStack>
-          <Text size="sm" color="muted">
+          <Text
+            size="sm"
+            color="muted"
+            className="max-md:text-center max-md:w-full"
+          >
             Free plan, no credit card required.
           </Text>
         </VStack>
@@ -155,8 +159,8 @@ export default async function LandingPage() {
           <Heading level={2}>It won&apos;t lie about you.</Heading>
           <Text color="muted" className="max-w-[52ch]">
             Claims with numbers, seniority or leadership scope are the ones a
-            recruiter checks. They&apos;re shown to you first, and you
-            decide: confirm, downplay, or never use.
+            recruiter checks. They&apos;re shown to you first, and you decide:
+            confirm, downplay, or never use.
           </Text>
         </VStack>
         <Card>
