@@ -8563,7 +8563,7 @@ tasks:
     github:
       issue: "223"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmsE
-    status: in_progress
+    status: done
     priority: P1
     estimate: L
     milestone: "Design System Redesign"
@@ -8633,7 +8633,7 @@ tasks:
     github:
       issue: "224"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmuM
-    status: in_progress
+    status: done
     priority: P2
     estimate: M
     milestone: "Design System Redesign"
@@ -8704,7 +8704,7 @@ tasks:
     github:
       issue: "225"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UmvQ
-    status: in_progress
+    status: done
     priority: P2
     estimate: S
     milestone: "Design System Redesign"
@@ -9936,7 +9936,7 @@ tasks:
     github:
       issue: "241"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8UnQE
-    status: in_progress
+    status: done
     priority: P2
     estimate: L
     milestone: "Mobile Redesign"
