@@ -1840,3 +1840,4 @@ Validation:
 - 2026-09-25: TASK-108 (offer detail shell: sticky header, tabs, 320px rail) merged via PR #268, merge commit 68a778d50dab521feebc756a67a04ec95471d1e8.
 - 2026-09-29: TASK-128 (mobile offer-detail back-header, KPI pair, sticky bottom actions) merged via PR #273, merge commit 5eb6bec4afacbbcea994064ee8a26517a635b8d9.
 - 2026-09-29: TASK-115 (profile screen as a two-column layout with CV rail) merged via PR #276, merge commit 7fa9f772c931d6dfecb21f56e13ad4f4d11b7f5d.
+- 2026-09-29: TASK-116 (settings screen as sub-nav with a card per section) merged via PR #277, merge commit cf891ce40cba7d30ce2fe8aea76e55c6ca29632e.
