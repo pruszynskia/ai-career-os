@@ -4,7 +4,7 @@ import type { Post } from '@/entities/post/types';
 import { useState } from 'react';
 
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
-import { Spinner } from '@/shared/ui/primitives';
+import { Spinner, Tag } from '@/shared/ui/primitives';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -17,7 +17,17 @@ import {
 } from '@/shared/ui/dialog';
 import { Textarea } from '@/shared/ui/textarea';
 
-export function EditPostDialog({ post }: { post: Post }) {
+export function EditPostDialog({
+  post,
+  reusedClaimIds,
+  claimTextById,
+}: {
+  post: Post;
+  // Same reuse/claim-text data PostCard already computes - passed down
+  // instead of recomputed so this dialog can show the same "· reused" tag.
+  reusedClaimIds: Set<string>;
+  claimTextById: Map<string, string>;
+}) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState(post.content);
   const updateMutation = useUpdatePost();
@@ -53,6 +63,21 @@ export function EditPostDialog({ post }: { post: Post }) {
           rows={8}
           disabled={updateMutation.isPending}
         />
+        <div className="flex flex-wrap items-center gap-2">
+          {[...new Set(post.claimsUsed)].map((claimId) => (
+            <Tag
+              key={claimId}
+              title={claimId}
+              aria-pressed={reusedClaimIds.has(claimId)}
+            >
+              {claimTextById.get(claimId) ?? claimId}
+              {reusedClaimIds.has(claimId) ? ' · reused' : ''}
+            </Tag>
+          ))}
+          <span className="ml-auto text-xs text-muted-foreground">
+            {content.length} characters
+          </span>
+        </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="secondary">Cancel</Button>

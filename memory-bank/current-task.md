@@ -14,6 +14,78 @@
 
 ## Current Sprint
 
+### Feature: TASK-114 — Posts screen as a composer rail with filtered, claim-tagged rows
+
+Status: **done** — green on typecheck/lint/test/build (212 tests passed, no
+new — presentation/layout diff over `findReusedClaimIds`'s existing coverage).
+
+What shipped:
+
+- `src/app/(app)/(protected)/posts/page.tsx` — restructured into a
+  `grid lg:grid-cols-[minmax(0,1fr)_360px]` (same rail pattern as
+  `offer-detail.tsx`'s `320px` aside): main column gets an uncontrolled
+  `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` status filter
+  (All/Draft/Scheduled/Sent, each `TabsTrigger` carrying a
+  `data-slot="tabs-count"` count computed from the already-fetched `posts`
+  array, same convention `offer-detail.tsx`'s application tab count uses) —
+  every status's `TabsContent` is pre-filtered server-side (`posts.filter`)
+  so no new client component/state was needed for the filtering itself,
+  Radix's own uncontrolled tab-switching (already `'use client'` inside
+  `tabs.tsx`) handles which branch is in the DOM. `CampaignList`/`PostList`
+  keep their existing props, just fed the per-tab filtered arrays. The
+  360px `aside` holds a `Card` with a second, independent `Tabs`
+  (Single post/Campaign) switching `GeneratePostForm`/`GenerateCampaignForm`
+  — same "no new client wrapper" trick — followed by `PlanPostsButton`.
+- `src/features/linkedin-posts/components/post-list.tsx` — `Badge` → `Tag`
+  (from `@/shared/ui/primitives`) for the `claimsUsed` chips; reused state
+  now reads via `aria-pressed` (Tag's own sanctioned selected-state hook,
+  see `tag.test.tsx`) instead of a `variant` prop, `' · reused'` suffix and
+  `reusedClaimIds`/`claimTextById` computation untouched. The component's
+  own "no posts" `EmptyState` early-return was removed (now returns `null`)
+  — that empty state moved to `page.tsx`, which is the only place that can
+  correctly account for campaign posts too when deciding a status tab is
+  genuinely empty. `EditPostDialog` call site now also passes
+  `reusedClaimIds`/`claimTextById` down.
+- `src/features/linkedin-posts/components/edit-post-dialog.tsx` — takes the
+  same `reusedClaimIds`/`claimTextById` props as `PostCard`, renders the
+  post's `claimsUsed` as the same `Tag`(+"· reused") row above a live
+  `content.length` character counter (post entity has no max-length field,
+  confirmed against `entities/post/types.ts`, so this is a plain count per
+  the task's own fallback instruction).
+- `src/features/linkedin-posts/components/plan-posts-button.tsx` — wrapped
+  in `Card`/`CardContent` with a one-line description, matching the task's
+  "PlanPostsButton as an AI-actions card" deliverable; mutation/button
+  logic unchanged.
+- `src/app/(app)/(protected)/posts/loading.tsx` — skeleton rebuilt to
+  mirror the tab strip + rows + 360px rail shape (`offer-detail`'s
+  loading.tsx precedent).
+- `src/features/linkedin-posts/components/campaign-list.tsx`,
+  `generate-post-form.tsx`, `generate-campaign-form.tsx` — read, left
+  unchanged: no Badge/EmptyState/layout code in any of the three needed
+  touching once their forms/rows are just relocated into the rail/tabs by
+  `page.tsx`.
+
+Not done (explicitly out of scope per `do_not`): `findReusedClaimIds` and
+its call site untouched; no new API route/service for the status counts
+(computed client-visible but server-derived, from the arrays `page.tsx`
+already fetches); `GeneratePostForm`/`GenerateCampaignForm`'s generation
+logic untouched; campaign vs. standalone post distinction preserved (still
+two components, `CampaignList` still hides empty campaigns via its existing
+`nonEmptyCampaigns` filter, now against the per-tab filtered array).
+
+Playwright MCP design-review loop not run (no Playwright MCP tool available
+in this session's tool set — same limitation as every prior UI task in this
+log; `/posts` requires an authenticated session). Worth a manual light/dark
+pass on `/posts` (rail composer, status tabs with counts, edit-post dialog's
+claim tag + character counter) before merge.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 212 passed, no new
+- `npm run build` — pass
+
 ### Feature: TASK-127 — Mobile offers list: sticky tier headers and full-page preview
 
 Status: **done** — green on typecheck/lint/test/build (201 tests passed, no
