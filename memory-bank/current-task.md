@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-29: TASK-124 merged via PR #281, merge commit edaf93cf1bf4958e01bcd1321d72618fad56757d — mobile responsive styling for auth and marketing pages. Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-119 merged via PR #280, merge commit bb7290740c7a2f1c1b720fc9fe1558b760c1e905 — auth and system pages restyle with field-level reset and global error handling. Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-117 merged via PR #278, merge commit a49bc36126a53c4703d24a65981b3c722c7b4417 — landing page rebuild on Midnight Mint (new value points, fit report frame, FAQ section). Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-114 merged via PR #275, merge commit 2867ccaf231dbe392250b567bc3021f26296ec61 — posts screen as a composer rail with filtered claim-tagged rows.
