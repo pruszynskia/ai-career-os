@@ -10,10 +10,9 @@ import { useSchedulePost } from '@/features/linkedin-posts/hooks/use-schedule-po
 import { useUpdatePost } from '@/features/linkedin-posts/hooks/use-update-post';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Button } from '@/shared/ui/button';
-import { Badge, surfaceVariants } from '@/shared/ui/primitives';
+import { Tag, surfaceVariants } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { Input } from '@/shared/ui/input';
 import {
   Select,
@@ -39,8 +38,12 @@ export function PostList({
   // raw ids. Missing ids fall back to the id itself (e.g. deleted claims).
   claimTextById: Map<string, string>;
 }) {
+  // The overall "no posts at all" empty state lives in page.tsx (it needs
+  // to account for campaign posts too, which this list never renders) -
+  // this just stays out of the way when there's nothing standalone to show
+  // for the active status tab.
   if (posts.length === 0) {
-    return <EmptyState message="No posts yet — generate one above." />;
+    return null;
   }
 
   return (
@@ -136,7 +139,13 @@ export function PostCard({
           <Button variant="secondary" size="sm" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy'}
           </Button>
-          {post.status === 'DRAFT' && <EditPostDialog post={post} />}
+          {post.status === 'DRAFT' && (
+            <EditPostDialog
+              post={post}
+              reusedClaimIds={reusedClaimIds}
+              claimTextById={claimTextById}
+            />
+          )}
           <ConfirmDialog
             trigger={
               <Button variant="danger" size="sm">
@@ -158,14 +167,14 @@ export function PostCard({
       {post.claimsUsed.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {[...new Set(post.claimsUsed)].map((claimId) => (
-            <Badge
+            <Tag
               key={claimId}
               title={claimId}
-              variant={reusedClaimIds.has(claimId) ? 'warning' : 'outline'}
+              aria-pressed={reusedClaimIds.has(claimId)}
             >
               {claimTextById.get(claimId) ?? claimId}
               {reusedClaimIds.has(claimId) ? ' · reused' : ''}
-            </Badge>
+            </Tag>
           ))}
         </div>
       )}
