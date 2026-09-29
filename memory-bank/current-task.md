@@ -1847,3 +1847,4 @@ Validation:
 - 2026-09-29: TASK-116 (settings screen as sub-nav with a card per section) merged via PR #277, merge commit cf891ce40cba7d30ce2fe8aea76e55c6ca29632e.
 - 2026-09-29: TASK-118 (pricing page restyle with signed-in header and checkout cancelled banner) merged via PR #279, merge commit 14e6497e57439de367bceba89411bb3b272c44e6.
 - 2026-09-29: TASK-125 (mobile onboarding progress bars and sticky action bar) merged via PR #285, merge commit 827d8bda6403ccd5d88de6fcac29bf679aa6266f.
+- 2026-09-29: TASK-122 (migration cleanup and Midnight Mint audit gate) merged via PR #286, merge commit 6f70bef9e99c9a350cffe771f8fd58a5b79df8cd.
