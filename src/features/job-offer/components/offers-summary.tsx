@@ -77,7 +77,7 @@ function KpiItem({
       <Text
         as="span"
         weight="medium"
-        className={`font-mono text-xl leading-6 tabular-nums ${valueClassName ?? ''}`}
+        className={`text-xl leading-6 tabular-nums ${valueClassName ?? ''}`}
       >
         {value}
       </Text>
@@ -139,7 +139,7 @@ export function OffersSummary({
       <div className="flex min-w-0 flex-1 flex-col gap-2 border-t border-border pt-3 md:border-t-0 md:border-l md:pt-0 md:pl-6">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Recommendation mix</span>
-          <span className="font-mono tabular-nums">{offers.length} offers</span>
+          <span className="tabular-nums">{offers.length} offers</span>
         </div>
         {/* Meter renders its segments aria-hidden (no single "current
             value" makes sense for a stacked bar) - the accessible name

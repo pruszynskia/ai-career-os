@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
-import { Badge, Text, surfaceVariants } from '@/shared/ui/primitives';
+import { Tag, Text, surfaceVariants } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 
 type ProfileSummaryData = Pick<
@@ -34,7 +34,7 @@ export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
           <ul className="flex flex-wrap gap-2">
             {profile.skills.map((skill) => (
               <li key={skill}>
-                <Badge>{skill}</Badge>
+                <Tag>{skill}</Tag>
               </li>
             ))}
           </ul>
@@ -112,7 +112,7 @@ export function ProfileSummary({ profile }: { profile: ProfileSummaryData }) {
                     {project.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {project.technologies.map((tech) => (
-                          <Badge key={tech}>{tech}</Badge>
+                          <Tag key={tech}>{tech}</Tag>
                         ))}
                       </div>
                     )}

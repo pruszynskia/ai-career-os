@@ -11,7 +11,7 @@ export function UsageMeter({ used, limit }: { used: number; limit: number }) {
       </CardHeader>
       <CardContent>
         <VStack gap={2}>
-          <Text color="muted" className="font-mono">
+          <Text color="muted" className="tabular-nums">
             {used} / {limit} AI actions used
           </Text>
           <Meter

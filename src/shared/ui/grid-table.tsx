@@ -68,7 +68,7 @@ function GridTableRow({ className, selected, ...props }: GridTableRowProps) {
 // convention - apply this to the cell's own className rather than adding a
 // dedicated Cell component (Head/Row accept arbitrary children per column).
 const gridTableNumericCellClassName =
-  'text-right font-mono text-xs tabular-nums';
+  'text-right text-xs tabular-nums';
 
 interface GridTableGroupHeaderProps extends Omit<
   React.ComponentProps<'div'>,
@@ -122,7 +122,7 @@ function GridTableGroupHeader({
       <TierMarker tier={tier} className="shrink-0">
         <span className="font-semibold text-foreground">{label}</span>
       </TierMarker>
-      <span className="font-mono text-xs tabular-nums text-muted-foreground">
+      <span className="text-xs tabular-nums text-muted-foreground">
         {count}
       </span>
       {meta && (

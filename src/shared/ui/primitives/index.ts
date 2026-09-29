@@ -17,7 +17,6 @@ export { SectionLabel } from '@/shared/ui/section-label';
 
 export * from './feedback/spinner';
 export * from './feedback/skeleton';
-export * from './feedback/badge';
 export * from './feedback/avatar';
 export { Tag, tagVariants } from '@/shared/ui/tag';
 export type { TagProps } from '@/shared/ui/tag';

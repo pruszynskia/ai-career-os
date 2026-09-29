@@ -28,6 +28,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Check design tokens
+        run: npm run check-tokens
+
       - name: Unit tests
         run: npm run test
 

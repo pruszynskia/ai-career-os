@@ -87,7 +87,7 @@ export default async function PostsPage() {
                   className="flex flex-col gap-6 pt-4"
                 >
                   {filteredPosts.length === 0 ? (
-                    <EmptyState message="No posts yet — generate one from the rail." />
+                    <EmptyState message="No posts yet. Generate one from the rail." />
                   ) : (
                     <>
                       <CampaignList

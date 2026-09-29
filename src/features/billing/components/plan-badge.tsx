@@ -1,21 +1,14 @@
 import type { SubscriptionStatus } from '@/entities/subscription/types';
-import { Badge } from '@/shared/ui/primitives/feedback/badge';
+import { Tag } from '@/shared/ui/tag';
+import { Text } from '@/shared/ui/primitives';
 
-// active/trialing read as healthy, past_due/unpaid as needing attention,
-// everything else (canceled, incomplete*, paused) as inactive.
-const VARIANT_BY_STATUS: Record<
-  SubscriptionStatus,
-  'success' | 'destructive' | 'secondary'
-> = {
-  active: 'success',
-  trialing: 'success',
-  past_due: 'destructive',
-  unpaid: 'destructive',
-  canceled: 'secondary',
-  incomplete: 'secondary',
-  incomplete_expired: 'secondary',
-  paused: 'secondary',
-};
+// past_due/unpaid need attention and read as status text (destructive,
+// no box, DESIGN-SYSTEM \S4.8); every other status is neutral plan info
+// and reads as a plain Tag, matching X-settings.dc.html's "Current" tag.
+const NEEDS_ATTENTION: ReadonlySet<SubscriptionStatus> = new Set([
+  'past_due',
+  'unpaid',
+]);
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -28,9 +21,13 @@ export function PlanBadge({
   plan: string;
   status: SubscriptionStatus;
 }) {
-  return (
-    <Badge variant={VARIANT_BY_STATUS[status]}>
-      {capitalize(plan)} · {status.replace('_', ' ')}
-    </Badge>
+  const label = `${capitalize(plan)} · ${status.replace('_', ' ')}`;
+
+  return NEEDS_ATTENTION.has(status) ? (
+    <Text color="destructive" weight="medium">
+      {label}
+    </Text>
+  ) : (
+    <Tag>{label}</Tag>
   );
 }

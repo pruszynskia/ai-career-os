@@ -59,7 +59,7 @@ second Card.
 
 ## Feedback
 
-`Spinner`, `Skeleton`, `Badge`, `Avatar` — new, none of these existed in the
+`Spinner`, `Skeleton`, `Tag`, `Avatar` — new, none of these existed in the
 codebase before.
 
 ## Interaction

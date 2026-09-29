@@ -44,7 +44,7 @@ export default async function PricingPage({
 
       {checkout === 'cancelled' && (
         <Banner tone="neutral">
-          Checkout was cancelled — your plan hasn&apos;t changed.
+          Checkout was cancelled. Your plan hasn&apos;t changed.
         </Banner>
       )}
 

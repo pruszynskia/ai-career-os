@@ -51,7 +51,7 @@ export function OnboardingStepper({
             >
               <span
                 className={cn(
-                  'flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono text-xs tabular-nums',
+                  'flex size-[22px] shrink-0 items-center justify-center rounded-full text-xs tabular-nums',
                   isDone
                     ? 'bg-primary text-primary-foreground'
                     : isActive

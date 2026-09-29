@@ -77,7 +77,7 @@ export function ResponseRateCard({
           />
         ) : !hasEnoughData ? (
           <EmptyState
-            message={`Not enough applications yet to report a response rate — track at least ${MIN_SAMPLE_SIZE} to see this readout.`}
+            message={`Not enough applications yet to report a response rate. Track at least ${MIN_SAMPLE_SIZE} to see this readout.`}
           />
         ) : (
           <VStack gap={4}>

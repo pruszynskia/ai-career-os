@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { Contact } from '@/entities/contact/types';
 import { CONTACT_CLASSIFICATION_LABELS } from '@/entities/contact/types';
 import { useAddContact } from '@/features/contact/hooks/use-add-contact';
-import { Badge } from '@/shared/ui/primitives/feedback/badge';
+import { Tag } from '@/shared/ui/tag';
 import { Button } from '@/shared/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
@@ -128,9 +128,9 @@ export function WhoYouKnowPanel({
                     title={contact.name}
                     supporting={contact.title || 'No title on file'}
                     meta={
-                      <Badge variant="outline" size="sm">
+                      <Tag size="sm">
                         {CONTACT_CLASSIFICATION_LABELS[contact.classification]}
-                      </Badge>
+                      </Tag>
                     }
                   />
                 );
