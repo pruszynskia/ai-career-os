@@ -1764,3 +1764,4 @@ Validation:
 - 2026-09-25: TASK-106 (selectable offer preview pane on the offers list) merged via PR #265, merge commit dccdeaa609bcd60e20939c6dcf02deb698c6d464.
 - 2026-09-25: TASK-107 (offers board restyle: flat cards, capped lanes, sunken closed lane, drop toast) merged via PR #267, merge commit 69553758222507e5bb67fda446c44bb74a62e172.
 - 2026-09-25: TASK-108 (offer detail shell: sticky header, tabs, 320px rail) merged via PR #268, merge commit 68a778d50dab521feebc756a67a04ec95471d1e8.
+- 2026-09-29: TASK-128 (mobile offer-detail back-header, KPI pair, sticky bottom actions) merged via PR #273, merge commit 5eb6bec4afacbbcea994064ee8a26517a635b8d9.
