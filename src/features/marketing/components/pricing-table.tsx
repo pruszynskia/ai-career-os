@@ -11,14 +11,7 @@ import { PLANS } from '@/shared/billing/plans';
 import { createClient } from '@/shared/db/client';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
-import {
-  Grid,
-  HStack,
-  Heading,
-  SectionLabel,
-  Text,
-  VStack,
-} from '@/shared/ui/primitives';
+import { Grid, HStack, Heading, Text, VStack } from '@/shared/ui/primitives';
 
 // Monospaces the plan's AI-action allowance within a feature line by
 // locating the real number (plan.aiActionsPerMonth), not by guessing from
@@ -36,14 +29,24 @@ function formatFeature(feature: string, aiActionsPerMonth: number) {
   );
 }
 
-export async function PricingTable() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isSignedIn = Boolean(user);
-  const subscription = user
-    ? await subscriptionService.findByOwnerId(user.id)
+// userId is optional so the two other call sites (landing page, onboarding
+// panel) keep doing their own auth check; /pricing passes it explicitly so
+// that page shares one auth lookup with SignedInHeader instead of each
+// component fetching it separately.
+export async function PricingTable({
+  userId: userIdProp,
+}: { userId?: string | null } = {}) {
+  let userId = userIdProp ?? null;
+  if (userIdProp === undefined) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+  }
+  const isSignedIn = Boolean(userId);
+  const subscription = userId
+    ? await subscriptionService.findByOwnerId(userId)
     : null;
   const isPro = subscription
     ? ['active', 'trialing'].includes(subscription.status)
@@ -54,21 +57,27 @@ export async function PricingTable() {
       {PLANS.map((plan) => (
         <Card
           key={plan.id}
-          className={plan.featured ? 'border-foreground' : undefined}
+          className={
+            plan.featured
+              ? 'flex h-full flex-col border-foreground'
+              : 'flex h-full flex-col'
+          }
         >
           <CardHeader>
             <VStack gap={2}>
-              {plan.featured && (
-                <SectionLabel className="text-foreground">
-                  Recommended
-                </SectionLabel>
-              )}
-              <Heading
-                level={2}
-                className={plan.featured ? 'font-bold' : undefined}
-              >
-                {plan.name}
-              </Heading>
+              <HStack gap={2} align="center">
+                <Heading
+                  level={2}
+                  className={plan.featured ? 'font-bold' : undefined}
+                >
+                  {plan.name}
+                </Heading>
+                {plan.featured && (
+                  <Text size="sm" color="muted">
+                    Recommended
+                  </Text>
+                )}
+              </HStack>
               <HStack gap={2} align="baseline">
                 <Heading level={1} className="font-mono">
                   {plan.price}
@@ -80,11 +89,16 @@ export async function PricingTable() {
               <Text color="muted">{plan.tagline}</Text>
             </VStack>
           </CardHeader>
-          <CardContent>
-            <VStack gap={4}>
-              <VStack gap={2}>
+          <CardContent className="flex flex-1 flex-col">
+            <VStack gap={4} justify="between" className="h-full">
+              <VStack gap={0}>
                 {plan.features.map((feature) => (
-                  <HStack key={feature} gap={2} align="start">
+                  <HStack
+                    key={feature}
+                    gap={2}
+                    align="start"
+                    className="border-t border-border py-2.5 first:border-t-0 first:pt-0"
+                  >
                     <Check
                       className="size-4 shrink-0 text-primary"
                       aria-hidden
@@ -97,11 +111,21 @@ export async function PricingTable() {
               </VStack>
               {isSignedIn ? (
                 plan.id === (isPro ? 'pro' : 'free') ? (
-                  <Button variant="secondary" className="w-full" disabled>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full"
+                    disabled
+                  >
                     Current plan
                   </Button>
                 ) : isPro ? (
-                  <Button variant="secondary" className="w-full" disabled>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full"
+                    disabled
+                  >
                     Included
                   </Button>
                 ) : (
@@ -115,6 +139,7 @@ export async function PricingTable() {
                 <Button
                   asChild
                   variant={plan.featured ? 'primary' : 'secondary'}
+                  size="lg"
                   className="w-full"
                 >
                   <Link href="/sign-up">{plan.cta}</Link>
