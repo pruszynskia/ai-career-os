@@ -314,6 +314,17 @@ Consequences:
 - `src/shared/auth/owner.ts` (the `SEED_OWNER_ID` constant) is replaced by `src/shared/auth/session.ts`'s `getOwnerId()`, which reads the real signed-in Supabase Auth user's id per request.
 - Canonical domain types (`Profile`, `CvDocument`, `JobOffer`, `Application`, `ApplicationStatus`, `ApplicationBundle`, `Post`) now live under `src/entities/*/types.ts` instead of being imported from `@prisma/client` — this also closes the gap TASK-024 had flagged (no `cv-document/types.ts`, ad hoc DTOs).
 - TASK-021's planned "shared ownerId scoping helper" is superseded by RLS; no such helper was built.
+- TASK-064 (2026-09-20, contacts/outreach_messages follow-up 2026-09-20):
+  every owner_all/owner_read policy on profiles, job_offers, cv_documents,
+  applications, posts, post_campaigns, application_status_events, ai_usage,
+  subscriptions, contacts and outreach_messages has its `auth.uid()` call
+  wrapped in a scalar sub-select — `owner_id = (select auth.uid())` — not
+  called bare. `auth.uid()` is declared `STABLE`, but Postgres still can't
+  hoist a bare call out of a per-row RLS predicate; the sub-select form
+  forces it to plan once per query (InitPlan) instead of once per row, which
+  is what Supabase's performance advisor's `auth_rls_initplan` check flags
+  when missing. `(select auth.uid())` is the canonical form every future RLS
+  policy on this project should copy from the start.
 
 ## ADR-010
 

@@ -19,6 +19,52 @@
 
 ## Current Sprint
 
+### Feature: TASK-064 — Clear Supabase security and performance advisories
+
+Status: **partial** — RLS performance fix done and verified; the security
+advisory's leaked-password-protection toggle could not be completed from
+this environment (see below). Backend/config-only, no UI surface, no
+Playwright review needed.
+
+What shipped:
+
+- `supabase/migrations/20260920090000_rls_auth_uid_initplan.sql` (new) —
+  drops and recreates all nine owner policies (`profiles`, `job_offers`,
+  `cv_documents`, `applications`, `posts`, `post_campaigns`,
+  `application_status_events`, `ai_usage`, `subscriptions`) wrapping
+  `auth.uid()` in `(select auth.uid())` so Postgres evaluates it once per
+  query instead of once per row — clears the performance advisor's
+  `auth_rls_initplan` finding. Same command scope, same `owner_id`
+  predicate as before per table; `subscriptions` stays `select`-only per
+  ADR-015. Applied with `npm run db:push` (never the Supabase MCP or
+  dashboard SQL editor, per `memory-bank/ai-notes.md`'s ledger-desync
+  warning); `npm run db:status` confirmed no drift after.
+- `memory-bank/decisions.md` — ADR-009's Consequences gained a bullet
+  recording `(select auth.uid())` as the canonical RLS policy form for
+  every future migration.
+- `memory-bank/ai-notes.md` — noted that Auth → Leaked password protection
+  has no `config.toml` key or CLI subcommand; it's dashboard-only.
+
+Not done: **Leaked password protection was not enabled.** This session had
+no Supabase MCP server (only `playwright` is registered in `.mcp.json`) and
+no stored management-API token, and `supabase/config.toml`'s `[auth]`
+section has no key for it (confirmed by reading the file — only
+`minimum_password_length`/`password_requirements` exist), so there is no
+CLI or config-push path either. A human needs to flip it on in the linked
+project's Authentication → Policies settings; until then `get_advisors`
+will keep reporting `auth_leaked_password_protection`. `get_advisors` was
+also not re-run to confirm `auth_rls_initplan` is actually cleared (no
+Supabase MCP tool available this session) — worth a manual check before
+closing the task out.
+
+Validation:
+
+- `npm run typecheck` — pass
+- `npm run lint` — pass (1 pre-existing unrelated `no-img-element` warning)
+- `npm run test` — 214 passed, no new (no application code changed)
+- `npm run build` — pass
+- `npm run db:status` — no drift after `db:push`
+
 ### Feature: TASK-114 — Posts screen as a composer rail with filtered, claim-tagged rows
 
 Status: **done** — green on typecheck/lint/test/build (212 tests passed, no

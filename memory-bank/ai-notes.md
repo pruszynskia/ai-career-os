@@ -94,6 +94,14 @@ memory-bank/current-task.md
   weeks. Recovery: `supabase migration repair --linked --status reverted <mcp
   versions> --status applied <file versions>`, then `db push`. Check drift
   anytime with `npm run db:status`.
+- TASK-064: Auth → Leaked password protection (HaveIBeenPwned check on new
+  passwords) is a dashboard-only toggle — no `supabase/config.toml` key and
+  no CLI subcommand expose it, so it could not be enabled from here
+  regardless of MCP/CLI access. Still needs a human to flip it on in the
+  linked project's Authentication → Policies settings (Supabase dashboard);
+  `get_advisors` will keep reporting `auth_leaked_password_protection` until
+  then. Once the operator confirms it's on, update this note to say enabled
+  and re-run `get_advisors` to confirm the warning is gone.
 
 ---
 
