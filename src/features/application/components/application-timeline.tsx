@@ -1,5 +1,6 @@
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
 import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
+import { StageRing } from '@/entities/application/ui/stage-ring';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ListRow } from '@/shared/ui/list-row';
 
@@ -19,6 +20,7 @@ export function ApplicationTimeline({
           {events.map((event) => (
             <li key={event.id}>
               <ListRow
+                leading={<StageRing status={event.status} />}
                 title={APPLICATION_STATUS_LABELS[event.status]}
                 meta={event.createdAt.toLocaleDateString()}
               />
