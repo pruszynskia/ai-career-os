@@ -32,6 +32,26 @@ export async function OnboardingPanel({ step }: { step: number }) {
   const profile =
     step === 2 ? await profileService.findUnique(await getOwnerId()) : null;
 
+  const backButton = step > 1 && (
+    <Button asChild variant="secondary" size="lg">
+      <Link href={`/onboarding?step=${step - 1}`}>Back</Link>
+    </Button>
+  );
+  const skipButton = !isLastFormStep && (
+    <form action={completeOnboarding}>
+      <Button type="submit" variant="quiet" size="lg">
+        Skip for now
+      </Button>
+    </form>
+  );
+  const nextButton = (
+    <Button asChild size="lg">
+      <Link href={`/onboarding?step=${step + 1}`}>
+        {isLastFormStep ? 'Finish' : 'Next'}
+      </Link>
+    </Button>
+  );
+
   return (
     <VStack gap={6}>
       <OnboardingStepper steps={STEPS} currentStep={step} />
@@ -58,36 +78,33 @@ export async function OnboardingPanel({ step }: { step: number }) {
         </Card>
       )}
 
-      <HStack justify="between" align="center">
+      {/* Back/Skip/Next(-or-Finish) below reuse the same Link hrefs and
+          completeOnboarding action in both the desktop inline row and the
+          mobile sticky bar - two layouts of the same navigation, not two
+          sets of handlers. */}
+      <HStack justify="between" align="center" className="hidden md:flex">
         {isLastFormStep ? (
           <>
-            <Button asChild variant="secondary" size="lg">
-              <Link href={`/onboarding?step=${step - 1}`}>Back</Link>
-            </Button>
-            <Button asChild size="lg">
-              <Link href={`/onboarding?step=${step + 1}`}>Finish</Link>
-            </Button>
+            {backButton}
+            {nextButton}
           </>
         ) : (
           <>
             <HStack gap={2}>
-              {step > 1 && (
-                <Button asChild variant="secondary" size="lg">
-                  <Link href={`/onboarding?step=${step - 1}`}>Back</Link>
-                </Button>
-              )}
-              <Button asChild size="lg">
-                <Link href={`/onboarding?step=${step + 1}`}>Next</Link>
-              </Button>
+              {backButton}
+              {nextButton}
             </HStack>
-            <form action={completeOnboarding}>
-              <Button type="submit" variant="quiet" size="lg">
-                Skip for now
-              </Button>
-            </form>
+            {skipButton}
           </>
         )}
       </HStack>
+
+      <div className="sticky bottom-0 -mx-4 flex items-center gap-2 border-t border-border bg-sidebar px-4 py-3 md:hidden">
+        {backButton}
+        {skipButton}
+        <div className="grow" />
+        {nextButton}
+      </div>
     </VStack>
   );
 }
