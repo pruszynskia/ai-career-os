@@ -4,11 +4,18 @@ import { redirect } from 'next/navigation';
 import { signInWithGoogle } from '@/shared/auth/actions';
 import { createClient } from '@/shared/db/client';
 import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
+import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
 import { Divider, Heading } from '@/shared/ui/primitives';
+
+const ERROR_MESSAGES: Record<string, string> = {
+  link: 'That link is invalid or has expired.',
+  oauth: 'Could not sign in with Google. Please try again.',
+  rate_limit: 'Too many attempts. Please wait a minute and try again.',
+};
 
 export default async function SignInPage({
   searchParams,
@@ -34,19 +41,40 @@ export default async function SignInPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-7 p-6">
+      <Link href="/" className="text-sm font-semibold tracking-tight">
+        Career OS
+      </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <Heading level={4} as="h1" className="font-medium">
+          <Heading level={3} as="h1">
             Sign in
           </Heading>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
+          {error && (
+            <Banner tone="danger">
+              {ERROR_MESSAGES[error] ?? 'Invalid email or password.'}
+            </Banner>
+          )}
           <form action={authenticate} className="flex flex-col gap-4">
             <Field id="email" label="Email">
               <Input name="email" type="email" placeholder="Email" required />
             </Field>
-            <Field id="password" label="Password">
+            <Field
+              id="password"
+              label={
+                <span className="flex w-full items-center justify-between">
+                  Password
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-normal text-muted-foreground hover:text-foreground"
+                  >
+                    Forgot password?
+                  </Link>
+                </span>
+              }
+            >
               <Input
                 name="password"
                 type="password"
@@ -54,47 +82,33 @@ export default async function SignInPage({
                 required
               />
             </Field>
-            <Button type="submit" className="mt-1">
+            <Button type="submit" size="lg" className="mt-1 w-full">
               Sign in
             </Button>
           </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <Divider className="flex-1" />
             or
             <Divider className="flex-1" />
           </div>
           <form action={signInWithGoogle}>
-            <Button type="submit" variant="secondary" className="w-full">
+            <Button
+              type="submit"
+              variant="secondary"
+              size="lg"
+              className="w-full"
+            >
               Continue with Google
             </Button>
           </form>
-          {error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              {error === 'link'
-                ? 'That link is invalid or has expired.'
-                : error === 'oauth'
-                  ? 'Could not sign in with Google. Please try again.'
-                  : error === 'rate_limit'
-                    ? 'Too many attempts. Please wait a minute and try again.'
-                    : 'Invalid email or password.'}
-            </p>
-          )}
-          <div className="mt-4 flex flex-col gap-1 text-sm">
-            <Link href="/forgot-password" className="font-medium underline">
-              Forgot password?
-            </Link>
-            <span className="text-muted-foreground">
-              Need an account?{' '}
-              <Link
-                href="/sign-up"
-                className="font-medium text-foreground underline"
-              >
-                Sign up
-              </Link>
-            </span>
-          </div>
         </CardContent>
       </Card>
+      <p className="text-sm text-muted-foreground">
+        Need an account?{' '}
+        <Link href="/sign-up" className="font-medium text-foreground underline">
+          Sign up
+        </Link>
+      </p>
     </main>
   );
 }
