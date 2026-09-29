@@ -16,11 +16,11 @@ export default async function SignUpPage({
   const { error, sent } = await searchParams;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-7 p-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-7 p-6 max-md:p-4">
       <Link href="/" className="text-sm font-semibold tracking-tight">
         Career OS
       </Link>
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm max-md:max-w-none max-md:rounded-none max-md:border-none">
         <CardHeader>
           <Heading level={3} as="h1">
             Create account
