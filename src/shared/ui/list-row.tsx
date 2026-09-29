@@ -10,7 +10,7 @@ interface ListRowProps {
   leading?: React.ReactNode;
   title: React.ReactNode;
   supporting?: React.ReactNode;
-  /** Trailing content, e.g. a date or status - rendered in mono. */
+  /** Trailing content, e.g. a date or score - tabular-nums, not mono. */
   meta?: React.ReactNode;
   className?: string;
 }
@@ -35,7 +35,7 @@ function ListRow({
         )}
       </span>
       {meta && (
-        <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
           {meta}
         </span>
       )}

@@ -33,7 +33,7 @@ export default async function OnboardingPage({
           <Heading level={4}>Career OS</Heading>
         </Link>
         {!isDone && (
-          <Text as="span" size="sm" color="muted" className="font-mono">
+          <Text as="span" size="sm" color="muted" className="tabular-nums">
             Step {currentStep} of {FORM_STEPS}
           </Text>
         )}

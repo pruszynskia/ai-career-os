@@ -11,10 +11,10 @@ export function ProfileScoreCard({ score }: { score: ParsedProfileScore }) {
       </CardHeader>
       <CardContent className="px-0 pt-0 pb-0">
         <div className="flex items-baseline gap-1.5 px-4 pb-3">
-          <Heading level={1} as="h2" className="font-mono">
+          <Heading level={1} as="h2" className="tabular-nums">
             {Math.round(score.overall)}
           </Heading>
-          <Text size="sm" color="muted" className="font-mono">
+          <Text size="sm" color="muted">
             /100
           </Text>
         </div>
@@ -29,7 +29,7 @@ export function ProfileScoreCard({ score }: { score: ParsedProfileScore }) {
             >
               <div className="flex items-baseline justify-between gap-2">
                 <Text size="sm">{metric.label}</Text>
-                <Text size="sm" color="muted" className="font-mono">
+                <Text size="sm" color="muted" className="tabular-nums">
                   {Math.round(metric.score)}
                   <span className="text-xs">/100</span>
                 </Text>

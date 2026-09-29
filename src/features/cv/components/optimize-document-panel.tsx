@@ -3,7 +3,7 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 
 import type { CvDocument } from '@/entities/cv-document/types';
-import { Badge, Text, VStack, surfaceVariants } from '@/shared/ui/primitives';
+import { Tag, Text, VStack, surfaceVariants } from '@/shared/ui/primitives';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { cn } from '@/shared/ui/utils';
@@ -65,9 +65,9 @@ export function OptimizeDocumentPanel<TImprovement extends Improvement>({
                     'flex flex-col gap-1 last:border-b-0',
                   )}
                 >
-                  <Badge variant="secondary" className="self-start">
+                  <Tag className="self-start">
                     {categoryLabel[improvement.category]}
-                  </Badge>
+                  </Tag>
                   <Text size="sm">
                     <Text as="span" color="muted">
                       Before:

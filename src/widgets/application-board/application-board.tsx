@@ -75,7 +75,7 @@ export function ApplicationBoard({
         message={
           isFiltered
             ? 'No offers match your filters.'
-            : 'No offers yet — add one above.'
+            : 'No offers yet. Add one above.'
         }
       />
     );

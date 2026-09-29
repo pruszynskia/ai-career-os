@@ -208,15 +208,15 @@ export function OfferPreviewPane({
         <div className="grid grid-cols-2 rounded-md border border-border">
           <div className="flex flex-col gap-0.5 p-3">
             <span className="text-xs text-muted-foreground">Match</span>
-            <span className="font-mono text-xl tabular-nums">
-              {offer.matchScore ?? '—'}
+            <span className="text-xl tabular-nums">
+              {offer.matchScore ?? '–'}
             </span>
           </div>
           {canViewFitDetail && (
             <div className="flex flex-col gap-0.5 border-l border-border p-3">
               <span className="text-xs text-muted-foreground">Callback</span>
-              <span className="font-mono text-xl tabular-nums">
-                {offer.fit ? offer.fit.hrCallbackProbability : '—'}
+              <span className="text-xl tabular-nums">
+                {offer.fit ? offer.fit.hrCallbackProbability : '–'}
               </span>
             </div>
           )}
@@ -340,7 +340,7 @@ export function UnifiedOfferList({
         message={
           isFiltered
             ? 'No offers match your filters.'
-            : 'No offers yet — add one above.'
+            : 'No offers yet. Add one above.'
         }
       />
     );
@@ -445,8 +445,8 @@ export function UnifiedOfferList({
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
-                        <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                          {offer.matchScore ?? '—'}
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {offer.matchScore ?? '–'}
                           {offer.fit && ` · ${offer.fit.hrCallbackProbability}`}
                         </span>
                         <Tag size="sm" className="gap-1.5">
@@ -564,11 +564,11 @@ export function UnifiedOfferList({
                             </span>
                           ) : (
                             <span className={gridTableNumericCellClassName}>
-                              —
+                              –
                             </span>
                           )}
                           <span className={gridTableNumericCellClassName}>
-                            {offer.fit ? offer.fit.hrCallbackProbability : '—'}
+                            {offer.fit ? offer.fit.hrCallbackProbability : '–'}
                           </span>
                           <span className="flex items-center gap-2 text-muted-foreground">
                             <StageRing

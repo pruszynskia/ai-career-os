@@ -42,7 +42,7 @@ export function PipelineStrip({
             <Text
               as="span"
               weight="medium"
-              className="font-mono text-[20px] leading-[24px]"
+              className="tabular-nums text-[20px] leading-[24px]"
             >
               {applications.filter((a) => a.status === status).length}
             </Text>
@@ -69,7 +69,7 @@ export function PipelineStrip({
             <Text
               as="span"
               weight="medium"
-              className="font-mono text-[22px] leading-[26px]"
+              className="tabular-nums text-[22px] leading-[26px]"
             >
               {applications.filter((a) => a.status === status).length}
             </Text>
@@ -84,7 +84,7 @@ export function PipelineStrip({
               <span key={status}>
                 {index > 0 && (index % 2 === 0 ? <br /> : ' · ')}
                 {APPLICATION_STATUS_LABELS[status]}{' '}
-                <span className="font-mono tabular-nums text-foreground">
+                <span className="tabular-nums text-foreground">
                   {applications.filter((a) => a.status === status).length}
                 </span>
               </span>

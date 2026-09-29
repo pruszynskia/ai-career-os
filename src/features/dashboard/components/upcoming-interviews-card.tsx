@@ -63,7 +63,7 @@ export function UpcomingInterviewsCard({
                   meta={
                     application.jobOffer.matchScore !== null
                       ? `${application.jobOffer.matchScore}%`
-                      : '—'
+                      : '–'
                   }
                 />
               ))}
@@ -105,7 +105,7 @@ export function UpcomingInterviewsCard({
                       </span>
                     </span>
                   ) : (
-                    <span className={gridTableNumericCellClassName}>—</span>
+                    <span className={gridTableNumericCellClassName}>–</span>
                   )}
                   <span className={gridTableNumericCellClassName}>
                     {application.updatedAt.toLocaleDateString(undefined, {

@@ -182,7 +182,7 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
                           <span className="grow truncate">
                             {APPLICATION_STATUS_LABELS[status]}
                           </span>
-                          <span className="font-mono tabular-nums">
+                          <span className="tabular-nums">
                             {stageCounts[status] ?? 0}
                           </span>
                         </Link>
@@ -199,7 +199,7 @@ export function Sidebar({ stageCounts, usage }: SidebarProps) {
       <div className={cn('flex-col gap-1.5 px-2', sectionVisibility)}>
         <span className="truncate text-xs text-muted-foreground">
           {usage.planName} plan ·{' '}
-          <span className="font-mono tabular-nums">
+          <span className="tabular-nums">
             {usage.used} of {hasLimit ? usage.limit : '∞'}
           </span>{' '}
           AI actions

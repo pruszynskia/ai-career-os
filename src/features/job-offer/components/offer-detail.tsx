@@ -19,7 +19,6 @@ import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { useUpdateOffer } from '@/features/job-offer/hooks/use-update-offer';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
-import { Badge } from '@/shared/ui/primitives/feedback/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import {
@@ -34,6 +33,7 @@ import { DocumentEditor } from '@/shared/ui/document-editor';
 import { Input } from '@/shared/ui/input';
 import { LockedPanel } from '@/shared/ui/locked-panel';
 import { StatCard } from '@/shared/ui/stat-card';
+import { Tag } from '@/shared/ui/tag';
 import { Textarea } from '@/shared/ui/textarea';
 import {
   Grid,
@@ -306,7 +306,7 @@ export function OfferDetail({
               {offer.title}
             </Heading>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {offer.isExpired && <Badge variant="destructive">Expired</Badge>}
+              {offer.isExpired && <Tag>Expired</Tag>}
               <span>
                 {offer.expiresAt
                   ? `Expires on ${offer.expiresAt.toLocaleDateString()}`

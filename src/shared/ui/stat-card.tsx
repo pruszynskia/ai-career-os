@@ -20,7 +20,7 @@ function StatCard({ label, value }: StatCardProps) {
         weight="medium"
         className={cn(
           'text-[22px] leading-[26px]',
-          typeof value === 'number' && 'font-mono tabular-nums',
+          typeof value === 'number' && 'tabular-nums',
         )}
       >
         {value}

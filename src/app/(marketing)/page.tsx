@@ -103,9 +103,9 @@ export default async function LandingPage() {
           <Text size="lg" color="muted" className="max-w-[52ch]">
             AI Career OS builds a verified profile from your real experience,
             tracks every application without duplicates, and generates a match
-            score, a tailored CV and LinkedIn posts from that profile — free.
-            Pro adds the judgment layer below that shows where the effort
-            actually pays off.
+            score, a tailored CV and LinkedIn posts from that profile, for
+            free. Pro adds the judgment layer below that shows where the
+            effort actually pays off.
           </Text>
         </VStack>
         <VStack

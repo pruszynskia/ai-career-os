@@ -40,7 +40,7 @@ export default async function ProfilePage() {
               <EvidenceReview evidence={profile.evidence} />
             </>
           ) : (
-            <EmptyState message="No profile yet — upload your CV to get started." />
+            <EmptyState message="No profile yet. Upload your CV to get started." />
           )}
         </div>
 
