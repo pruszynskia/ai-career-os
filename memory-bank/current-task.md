@@ -1846,3 +1846,4 @@ Validation:
 - 2026-09-29: TASK-115 (profile screen as a two-column layout with CV rail) merged via PR #276, merge commit 7fa9f772c931d6dfecb21f56e13ad4f4d11b7f5d.
 - 2026-09-29: TASK-116 (settings screen as sub-nav with a card per section) merged via PR #277, merge commit cf891ce40cba7d30ce2fe8aea76e55c6ca29632e.
 - 2026-09-29: TASK-118 (pricing page restyle with signed-in header and checkout cancelled banner) merged via PR #279, merge commit 14e6497e57439de367bceba89411bb3b272c44e6.
+- 2026-09-29: TASK-125 (mobile onboarding progress bars and sticky action bar) merged via PR #285, merge commit 827d8bda6403ccd5d88de6fcac29bf679aa6266f.
