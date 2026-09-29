@@ -15,6 +15,18 @@ const securityHeaders = SECURITY_HEADERS.map(([key, value]) => ({
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Every route under (app) is force-dynamic, and Next 16 defaults dynamic
+  // pages' client router cache to staleTime 0 - clicking between sidebar
+  // cards re-fetched the entire tree (including the shared layout's
+  // notifications/stage-counts/plan/usage queries) on every single
+  // navigation, even to a page just visited seconds ago. 30s keeps
+  // navigation snappy for a single-user tool while still refreshing well
+  // within any session.
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+    },
+  },
   // pdf-parse/pdfjs-dist load a separate pdf.worker.mjs at runtime. Bundling
   // them breaks that worker's path resolution ("Setting up fake worker
   // failed"), so keep them external and require()d from node_modules.
