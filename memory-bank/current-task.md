@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-29: TASK-113 merged via PR #274, merge commit ad8d7b3a7332249f5f1303b57ca98f54be321171 — documents screen as a split list/reader view with filtering and search.
 - 2026-09-25: TASK-109 merged via PR #269, merge commit 5dc922c6a4fa8a241c14efe2b36486fa3d84aa7e — fit report tab restyle: grouped GridTable, divergence banner, and locked panel on Free.
 - 2026-09-25: TASK-127 merged via PR #266, merge commit b76cbfde86897755daed13ef247b69477a590a6f — mobile offers list with sticky tier headers and full-page preview.
 - 2026-09-24: TASK-101 merged via PR #258, merge commit d9970e29a453cc00941e1efefc544ce270c11f51 — jump dialog for searching offers and companies (TASK-101).
