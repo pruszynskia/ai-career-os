@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-09-29: TASK-117 merged via PR #278, merge commit a49bc36126a53c4703d24a65981b3c722c7b4417 — landing page rebuild on Midnight Mint (new value points, fit report frame, FAQ section). Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-114 merged via PR #275, merge commit 2867ccaf231dbe392250b567bc3021f26296ec61 — posts screen as a composer rail with filtered claim-tagged rows.
 - 2026-09-29: TASK-113 merged via PR #274, merge commit ad8d7b3a7332249f5f1303b57ca98f54be321171 — documents screen as a split list/reader view with filtering and search.
 - 2026-09-25: TASK-109 merged via PR #269, merge commit 5dc922c6a4fa8a241c14efe2b36486fa3d84aa7e — fit report tab restyle: grouped GridTable, divergence banner, and locked panel on Free.
