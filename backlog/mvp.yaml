@@ -9229,7 +9229,7 @@ tasks:
     github:
       issue: "232"
       project_item: PVTI_lAHOBIVK2M4BeQfRzg8Um-s
-    status: in_progress
+    status: done
     priority: P1
     estimate: M
     milestone: "Design System Redesign"
