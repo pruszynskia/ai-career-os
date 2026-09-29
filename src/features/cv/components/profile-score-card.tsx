@@ -1,7 +1,7 @@
 import type { ParsedProfileScore } from '@/entities/profile/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Grid, Heading, Text, VStack } from '@/shared/ui/primitives';
-import { StatCard } from '@/shared/ui/stat-card';
+import { Heading, Meter, Text, surfaceVariants } from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 
 export function ProfileScoreCard({ score }: { score: ParsedProfileScore }) {
   return (
@@ -9,25 +9,42 @@ export function ProfileScoreCard({ score }: { score: ParsedProfileScore }) {
       <CardHeader>
         <CardTitle>CV Score</CardTitle>
       </CardHeader>
-      <CardContent>
-        <VStack gap={4}>
+      <CardContent className="px-0 pt-0 pb-0">
+        <div className="flex items-baseline gap-1.5 px-4 pb-3">
           <Heading level={1} as="h2" className="font-mono">
-            {Math.round(score.overall)}/100
+            {Math.round(score.overall)}
           </Heading>
-          <Grid cols={2} colsMd={3} gap={3}>
-            {score.metrics.map((metric, index) => (
-              <VStack key={`${metric.label}-${index}`} gap={1}>
-                <StatCard
-                  label={metric.label}
-                  value={`${Math.round(metric.score)}/100`}
-                />
-                <Text size="xs" color="muted">
-                  {metric.note}
+          <Text size="sm" color="muted" className="font-mono">
+            /100
+          </Text>
+        </div>
+        <div className="flex flex-col">
+          {score.metrics.map((metric, index) => (
+            <div
+              key={`${metric.label}-${index}`}
+              className={cn(
+                surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+                'flex flex-col gap-1.5 px-4 last:border-b-0',
+              )}
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <Text size="sm">{metric.label}</Text>
+                <Text size="sm" color="muted" className="font-mono">
+                  {Math.round(metric.score)}
+                  <span className="text-xs">/100</span>
                 </Text>
-              </VStack>
-            ))}
-          </Grid>
-        </VStack>
+              </div>
+              <Meter
+                variant="inline"
+                value={metric.score}
+                aria-label={metric.label}
+              />
+              <Text size="xs" color="muted">
+                {metric.note}
+              </Text>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

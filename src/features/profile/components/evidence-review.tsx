@@ -10,7 +10,14 @@ import { toList } from '@/features/profile/utils/preferences-form';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
-import { Badge, Input, Text, VStack } from '@/shared/ui/primitives';
+import {
+  Input,
+  Tag,
+  Text,
+  VStack,
+  surfaceVariants,
+} from '@/shared/ui/primitives';
+import { cn } from '@/shared/ui/utils';
 
 async function patchEvidence(body: unknown) {
   const response = await fetch('/api/profile/evidence', {
@@ -71,12 +78,13 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
               return (
                 <div
                   key={claim.id}
-                  className="flex flex-col gap-2 rounded-xs border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
+                  className={cn(
+                    surfaceVariants({ elevation: 'ruled', padding: 'sm' }),
+                    'flex flex-col gap-2 last:border-b-0 sm:flex-row sm:items-center sm:justify-between',
+                  )}
                 >
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {CLAIM_KIND_LABEL[claim.kind]}
-                    </Badge>
+                    <Tag>{CLAIM_KIND_LABEL[claim.kind]}</Tag>
                     <Text size="sm">{claim.text}</Text>
                   </div>
                   <div className="flex gap-2">
