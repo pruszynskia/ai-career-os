@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { profileService } from '@/entities/profile/service';
 import { getOwnerId } from '@/shared/auth/session';
 
-// Wraps every route that requires onboarding to be complete. /onboarding and
-// /settings live outside this group (as siblings under src/app/(app)) so they
+// Wraps every route that requires onboarding to be complete. /settings lives
+// outside this group (as a sibling under src/app/(app)), and /onboarding is
+// its own top-level route outside src/app/(app) entirely (no Sidebar) - both
 // stay reachable while onboarding is incomplete.
 //
 // This redirects server-side, before any protected page renders — replacing

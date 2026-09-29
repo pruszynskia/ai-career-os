@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 // Matches the precedent in entitlements.test.ts / sync-subscription.test.ts.
 vi.mock('server-only', () => ({}));
 
-import { clampStep } from '@/app/(app)/onboarding/page';
+import { clampStep } from '@/app/onboarding/page';
 import { isPlaceholder } from '@/entities/profile/service';
 
 describe('isPlaceholder', () => {
@@ -16,13 +16,14 @@ describe('isPlaceholder', () => {
 });
 
 describe('clampStep', () => {
-  it('clamps to the 1..3 step range', () => {
+  it('clamps to the 1..4 step range', () => {
     expect(clampStep(NaN)).toBe(1);
     expect(clampStep(0)).toBe(1);
     expect(clampStep(1)).toBe(1);
     expect(clampStep(2)).toBe(2);
     expect(clampStep(3)).toBe(3);
-    expect(clampStep(4)).toBe(3);
+    expect(clampStep(4)).toBe(4);
+    expect(clampStep(5)).toBe(4);
     expect(clampStep(2.7)).toBe(2);
   });
 });
