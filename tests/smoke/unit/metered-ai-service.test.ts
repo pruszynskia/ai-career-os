@@ -69,6 +69,7 @@ beforeEach(() => {
   vi.mocked(getOwnerId).mockResolvedValue('owner_1');
   vi.mocked(getPlanForOwner).mockResolvedValue(FREE_PLAN);
   vi.mocked(aiUsageService.countForOwnerSince).mockResolvedValue(0);
+  vi.mocked(aiUsageService.record).mockResolvedValue(true);
   vi.mocked(assertWithinLimit).mockImplementation(() => {});
   vi.mocked(isProviderInCooldown).mockResolvedValue(false);
 });
@@ -91,10 +92,36 @@ describe('getMeteredAiService', () => {
 
     expect(aiUsageService.record).toHaveBeenCalledTimes(1);
     expect(aiUsageService.record).toHaveBeenCalledWith({
-      ownerId: 'owner_1',
       action: 'optimize_cv',
       provider: 'anthropic',
+      limit: FREE_PLAN.aiActionsPerMonth,
     });
+  });
+
+  it('does not record usage when validate rejects the output', async () => {
+    const service = await getMeteredAiService('optimize_cv');
+    await expect(
+      service.generateStructured({
+        ...callOptions,
+        validate: () => {
+          throw new Error('invalid claims');
+        },
+      }),
+    ).rejects.toThrow('invalid claims');
+
+    expect(aiUsageService.record).not.toHaveBeenCalled();
+  });
+
+  it('throws the entitlement error when a parallel request used the last action', async () => {
+    vi.mocked(aiUsageService.record).mockResolvedValue(false);
+    const service = await getMeteredAiService('optimize_cv');
+    vi.mocked(assertWithinLimit).mockImplementation(() => {
+      throw new EntitlementError('over quota', { plan: 'free', limit: 10 });
+    });
+
+    await expect(
+      service.generateStructured(callOptions),
+    ).rejects.toBeInstanceOf(EntitlementError);
   });
 
   it('matches today exactly (single AI_PROVIDER, no fallback) when AI_FREE_PROVIDERS/AI_PAID_PROVIDERS are unset', async () => {
@@ -137,9 +164,9 @@ describe('getMeteredAiService', () => {
     expect(geminiGenerate).toHaveBeenCalledTimes(1);
     expect(setProviderCooldown).toHaveBeenCalledWith('groq', 60);
     expect(aiUsageService.record).toHaveBeenCalledWith({
-      ownerId: 'owner_1',
       action: 'optimize_cv',
       provider: 'gemini',
+      limit: FREE_PLAN.aiActionsPerMonth,
     });
   });
 

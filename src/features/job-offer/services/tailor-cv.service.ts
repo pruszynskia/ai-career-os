@@ -74,9 +74,12 @@ export async function tailorCv(id: string, buildReport?: BuildTailoringReport) {
     schema: tailoredCvSchema,
     schemaName: 'tailored_cv',
     maxTokens: 4096,
+    validate: (result) =>
+      assertValidClaims(evidence, {
+        claimsUsed: result.claimsUsed,
+        text: result.content,
+      }),
   });
-
-  assertValidClaims(evidence, { claimsUsed, text: content });
 
   // Reuse the posting keywords TASK-079 already extracted onto fit - fall
   // back to running that same extraction once, only when this offer has

@@ -197,7 +197,18 @@ export async function getMeteredAiService(action: string): Promise<AiService> {
   return {
     async generateStructured(options) {
       const { result, provider } = await callWithFallback(plan, options);
-      await aiUsageService.record({ ownerId, action, provider });
+      options.validate?.(result);
+      const recorded = await aiUsageService.record({
+        action,
+        provider,
+        limit: plan.aiActionsPerMonth,
+      });
+      // A parallel request used the last action while this one was in
+      // flight. assertWithinLimit always throws here (used >= limit), giving
+      // the same EntitlementError as the up-front check.
+      // ponytail: the provider call already ran and is discarded; reserve
+      // before calling if concurrent over-quota calls ever cost real money.
+      if (!recorded) assertWithinLimit(plan.aiActionsPerMonth, plan);
       return result;
     },
   };

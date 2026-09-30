@@ -78,14 +78,15 @@ export async function generateCampaign(
     ],
     schema: generatedCampaignSchema,
     schemaName: 'generated_campaign',
+    validate: (result) => {
+      for (const generatedPost of result.posts) {
+        assertValidClaims(profile.evidence, {
+          claimsUsed: generatedPost.claimsUsed,
+          text: generatedPost.content,
+        });
+      }
+    },
   });
-
-  for (const generatedPost of generatedPosts) {
-    assertValidClaims(profile.evidence, {
-      claimsUsed: generatedPost.claimsUsed,
-      text: generatedPost.content,
-    });
-  }
 
   const campaign = await postCampaignService.create({ ownerId, theme });
 

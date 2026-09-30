@@ -24,6 +24,12 @@ export interface StructuredCallOptions<Schema extends z.ZodObject> {
   schema: Schema;
   schemaName: string;
   maxTokens?: number;
+  /**
+   * Throws if the output must be discarded (e.g. claim validation). The
+   * metered service runs it before recording usage, so rejected output is
+   * never charged against the user's allowance.
+   */
+  validate?: (result: z.infer<Schema>) => void;
 }
 
 export interface AiService {

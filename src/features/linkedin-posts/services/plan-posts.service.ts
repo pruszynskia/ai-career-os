@@ -71,14 +71,15 @@ export async function planPosts() {
     ],
     schema: plannedPostsSchema,
     schemaName: 'planned_posts',
+    validate: (result) => {
+      for (const plannedPost of result.posts) {
+        assertValidClaims(profile.evidence, {
+          claimsUsed: plannedPost.claimsUsed,
+          text: plannedPost.content,
+        });
+      }
+    },
   });
-
-  for (const plannedPost of plannedPosts) {
-    assertValidClaims(profile.evidence, {
-      claimsUsed: plannedPost.claimsUsed,
-      text: plannedPost.content,
-    });
-  }
 
   const posts = await Promise.all(
     plannedPosts.map((plannedPost) =>

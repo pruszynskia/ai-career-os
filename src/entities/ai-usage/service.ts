@@ -1,17 +1,6 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
-import type { AiUsage } from '@/entities/ai-usage/types';
-
-function toAiUsage(row: Record<string, unknown>): AiUsage {
-  return {
-    id: row.id as string,
-    ownerId: row.owner_id as string,
-    action: row.action as string,
-    provider: (row.provider as string | null) ?? null,
-    createdAt: new Date(row.created_at as string),
-  };
-}
 
 // Start of the current calendar month (UTC) - the allowance period per
 // docs/PRODUCT.md's "Pricing & Packaging" section. Shared by the metered
@@ -23,24 +12,25 @@ export function startOfCurrentMonth(): Date {
 }
 
 export const aiUsageService = {
+  // Records one action for the session's owner via the record_ai_action RPC,
+  // which re-counts under a per-owner lock and inserts only while under
+  // `limit` - so parallel requests can't overshoot the allowance. Returns
+  // false (nothing recorded) when the limit was already reached.
   async record(values: {
-    ownerId: string;
     action: string;
     provider?: string | null;
-  }): Promise<AiUsage> {
+    limit: number;
+  }): Promise<boolean> {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('ai_usage')
-      .insert({
-        owner_id: values.ownerId,
-        action: values.action,
-        provider: values.provider ?? null,
-      })
-      .select()
-      .single();
+    const { error } = await supabase.rpc('record_ai_action', {
+      p_action: values.action,
+      p_provider: values.provider ?? null,
+      p_limit: values.limit,
+    });
 
+    if (error?.message === 'ai_limit_reached') return false;
     if (error) throw error;
-    return toAiUsage(data);
+    return true;
   },
 
   async countForOwnerSince(ownerId: string, since: Date): Promise<number> {
