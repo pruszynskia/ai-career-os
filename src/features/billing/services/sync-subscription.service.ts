@@ -57,6 +57,19 @@ export async function syncSubscriptionFromStripe(
     return;
   }
 
+  // One row per owner, so an event for a *different* subscription (e.g. the
+  // late `deleted` for an old past_due sub the user replaced by paying for a
+  // new one) must not overwrite a live subscription and downgrade them.
+  const isLive = (status: string) => ['active', 'trialing'].includes(status);
+  if (
+    existing &&
+    existing.stripeSubscriptionId !== subscription.id &&
+    isLive(existing.status) &&
+    !isLive(subscription.status)
+  ) {
+    return;
+  }
+
   const item = subscription.items.data[0];
 
   await subscriptionService.upsertFromStripe(
