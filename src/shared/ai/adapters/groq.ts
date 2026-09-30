@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import type { z } from 'zod';
 
+import { AiOutputError } from '../errors';
 import type { AiService, StructuredCallOptions } from '../types';
 
 // Groq's API is OpenAI-compatible (https://console.groq.com/docs/openai), so
@@ -15,6 +16,8 @@ export function createGroqAdapter(): AiService {
   const client = new OpenAI({
     apiKey: process.env.GROQ_API_KEY,
     baseURL: 'https://api.groq.com/openai/v1',
+    timeout: 90_000,
+    maxRetries: 1,
   });
   // Groq's structured-output (json_schema) response format is only
   // supported on a subset of its models (gpt-oss, kimi-k2, llama-4) - a
@@ -41,12 +44,26 @@ export function createGroqAdapter(): AiService {
         response_format: zodResponseFormat(schema, schemaName),
       });
 
-      const parsed = completion.choices[0]?.message.parsed;
-      if (!parsed) {
-        throw new Error('Groq response did not include structured output');
+      if (completion.choices[0]?.finish_reason === 'length') {
+        throw new AiOutputError(
+          'Groq response was truncated (length); raise maxTokens',
+        );
       }
 
-      return schema.parse(parsed);
+      const parsed = completion.choices[0]?.message.parsed;
+      if (!parsed) {
+        throw new AiOutputError(
+          'Groq response did not include structured output',
+        );
+      }
+
+      const result = schema.safeParse(parsed);
+      if (!result.success) {
+        throw new AiOutputError('Groq response failed schema validation', {
+          cause: result.error,
+        });
+      }
+      return result.data;
     },
   };
 }

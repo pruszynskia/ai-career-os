@@ -74,7 +74,12 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       type="button"
                       size="sm"
                       pending={isPending && pendingState === 'CONFIRMED'}
-                      disabled={isPending && pendingState !== 'CONFIRMED'}
+                      // Disabled while ANY claim mutation is in flight, not
+                      // just this row's (AI-5): two rows mutating at once
+                      // race a read-modify-write of the same evidence JSON
+                      // column, and the second write silently drops the
+                      // first's change.
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,
@@ -89,7 +94,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       size="sm"
                       variant="secondary"
                       pending={isPending && pendingState === 'FLAGGED'}
-                      disabled={isPending && pendingState !== 'FLAGGED'}
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,
@@ -104,7 +109,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       size="sm"
                       variant="danger"
                       pending={isPending && pendingState === 'EXCLUDED'}
-                      disabled={isPending && pendingState !== 'EXCLUDED'}
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,

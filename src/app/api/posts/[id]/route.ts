@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { postStatusSchema } from '@/entities/post/types';
 import {
+  InvalidStatusTransitionError,
   PostNotFoundError,
   updatePost,
 } from '@/features/linkedin-posts/services/update-post.service';
@@ -42,6 +43,9 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof PostNotFoundError) {
       return NextResponse.json({ message: error.message }, { status: 404 });
+    }
+    if (error instanceof InvalidStatusTransitionError) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
     }
 
     console.error('Failed to update the post', error);

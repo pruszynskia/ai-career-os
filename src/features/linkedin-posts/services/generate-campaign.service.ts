@@ -7,6 +7,7 @@ import { postCampaignService } from '@/entities/post-campaign/service';
 import { profileService } from '@/entities/profile/service';
 import { NoProfileError } from '@/features/linkedin-posts/services/generate-post.service';
 import {
+  ClaimValidationError,
   assertEvidenceBase,
   assertValidClaims,
 } from '@/shared/ai/claim-validator';
@@ -78,7 +79,28 @@ export async function generateCampaign(
     ],
     schema: generatedCampaignSchema,
     schemaName: 'generated_campaign',
+    // 512 base + 600/post: sized to the requested count so a 6-10 post
+    // campaign doesn't truncate mid-JSON on the shared 1024 default (AI-2).
+    maxTokens: 512 + postCount * 600,
     validate: (result) => {
+      const violations: string[] = [];
+      if (result.posts.length !== postCount) {
+        violations.push(
+          `Expected ${postCount} posts, got ${result.posts.length}`,
+        );
+      }
+      const now = new Date();
+      for (const generatedPost of result.posts) {
+        if (new Date(generatedPost.scheduledAt) <= now) {
+          violations.push(
+            `scheduledAt ${generatedPost.scheduledAt} is not in the future`,
+          );
+        }
+      }
+      if (violations.length > 0) {
+        throw new ClaimValidationError(violations);
+      }
+
       for (const generatedPost of result.posts) {
         assertValidClaims(profile.evidence, {
           claimsUsed: generatedPost.claimsUsed,

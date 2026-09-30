@@ -4,6 +4,11 @@ import { NoMasterCvError } from '@/entities/cv-document/service';
 import { optimizeCv } from '@/features/cv/services/optimize-cv.service';
 import { toAiErrorResponse } from '@/shared/ai/errors';
 
+// Longer than the 90s SDK timeout (AI-7) so a slow provider's own timeout
+// error reaches the fallback logic instead of Vercel killing the function
+// first and returning a non-JSON 504.
+export const maxDuration = 120;
+
 export async function POST() {
   try {
     const { cvDocument, improvements } = await optimizeCv();

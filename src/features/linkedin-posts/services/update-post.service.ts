@@ -10,6 +10,16 @@ import { getOwnerId } from '@/shared/auth/session';
 
 export { PostNotFoundError };
 
+// Thrown when this route is asked to move a post to SCHEDULED (POST-1) - it
+// has no way to take the required date, unlike the dedicated schedule
+// action (src/features/linkedin-posts/services/schedule-post.service.ts).
+export class InvalidStatusTransitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidStatusTransitionError';
+  }
+}
+
 export async function updatePost(
   id: string,
   values: { content?: string; status?: PostStatus },
@@ -20,8 +30,13 @@ export async function updatePost(
   const patch: Parameters<typeof postService.update>[2] = { ...values };
 
   if (values.status !== undefined && values.status !== existing.status) {
-    if (values.status !== 'SCHEDULED') patch.scheduledAt = null;
-    if (values.status !== 'SENT') patch.sentAt = null;
+    if (values.status === 'SCHEDULED') {
+      throw new InvalidStatusTransitionError(
+        'Use the schedule action to set a post to Scheduled with a date.',
+      );
+    }
+    patch.scheduledAt = null;
+    patch.sentAt = values.status === 'SENT' ? new Date() : null;
   }
 
   return postService.update(id, ownerId, patch);

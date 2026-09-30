@@ -3,10 +3,14 @@ import 'server-only';
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 
+import { AiOutputError } from '../errors';
 import type { AiService, StructuredCallOptions } from '../types';
 
 export function createGeminiAdapter(): AiService {
-  const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const client = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    httpOptions: { timeout: 90_000, retryOptions: { attempts: 2 } },
+  });
   const model = process.env.GEMINI_MODEL ?? 'gemini-3.6-flash';
 
   return {
@@ -40,15 +44,32 @@ export function createGeminiAdapter(): AiService {
 
       const text = response.text;
       if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-        throw new Error(
+        throw new AiOutputError(
           'Gemini response was truncated (MAX_TOKENS); raise maxTokens',
         );
       }
       if (!text) {
-        throw new Error('Gemini response did not include structured output');
+        throw new AiOutputError(
+          'Gemini response did not include structured output',
+        );
       }
 
-      return schema.parse(JSON.parse(text));
+      let json: unknown;
+      try {
+        json = JSON.parse(text);
+      } catch (cause) {
+        throw new AiOutputError('Gemini response was not valid JSON', {
+          cause,
+        });
+      }
+
+      const parsed = schema.safeParse(json);
+      if (!parsed.success) {
+        throw new AiOutputError('Gemini response failed schema validation', {
+          cause: parsed.error,
+        });
+      }
+      return parsed.data;
     },
   };
 }
