@@ -29,8 +29,29 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
+// MISC-7: storage access itself (not just JSON.parse) can throw - private
+// browsing, blocked cookies/storage, a full quota - and getSnapshot runs
+// inside useSyncExternalStore, so an unguarded throw here crashed every page
+// that renders a notification list.
+function readDismissedRaw(): string | null {
+  try {
+    return window.localStorage.getItem(DISMISSED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeDismissedRaw(raw: string): void {
+  try {
+    window.localStorage.setItem(DISMISSED_KEY, raw);
+  } catch {
+    // Storage blocked/full - dismissal still applies for this session via
+    // cachedSet/listeners below, it just won't survive a refresh.
+  }
+}
+
 function getSnapshot(): Set<string> {
-  const raw = window.localStorage.getItem(DISMISSED_KEY);
+  const raw = readDismissedRaw();
   if (raw === cachedRaw) return cachedSet;
   cachedRaw = raw;
   try {
@@ -49,7 +70,7 @@ export function dismissNotification(id: string): void {
   const next = new Set(getSnapshot()).add(id);
   cachedRaw = JSON.stringify(Array.from(next));
   cachedSet = next;
-  window.localStorage.setItem(DISMISSED_KEY, cachedRaw);
+  writeDismissedRaw(cachedRaw);
   listeners.forEach((listener) => listener());
 }
 
@@ -62,7 +83,7 @@ function prune(liveIds: Set<string>): void {
   if (next.size === current.size) return;
   cachedRaw = JSON.stringify(Array.from(next));
   cachedSet = next;
-  window.localStorage.setItem(DISMISSED_KEY, cachedRaw);
+  writeDismissedRaw(cachedRaw);
   listeners.forEach((listener) => listener());
 }
 

@@ -10,9 +10,12 @@ const uploadSchema = z.object({
   file: z.instanceof(File),
 });
 
-// LinkedIn's own export is a few hundred KB even for a few thousand
-// connections; this is generous headroom, not a tuned limit.
-const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+// MISC-5: Vercel's serverless functions cap the request body at 4.5MB - a
+// file between the old 20MB limit and that cap passed this check and then
+// failed upstream with Vercel's own opaque error before this handler even
+// ran. Staying under that cap means this route's own clear "too large"
+// message is the one the user actually sees.
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const formData = await request.formData();

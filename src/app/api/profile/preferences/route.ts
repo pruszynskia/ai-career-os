@@ -6,7 +6,23 @@ import {
   updateProfilePreferences,
 } from '@/features/profile/services/update-preferences.service';
 
-const updatePreferencesSchema = jobPreferencesSchema.partial();
+// MISC-9: the min<=max check lived only in the client form
+// (preferences-form.ts's superRefine) - a direct API call bypassed it
+// entirely. Only enforced when both are present in this request: a partial
+// PATCH sending just one of the pair has no way to compare against
+// whatever value already exists for the other.
+const updatePreferencesSchema = jobPreferencesSchema
+  .partial()
+  .refine(
+    (value) =>
+      value.salaryMin == null ||
+      value.salaryMax == null ||
+      value.salaryMin <= value.salaryMax,
+    {
+      message: 'Minimum salary must not exceed maximum salary.',
+      path: ['salaryMax'],
+    },
+  );
 
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => null);

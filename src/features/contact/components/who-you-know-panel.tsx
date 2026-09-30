@@ -7,7 +7,13 @@ import { CONTACT_CLASSIFICATION_LABELS } from '@/entities/contact/types';
 import { useAddContact } from '@/features/contact/hooks/use-add-contact';
 import { Tag } from '@/shared/ui/tag';
 import { Button } from '@/shared/ui/button';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { ListRow } from '@/shared/ui/list-row';
 import {
@@ -25,6 +31,14 @@ import {
 export interface SelectedContact {
   name: string;
   profileUrl: string | null;
+}
+
+// A bare "linkedin.com/in/x" fails the server's z.string().url() check
+// (MISC-1) since it has no scheme - people paste URLs copied from a browser
+// address bar or search result this way often enough to prefix it here
+// rather than reject it.
+function withScheme(url: string): string {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
 // "JK" from "Jane Kowalska" - first + last initial, matching
@@ -62,7 +76,9 @@ export function WhoYouKnowPanel({
         name: name.trim(),
         company,
         title: title.trim(),
-        profileUrl: profileUrl.trim() || undefined,
+        profileUrl: profileUrl.trim()
+          ? withScheme(profileUrl.trim())
+          : undefined,
       },
       {
         onSuccess: () => {
@@ -96,11 +112,17 @@ export function WhoYouKnowPanel({
               onValueChange={(value) => {
                 const contact = contacts.find((c) => c.name === value);
                 if (contact) {
-                  onSelect({ name: contact.name, profileUrl: contact.profileUrl });
+                  onSelect({
+                    name: contact.name,
+                    profileUrl: contact.profileUrl,
+                  });
                 }
               }}
             >
-              <SelectTrigger aria-label="Active contact" className="w-full sm:w-64">
+              <SelectTrigger
+                aria-label="Active contact"
+                className="w-full sm:w-64"
+              >
                 <SelectValue placeholder="Choose a contact" />
               </SelectTrigger>
               <SelectContent>
