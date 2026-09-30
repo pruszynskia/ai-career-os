@@ -24,12 +24,12 @@ function ThemedToaster() {
   const { resolvedTheme } = useTheme();
   return (
     <Toaster
-      // Bottom-right; sonner's own CSS already collapses left/right/center
+      // Top-right; sonner's own CSS already collapses left/right/center
       // to a full-width edge-to-edge toast under 600px (see
       // node_modules/sonner/dist/styles.css's max-width:600px block), which
-      // reads as bottom-centre on mobile without any extra responsive logic
+      // reads as top-centre on mobile without any extra responsive logic
       // here.
-      position="bottom-right"
+      position="top-right"
       theme={resolvedTheme as 'light' | 'dark' | undefined}
       icons={TOAST_ICONS}
       toastOptions={{
