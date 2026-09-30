@@ -119,6 +119,17 @@ export const applicationService = {
     return toApplication(data);
   },
 
+  async deleteByJobOffer(ownerId: string, jobOfferId: string): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('owner_id', ownerId)
+      .eq('job_offer_id', jobOfferId);
+
+    if (error) throw error;
+  },
+
   async findByOffer(
     ownerId: string,
     jobOfferId: string,

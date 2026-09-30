@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { applicationSchema } from '@/entities/application/types';
 import {
+  ApplicationExistsError,
   CvNotFoundError,
   createApplication,
   OfferNotFoundError,
@@ -34,6 +35,10 @@ export async function POST(request: Request) {
       error instanceof CvNotFoundError
     ) {
       return NextResponse.json({ message: error.message }, { status: 404 });
+    }
+
+    if (error instanceof ApplicationExistsError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
     }
 
     console.error('Failed to create the application', error);
