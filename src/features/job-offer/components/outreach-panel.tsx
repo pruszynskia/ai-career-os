@@ -12,6 +12,7 @@ import { useMarkOutreachSent } from '@/features/job-offer/hooks/use-mark-outreac
 import { useOutreach } from '@/features/job-offer/hooks/use-outreach';
 import { EntitlementRequiredError } from '@/shared/api/request';
 import { CHANNEL_BUDGETS } from '@/shared/ai/outreach-validator';
+import { formatDate } from '@/shared/utils/format-date';
 import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import {
@@ -203,9 +204,9 @@ export function OutreachPanel({
       {showInterlockWarning && interlockWarning && (
         <Banner tone="warning">
           {interlockWarning.contactName} at this company was already messaged on{' '}
-          {interlockWarning.messagedAt.toLocaleDateString()} - contacting a
-          second person here within 30 days may look like spam. This is only a
-          warning; nothing is blocked.
+          {formatDate(interlockWarning.messagedAt)} - contacting a second person
+          here within 30 days may look like spam. This is only a warning;
+          nothing is blocked.
         </Banner>
       )}
 

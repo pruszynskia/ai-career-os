@@ -21,29 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/primitives/interaction/select/Select';
+import { formatDate } from '@/shared/utils/format-date';
+import {
+  parseLocalDateInput,
+  todayDateInputValue,
+} from '@/shared/utils/local-date-input';
 
 // SCHEDULED is excluded (POST-1): it needs a date, which only the dedicated
 // schedule input below (DRAFT posts) collects - toggling straight to it
 // from this dropdown left scheduledAt unset.
 const POST_STATUSES: PostStatus[] = ['DRAFT', 'SENT'];
-
-// `<input type="date">` yields a bare 'YYYY-MM-DD'; `new Date('YYYY-MM-DD')`
-// parses that as UTC midnight, which shifts a day for anyone not at UTC+0
-// once rendered/compared in local time (POST-2). Building the Date from the
-// components keeps it at local midnight instead.
-function parseLocalDateInput(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
-
-// 'YYYY-MM-DD' in local time, for the date input's `min` - keeps today
-// selectable while blocking anything earlier in the native picker.
-function todayDateInputValue(): string {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${day}`;
-}
 
 export function PostList({
   posts,
@@ -150,10 +137,10 @@ export function PostCard({
             </SelectContent>
           </Select>
           <span className="text-sm text-muted-foreground">
-            {post.createdAt.toLocaleDateString()}
+            {formatDate(post.createdAt)}
             {post.scheduledAt &&
-              ` · scheduled for ${post.scheduledAt.toLocaleDateString()}`}
-            {post.sentAt && ` · sent ${post.sentAt.toLocaleDateString()}`}
+              ` · scheduled for ${formatDate(post.scheduledAt)}`}
+            {post.sentAt && ` · sent ${formatDate(post.sentAt)}`}
           </span>
         </div>
         <div className="flex gap-2">

@@ -3,6 +3,7 @@ import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
 import { StageRing } from '@/entities/application/ui/stage-ring';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ListRow } from '@/shared/ui/list-row';
+import { formatDate } from '@/shared/utils/format-date';
 
 // Events arrive oldest-to-newest from applicationStatusEventService.findMany.
 export function ApplicationTimeline({
@@ -22,7 +23,7 @@ export function ApplicationTimeline({
               <ListRow
                 leading={<StageRing status={event.status} />}
                 title={APPLICATION_STATUS_LABELS[event.status]}
-                meta={event.createdAt.toLocaleDateString()}
+                meta={formatDate(event.createdAt)}
               />
             </li>
           ))}

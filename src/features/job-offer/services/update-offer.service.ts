@@ -10,7 +10,12 @@ export { OfferNotFoundError };
 
 export async function updateOffer(
   id: string,
-  values: Partial<{ company: string; title: string; description: string }>,
+  values: Partial<{
+    company: string;
+    title: string;
+    description: string;
+    expiresAt: Date | null;
+  }>,
 ) {
   await getOfferOrThrow(id);
 

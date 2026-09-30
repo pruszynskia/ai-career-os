@@ -8,6 +8,10 @@ import { convert } from 'html-to-text';
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
+// Matches the rawText cap on the pasted-text path (PIPE-12,
+// src/app/api/offers/route.ts) - html-to-text output from a page under the
+// 5MB response cap can still be far larger than what's useful to the AI.
+const MAX_TEXT_CHARS = 50_000;
 
 export class OfferFetchError extends Error {
   constructor() {
@@ -18,11 +22,23 @@ export class OfferFetchError extends Error {
   }
 }
 
+// An IPv4-mapped IPv6 address (e.g. "::ffff:127.0.0.1") embeds a real IPv4
+// address that net.isIPv4 doesn't recognize as one, since the string itself
+// is IPv6 syntax (PIPE-11) - without unwrapping it here, a loopback/private
+// IPv4 address reached this way skipped the IPv4 range check entirely.
+function unwrapIpv4MappedAddress(ip: string): string | null {
+  const match = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
+  return match ? match[1] : null;
+}
+
 // ponytail: covers the common private/loopback/link-local ranges (including
 // the 169.254.169.254 cloud metadata address); not an exhaustive IANA
 // special-registry check. Revisit if this ever fetches on behalf of
 // untrusted multi-tenant users (ADR-005).
 function isPrivateOrReservedIp(ip: string): boolean {
+  const mappedIpv4 = unwrapIpv4MappedAddress(ip);
+  if (mappedIpv4) return isPrivateOrReservedIp(mappedIpv4);
+
   if (net.isIPv4(ip)) {
     const [a, b] = ip.split('.').map(Number);
     return (
@@ -39,6 +55,7 @@ function isPrivateOrReservedIp(ip: string): boolean {
   const normalized = ip.toLowerCase();
   return (
     normalized === '::1' ||
+    normalized === '::' ||
     normalized.startsWith('fc') ||
     normalized.startsWith('fd') ||
     normalized.startsWith('fe80')
@@ -121,6 +138,6 @@ export async function fetchAndStripUrl(url: string): Promise<string> {
     if (!response.ok) throw new OfferFetchError();
 
     const html = await readWithSizeLimit(response);
-    return convert(html, { wordwrap: false }).trim();
+    return convert(html, { wordwrap: false }).trim().slice(0, MAX_TEXT_CHARS);
   }
 }

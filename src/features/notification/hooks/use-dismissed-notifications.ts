@@ -76,12 +76,24 @@ export function useDismissedNotifications(notifications: Notification[]): {
     getServerSnapshot,
   );
 
-  useEffect(() => {
-    prune(new Set(notifications.map((n) => n.id)));
-  }, [notifications]);
-
   return {
     visible: notifications.filter((n) => !dismissed.has(n.id)),
     dismiss: dismissNotification,
   };
+}
+
+// Prunes stale dismissed ids against the full notification list (PIPE-4).
+// Call this only from the one caller that has the complete list
+// (NotificationCenter) - every other caller (e.g. NeedsAttentionCard) only
+// sees a subset of notification types, and pruning against a subset drops
+// dismissals for the types it doesn't know about. Also skips an empty list
+// outright, so a transient fetch failure (getNotifications' own catch
+// returns []) can't wipe every dismissal.
+export function usePruneDismissedNotifications(
+  notifications: Notification[],
+): void {
+  useEffect(() => {
+    if (notifications.length === 0) return;
+    prune(new Set(notifications.map((n) => n.id)));
+  }, [notifications]);
 }

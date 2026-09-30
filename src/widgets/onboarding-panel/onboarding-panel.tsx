@@ -74,7 +74,7 @@ export async function OnboardingPanel({ step }: { step: number }) {
             <Text size="sm" color="muted" className="mb-3">
               Paste a link to a job posting or its full text.
             </Text>
-            <AddOfferForm />
+            <AddOfferForm inOnboarding />
           </CardContent>
         </Card>
       )}

@@ -3,6 +3,7 @@ import 'server-only';
 import { toCvDocument } from '@/entities/cv-document/service';
 import { toJobOffer } from '@/entities/job-offer/service';
 import { createClient } from '@/shared/db/client';
+import { isInvalidInputSyntaxError } from '@/shared/db/postgres-errors';
 import type {
   Application,
   ApplicationBundle,
@@ -93,7 +94,10 @@ export const applicationService = {
       .eq('owner_id', filter.ownerId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      if (isInvalidInputSyntaxError(error)) return null;
+      throw error;
+    }
     return data ? toApplication(data) : null;
   },
 

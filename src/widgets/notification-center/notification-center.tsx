@@ -3,7 +3,10 @@
 import { Bell } from 'lucide-react';
 
 import { NotificationList } from '@/features/notification/components/notification-list';
-import { useDismissedNotifications } from '@/features/notification/hooks/use-dismissed-notifications';
+import {
+  useDismissedNotifications,
+  usePruneDismissedNotifications,
+} from '@/features/notification/hooks/use-dismissed-notifications';
 import type { Notification } from '@/features/notification/types';
 import {
   IconButton,
@@ -20,6 +23,9 @@ export function NotificationCenter({
   notifications: Notification[];
 }) {
   const { visible, dismiss } = useDismissedNotifications(notifications);
+  // This is the one caller with the complete notification list - see the
+  // hook's own comment (PIPE-4).
+  usePruneDismissedNotifications(notifications);
   const count = visible.filter((n) => n.category === 'action-required').length;
 
   return (

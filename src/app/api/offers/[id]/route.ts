@@ -16,6 +16,9 @@ const updateOfferSchema = jobOfferSchema
     company: requiredText,
     title: requiredText,
     description: z.string().trim(),
+    // PIPE-5: JSON has no Date type, so the client sends an ISO string (or
+    // null to clear it) - z.coerce.date() parses that back into a Date.
+    expiresAt: z.coerce.date().nullable(),
   })
   .partial();
 

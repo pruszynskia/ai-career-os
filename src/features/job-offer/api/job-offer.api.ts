@@ -54,7 +54,13 @@ export function toggleFavorite(
 
 export function updateOffer(
   id: string,
-  input: Partial<{ company: string; title: string; description: string }>,
+  input: Partial<{
+    company: string;
+    title: string;
+    description: string;
+    // ISO string (JSON has no Date type) or null to clear it (PIPE-5).
+    expiresAt: string | null;
+  }>,
 ): Promise<UpdateOfferResponse> {
   return requestJson(
     `/api/offers/${id}`,

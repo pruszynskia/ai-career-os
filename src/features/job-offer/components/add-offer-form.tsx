@@ -31,9 +31,17 @@ interface DuplicateState {
 interface AddOfferFormProps {
   /** Called after a successful, non-duplicate submit (e.g. to close a host dialog). */
   onSuccess?: () => void;
+  // AUTH-12: the duplicate-offer banner's "view existing offer" link points
+  // at the normal protected /offers/[id] route, which bounces a
+  // not-yet-onboarded user straight back to /onboarding. Set from
+  // onboarding so that link doesn't get offered there.
+  inOnboarding?: boolean;
 }
 
-export function AddOfferForm({ onSuccess }: AddOfferFormProps = {}) {
+export function AddOfferForm({
+  onSuccess,
+  inOnboarding = false,
+}: AddOfferFormProps = {}) {
   const [mode, setMode] = useState<'url' | 'raw-text'>('url');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
@@ -107,8 +115,7 @@ export function AddOfferForm({ onSuccess }: AddOfferFormProps = {}) {
       <Button
         type="submit"
         disabled={
-          mutation.isPending ||
-          (mode === 'url' ? !url.trim() : !rawText.trim())
+          mutation.isPending || (mode === 'url' ? !url.trim() : !rawText.trim())
         }
         className="self-start"
       >
@@ -147,15 +154,21 @@ export function AddOfferForm({ onSuccess }: AddOfferFormProps = {}) {
             </div>
           }
         >
-          This matches {SIGNAL_LABEL[duplicate.signal]} of an offer you
-          already added.{' '}
-          <Link
-            href={`/offers/${duplicate.existingOfferId}`}
-            className="underline"
-          >
-            View the existing offer
-          </Link>
-          .
+          This matches {SIGNAL_LABEL[duplicate.signal]} of an offer you already
+          added.{' '}
+          {inOnboarding ? (
+            "You'll be able to view it once onboarding is complete."
+          ) : (
+            <>
+              <Link
+                href={`/offers/${duplicate.existingOfferId}`}
+                className="underline"
+              >
+                View the existing offer
+              </Link>
+              .
+            </>
+          )}
         </Banner>
       )}
     </form>

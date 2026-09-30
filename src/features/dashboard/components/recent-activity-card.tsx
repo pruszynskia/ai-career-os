@@ -3,6 +3,7 @@ import { APPLICATION_STATUS_LABELS } from '@/entities/application/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ListRow } from '@/shared/ui/list-row';
+import { formatDate } from '@/shared/utils/format-date';
 
 export function RecentActivityCard({
   events,
@@ -25,7 +26,7 @@ export function RecentActivityCard({
                 href={`/offers/${event.jobOffer.id}`}
                 title={event.jobOffer.title}
                 supporting={`${event.jobOffer.company} · ${APPLICATION_STATUS_LABELS[event.status]}`}
-                meta={event.createdAt.toLocaleDateString()}
+                meta={formatDate(event.createdAt)}
               />
             ))}
           </div>

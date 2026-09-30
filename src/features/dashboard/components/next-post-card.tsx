@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { formatDate } from '@/shared/utils/format-date';
 
 export function NextPostCard({ post }: { post: Post | null }) {
   return (
@@ -17,7 +18,7 @@ export function NextPostCard({ post }: { post: Post | null }) {
         <CardTitle>Next scheduled post</CardTitle>
         {post?.scheduledAt && (
           <CardDescription>
-            Scheduled for {post.scheduledAt.toLocaleDateString()}
+            Scheduled for {formatDate(post.scheduledAt)}
           </CardDescription>
         )}
       </CardHeader>

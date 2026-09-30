@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
+import { isInvalidInputSyntaxError } from '@/shared/db/postgres-errors';
 import { buildSearchOrFilter } from '@/shared/utils/offer-search';
 import { toCvDocument } from '@/entities/cv-document/service';
 import type { CvDocument } from '@/entities/cv-document/types';
@@ -177,7 +178,10 @@ export const jobOfferService = {
       .eq('id', id)
       .maybeSingle();
 
-    if (offerError) throw offerError;
+    if (offerError) {
+      if (isInvalidInputSyntaxError(offerError)) return null;
+      throw offerError;
+    }
     if (!offerRow) return null;
 
     const { data: cvRow, error: cvError } = await supabase
@@ -215,7 +219,10 @@ export async function getOfferOrThrow(id: string): Promise<JobOffer> {
     .eq('id', id)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    if (isInvalidInputSyntaxError(error)) throw new OfferNotFoundError();
+    throw error;
+  }
   if (!data) throw new OfferNotFoundError();
 
   return toJobOffer(data);

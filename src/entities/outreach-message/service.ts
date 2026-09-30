@@ -131,12 +131,15 @@ export const outreachMessageService = {
       status: 'DRAFT' | 'SENT';
       contactName: string | null;
       createdAt: Date;
+      sentAt: Date | null;
     }[]
   > {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('outreach_messages')
-      .select('id, job_offer_id, channel, status, contact_name, created_at')
+      .select(
+        'id, job_offer_id, channel, status, contact_name, created_at, sent_at',
+      )
       .eq('owner_id', ownerId);
 
     if (error) throw error;
@@ -147,6 +150,7 @@ export const outreachMessageService = {
       status: row.status as 'DRAFT' | 'SENT',
       contactName: (row.contact_name as string | null) ?? null,
       createdAt: new Date(row.created_at as string),
+      sentAt: row.sent_at ? new Date(row.sent_at as string) : null,
     }));
   },
 

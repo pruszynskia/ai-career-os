@@ -16,6 +16,7 @@ export function useUpdateOffer() {
       company: string;
       title: string;
       description: string;
+      expiresAt: string | null;
     }) => updateOffer(id, input),
     onSuccess: () => {
       toast.success('Offer updated');

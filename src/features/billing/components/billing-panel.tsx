@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { Subscription } from '@/entities/subscription/types';
 import { PlanBadge } from '@/features/billing/components/plan-badge';
 import { requestJson } from '@/shared/api/request';
+import { formatDate } from '@/shared/utils/format-date';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Text, VStack } from '@/shared/ui/primitives';
@@ -57,7 +58,7 @@ export function BillingPanel({
               />
               {subscription.currentPeriodEnd ? (
                 <Text color="muted">
-                  Renews on {subscription.currentPeriodEnd.toLocaleDateString()}
+                  Renews on {formatDate(subscription.currentPeriodEnd)}
                 </Text>
               ) : null}
               <Button

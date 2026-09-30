@@ -31,6 +31,7 @@ import {
 } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { formatDate } from '@/shared/utils/format-date';
 
 const COLUMNS = '20px minmax(0,1fr) 130px 96px 64px 140px 64px';
 // Rows shown per tier group before "Show N more" - keeps a long "Consider"
@@ -197,12 +198,9 @@ export function OfferPreviewPane({
       <div className="flex flex-col gap-3 px-4 py-3.5">
         <p className="text-xs text-muted-foreground">
           Added{' '}
-          {offer.createdAt.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          })}
+          {formatDate(offer.createdAt, { month: 'short', day: 'numeric' })}
           {offer.expiresAt &&
-            ` · Expires ${offer.expiresAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+            ` · Expires ${formatDate(offer.expiresAt, { month: 'short', day: 'numeric' })}`}
           {offer.isExpired && ' · Expired'}
         </p>
         <div className="grid grid-cols-2 rounded-md border border-border">
@@ -581,7 +579,7 @@ export function UnifiedOfferList({
                               : 'Not tracked'}
                           </span>
                           <span className={gridTableNumericCellClassName}>
-                            {offer.updatedAt.toLocaleDateString(undefined, {
+                            {formatDate(offer.updatedAt, {
                               month: 'short',
                               day: 'numeric',
                             })}
