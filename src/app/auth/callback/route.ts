@@ -4,10 +4,18 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { createClient } from '@/shared/db/client';
 
 // Accepts only same-origin absolute paths; anything that could escape the
-// origin (`https://evil.com`, `//evil.com`, `/\evil.com`) falls back to
-// /dashboard. Exported for direct unit testing.
+// origin (`https://evil.com`, `//evil.com`, `/\evil.com`, `/\t/evil.com` —
+// the URL parser strips tab/CR/LF) falls back to /dashboard. Resolving
+// against a fixed base and comparing origins lets the real URL parser decide
+// instead of a regex that has to anticipate its quirks. Exported for direct
+// unit testing.
 export function safeNextPath(raw: string | null): string {
-  return raw && /^\/(?!\/|\\)/.test(raw) ? raw : '/dashboard';
+  if (!raw?.startsWith('/')) return '/dashboard';
+  const base = 'http://n';
+  const url = new URL(raw, base);
+  return url.origin === base
+    ? url.pathname + url.search + url.hash
+    : '/dashboard';
 }
 
 // Completes email confirmation and password-reset links. Two shapes:
@@ -39,9 +47,23 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Supabase/OAuth report failures as query params instead of a code
+  // (e.g. the user cancelled Google consent: error=access_denied).
+  const providerError =
+    searchParams.get('error_code') ?? searchParams.get('error');
+  if (providerError) {
+    console.error(
+      '[auth] callback error',
+      providerError,
+      searchParams.get('error_description'),
+    );
+  }
+
   const failure =
     type === 'recovery'
       ? '/forgot-password?error=expired'
-      : '/sign-in?error=link';
+      : providerError === 'access_denied'
+        ? '/sign-in?error=oauth'
+        : '/sign-in?error=link';
   return NextResponse.redirect(new URL(failure, origin));
 }

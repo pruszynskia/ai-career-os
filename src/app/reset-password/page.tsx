@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation';
 
 import { updatePassword } from '@/shared/auth/actions';
+import { AUTH_ERROR_MESSAGES } from '@/shared/auth/auth-error';
 import { createClient } from '@/shared/db/client';
 import { Banner } from '@/shared/ui/banner';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Heading } from '@/shared/ui/primitives';
 import { Input } from '@/shared/ui/input';
+import { SubmitButton } from '@/shared/ui/submit-button';
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -39,7 +40,8 @@ export default async function ResetPasswordPage({
         <CardContent className="flex flex-col gap-4">
           {error && !isMismatch && (
             <Banner tone="danger">
-              Could not update password. Request a new reset link.
+              {AUTH_ERROR_MESSAGES[error] ??
+                'Could not update password. Request a new reset link.'}
             </Banner>
           )}
           <form action={updatePassword} className="flex flex-col gap-4">
@@ -68,9 +70,9 @@ export default async function ResetPasswordPage({
                 aria-invalid={isMismatch}
               />
             </Field>
-            <Button type="submit" size="lg" className="mt-1 w-full">
+            <SubmitButton size="lg" className="mt-1 w-full">
               Update password
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

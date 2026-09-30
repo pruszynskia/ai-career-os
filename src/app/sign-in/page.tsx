@@ -2,19 +2,20 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { signInWithGoogle } from '@/shared/auth/actions';
+import { AUTH_ERROR_MESSAGES, authErrorKey } from '@/shared/auth/auth-error';
 import { createClient } from '@/shared/db/client';
 import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 import { Banner } from '@/shared/ui/banner';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
 import { Divider, Heading } from '@/shared/ui/primitives';
+import { SubmitButton } from '@/shared/ui/submit-button';
 
 const ERROR_MESSAGES: Record<string, string> = {
+  ...AUTH_ERROR_MESSAGES,
   link: 'That link is invalid or has expired.',
   oauth: 'Could not sign in with Google. Please try again.',
-  rate_limit: 'Too many attempts. Please wait a minute and try again.',
 };
 
 export default async function SignInPage({
@@ -34,7 +35,8 @@ export default async function SignInPage({
     });
 
     if (signInError) {
-      redirect('/sign-in?error=1');
+      // invalid_credentials (the common case) falls through to '1'.
+      redirect(`/sign-in?error=${authErrorKey(signInError)}`);
     }
 
     redirect('/');
@@ -82,9 +84,9 @@ export default async function SignInPage({
                 required
               />
             </Field>
-            <Button type="submit" size="lg" className="mt-1 w-full">
+            <SubmitButton size="lg" className="mt-1 w-full">
               Sign in
-            </Button>
+            </SubmitButton>
           </form>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <Divider className="flex-1" />
@@ -92,14 +94,9 @@ export default async function SignInPage({
             <Divider className="flex-1" />
           </div>
           <form action={signInWithGoogle}>
-            <Button
-              type="submit"
-              variant="secondary"
-              size="lg"
-              className="w-full"
-            >
+            <SubmitButton variant="secondary" size="lg" className="w-full">
               Continue with Google
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

@@ -3,11 +3,11 @@ import Link from 'next/link';
 
 import { requestPasswordReset } from '@/shared/auth/actions';
 import { Banner } from '@/shared/ui/banner';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Heading } from '@/shared/ui/primitives';
 import { Input } from '@/shared/ui/input';
+import { SubmitButton } from '@/shared/ui/submit-button';
 
 export default async function ForgotPasswordPage({
   searchParams,
@@ -48,9 +48,9 @@ export default async function ForgotPasswordPage({
             <Field id="email" label="Email">
               <Input name="email" type="email" placeholder="Email" required />
             </Field>
-            <Button type="submit" size="lg" className="mt-1 w-full">
+            <SubmitButton size="lg" className="mt-1 w-full">
               Send reset link
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

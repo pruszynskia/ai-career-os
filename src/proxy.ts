@@ -58,6 +58,11 @@ const PUBLIC_PATHS = [
   '/api/stripe/webhook',
 ];
 
+// Pointless with a session; a signed-in visitor is sent to /dashboard.
+// /reset-password is deliberately absent — the recovery link signs the user
+// in before landing there.
+const SIGNED_OUT_ONLY_PATHS = ['/sign-in', '/sign-up', '/forgot-password'];
+
 export async function proxy(request: NextRequest) {
   const nonce = generateNonce();
   const csp = buildCsp(nonce);
@@ -149,7 +154,28 @@ export async function proxy(request: NextRequest) {
   const isPublicPath = PUBLIC_PATHS.includes(request.nextUrl.pathname);
 
   if (!isSignedIn && !isPublicPath) {
+    // fetch() follows redirects silently, so a redirect here would hand API
+    // callers the /sign-in HTML with a 200 — every client wrapper would then
+    // fail on response.json() instead of showing a session message.
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+      return finalize(
+        NextResponse.json(
+          { message: 'Your session has expired. Please sign in again.' },
+          { status: 401 },
+        ),
+      );
+    }
     return finalize(NextResponse.redirect(new URL('/sign-in', request.url)));
+  }
+
+  // GET only: the auth forms post their Server Functions to these same paths,
+  // and a redirect answered here breaks the action client (see above).
+  if (
+    isSignedIn &&
+    request.method === 'GET' &&
+    SIGNED_OUT_ONLY_PATHS.includes(request.nextUrl.pathname)
+  ) {
+    return finalize(NextResponse.redirect(new URL('/dashboard', request.url)));
   }
 
   return finalize(response);
