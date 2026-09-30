@@ -8,13 +8,14 @@ export interface ClaimValidationInput {
 }
 
 // Thrown by assertValidClaims so a violating generation is surfaced as a
-// clear error rather than persisted or returned to the caller.
+// clear error rather than persisted or returned to the caller. `.message` is
+// user-facing (ERR-3, shown verbatim in a toast); the dev-diagnostic detail
+// stays in `.violations`, logged here so it isn't lost.
 export class ClaimValidationError extends Error {
   constructor(public readonly violations: string[]) {
-    super(
-      `Generation violated the evidence contract: ${violations.join('; ')}`,
-    );
+    super('Generated content failed our accuracy checks. Try again.');
     this.name = 'ClaimValidationError';
+    console.error('[ClaimValidationError]', violations.join('; '));
   }
 }
 

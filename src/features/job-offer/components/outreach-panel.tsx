@@ -6,13 +6,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { OutreachChannel } from '@/entities/outreach-message/types';
 import { OUTREACH_CHANNEL_LABELS } from '@/entities/outreach-message/types';
-import {
-  EntitlementRequiredError,
-  OutreachBlockedError,
-} from '@/features/job-offer/api/job-offer.api';
+import { OutreachBlockedError } from '@/features/job-offer/api/job-offer.api';
 import { useDraftFollowUp } from '@/features/job-offer/hooks/use-draft-follow-up';
 import { useMarkOutreachSent } from '@/features/job-offer/hooks/use-mark-outreach-sent';
 import { useOutreach } from '@/features/job-offer/hooks/use-outreach';
+import { EntitlementRequiredError } from '@/shared/api/request';
 import { CHANNEL_BUDGETS } from '@/shared/ai/outreach-validator';
 import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
@@ -277,9 +275,7 @@ export function OutreachPanel({
                   {message.subject && (
                     <p className="text-sm font-medium">{message.subject}</p>
                   )}
-                  <p className="whitespace-pre-wrap text-sm">
-                    {message.body}
-                  </p>
+                  <p className="whitespace-pre-wrap text-sm">{message.body}</p>
                 </CardContent>
                 <CardFooter className="justify-between bg-transparent">
                   <Text color={overBudget ? 'destructive' : 'muted'} size="sm">
@@ -289,7 +285,10 @@ export function OutreachPanel({
                     variant="quiet"
                     size="sm"
                     onClick={() =>
-                      markSentMutation.mutate({ offerId, messageId: message.id })
+                      markSentMutation.mutate({
+                        offerId,
+                        messageId: message.id,
+                      })
                     }
                   >
                     {markedThisMessage ? 'Marked as sent' : 'Mark as sent'}

@@ -3,7 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import { updateDocument } from '@/shared/api/document';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
@@ -31,7 +31,7 @@ export function DocumentEditor({
       router.refresh();
       onSaved?.(cvDocument.content);
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toastError(error.message),
   });
 
   return (

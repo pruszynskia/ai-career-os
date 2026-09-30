@@ -33,10 +33,9 @@ function ThemedToaster() {
       theme={resolvedTheme as 'light' | 'dark' | undefined}
       icons={TOAST_ICONS}
       toastOptions={{
-        // Spec asks for error toasts at 6s vs. the 4s default; sonner only
-        // exposes a single duration per Toaster/toastOptions, not per type,
-        // so that split would mean passing { duration: 6000 } at each of
-        // the ~30 toast.error() call sites - out of this restyle's scope.
+        // Default for toast.success()/toast.info(). Error toasts get 6s via
+        // toastError() (src/shared/ui/toast.ts, MISC-8) - sonner only
+        // exposes duration per call, not per type.
         duration: 4000,
         classNames: {
           toast:

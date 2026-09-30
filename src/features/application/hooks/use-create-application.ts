@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import { createApplication } from '@/features/application/api/application.api';
 
@@ -20,7 +20,7 @@ export function useCreateApplication(options?: { silent?: boolean }) {
     // tracked from another tab or before Back) - refresh so the UI shows the
     // real state instead of re-offering "Track application".
     onError: (error) => {
-      toast.error(error.message);
+      toastError(error.message);
       router.refresh();
     },
   });

@@ -1,3 +1,4 @@
+import { requestJson } from '@/shared/api/request';
 import type { PostStatus } from '@/entities/post/types';
 import type {
   GenerateCampaignResponse,
@@ -7,43 +8,31 @@ import type {
   UpdatePostResponse,
 } from '@/features/linkedin-posts/types';
 
-export async function generatePost(
-  topic: string,
-): Promise<GeneratePostResponse> {
-  const response = await fetch('/api/posts/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ topic }),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to generate the post.');
-  }
-
-  return response.json();
+export function generatePost(topic: string): Promise<GeneratePostResponse> {
+  return requestJson(
+    '/api/posts/generate',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic }),
+    },
+    'Failed to generate the post.',
+  );
 }
 
-async function patchSchedule<T>(
+function patchSchedule<T>(
   body: Record<string, unknown>,
   fallbackMessage: string,
 ): Promise<T> {
-  const response = await fetch('/api/posts/schedule', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const responseBody = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(responseBody?.message ?? fallbackMessage);
-  }
-
-  return response.json();
+  return requestJson(
+    '/api/posts/schedule',
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    fallbackMessage,
+  );
 }
 
 export function schedulePost(
@@ -63,67 +52,49 @@ export function markPostSent(id: string): Promise<SchedulePostResponse> {
   );
 }
 
-export async function updatePost(
+export function updatePost(
   id: string,
   values: { content?: string; status?: PostStatus },
 ): Promise<UpdatePostResponse> {
-  const response = await fetch(`/api/posts/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(values),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to update the post.');
-  }
-
-  return response.json();
+  return requestJson(
+    `/api/posts/${id}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    },
+    'Failed to update the post.',
+  );
 }
 
 export async function deletePost(id: string): Promise<void> {
-  const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to delete the post.');
-  }
+  await requestJson(
+    `/api/posts/${id}`,
+    { method: 'DELETE' },
+    'Failed to delete the post.',
+  );
 }
 
-export async function planPosts(): Promise<PlanPostsResponse> {
-  const response = await fetch('/api/posts/plan', { method: 'POST' });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to plan the next posts.');
-  }
-
-  return response.json();
+export function planPosts(): Promise<PlanPostsResponse> {
+  return requestJson(
+    '/api/posts/plan',
+    { method: 'POST' },
+    'Failed to plan the next posts.',
+  );
 }
 
-export async function generateCampaign(
+export function generateCampaign(
   theme: string,
   postCount: number,
   cadenceDays: number,
 ): Promise<GenerateCampaignResponse> {
-  const response = await fetch('/api/posts/campaigns', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ theme, postCount, cadenceDays }),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to generate the campaign.');
-  }
-
-  return response.json();
+  return requestJson(
+    '/api/posts/campaigns',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme, postCount, cadenceDays }),
+    },
+    'Failed to generate the campaign.',
+  );
 }

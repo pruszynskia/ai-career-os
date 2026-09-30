@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import { schedulePost } from '@/features/linkedin-posts/api/linkedin-posts.api';
 
@@ -14,6 +14,6 @@ export function useSchedulePost() {
       toast.success('Post scheduled');
       router.refresh();
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toastError(error.message),
   });
 }

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import { markPostSent } from '@/features/linkedin-posts/api/linkedin-posts.api';
 
@@ -13,6 +13,6 @@ export function useMarkPostSent() {
       toast.success('Post marked as sent');
       router.refresh();
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toastError(error.message),
   });
 }

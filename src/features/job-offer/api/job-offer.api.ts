@@ -1,3 +1,4 @@
+import { EntitlementRequiredError, requestJson } from '@/shared/api/request';
 import type {
   AddOfferResponse,
   CoverLetterResponse,
@@ -21,107 +22,69 @@ export class OutreachBlockedError extends Error {
   }
 }
 
-// Thrown on the 402 a Pro-gated route returns (TASK-088) - shape mirrors
-// EntitlementError's JSON body (src/shared/billing/errors.ts), so the
-// upgrade prompt always has somewhere to link.
-export class EntitlementRequiredError extends Error {
-  constructor(
-    message: string,
-    public readonly upgradePath: string,
-  ) {
-    super(message);
-    this.name = 'EntitlementRequiredError';
-  }
-}
-
-export async function addOffer(input: {
+export function addOffer(input: {
   url?: string;
   rawText?: string;
 }): Promise<AddOfferResponse> {
-  const response = await fetch('/api/offers', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to add the offer.');
-  }
-
-  return response.json();
+  return requestJson(
+    '/api/offers',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+    'Failed to add the offer.',
+  );
 }
 
-export async function toggleFavorite(
+export function toggleFavorite(
   id: string,
   isFavorite: boolean,
 ): Promise<ToggleFavoriteResponse> {
-  const response = await fetch(`/api/offers/${id}/favorite`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ isFavorite }),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to update the offer.');
-  }
-
-  return response.json();
+  return requestJson(
+    `/api/offers/${id}/favorite`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isFavorite }),
+    },
+    'Failed to update the offer.',
+  );
 }
 
-export async function updateOffer(
+export function updateOffer(
   id: string,
   input: Partial<{ company: string; title: string; description: string }>,
 ): Promise<UpdateOfferResponse> {
-  const response = await fetch(`/api/offers/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to update the offer.');
-  }
-
-  return response.json();
+  return requestJson(
+    `/api/offers/${id}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    },
+    'Failed to update the offer.',
+  );
 }
 
 export async function deleteOffer(id: string): Promise<void> {
-  const response = await fetch(`/api/offers/${id}`, { method: 'DELETE' });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to delete the offer.');
-  }
+  await requestJson(
+    `/api/offers/${id}`,
+    { method: 'DELETE' },
+    'Failed to delete the offer.',
+  );
 }
 
-async function postOfferAction<T>(
+function postOfferAction<T>(
   id: string,
   action: string,
   fallbackMessage: string,
 ): Promise<T> {
-  const response = await fetch(`/api/offers/${id}/${action}`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? fallbackMessage);
-  }
-
-  return response.json();
+  return requestJson(
+    `/api/offers/${id}/${action}`,
+    { method: 'POST' },
+    fallbackMessage,
+  );
 }
 
 export function matchOffer(id: string): Promise<MatchOfferResponse> {
@@ -143,6 +106,8 @@ export async function generateOutreach(
       contactName: contact.name,
       contactUrl: contact.profileUrl || undefined,
     }),
+  }).catch(() => {
+    throw new Error('Network error. Check your connection and try again.');
   });
 
   const responseBody = (await response.json().catch(() => null)) as {
@@ -184,30 +149,15 @@ export async function generateOutreach(
 }
 
 export async function draftFollowUp(id: string): Promise<FollowUpResponse> {
-  const response = await fetch(`/api/offers/${id}/outreach/follow-up`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const errorBody = (await response.json().catch(() => null)) as {
-      message?: string;
-      upgradePath?: string;
-    } | null;
-    if (response.status === 402) {
-      throw new EntitlementRequiredError(
-        errorBody?.message ?? 'This feature requires the Pro plan.',
-        errorBody?.upgradePath ?? '/pricing',
-      );
-    }
-    throw new Error(errorBody?.message ?? 'Failed to draft a follow-up.');
-  }
-
-  // Wire shape only - see generateOutreach's identical comment above.
-  const body = (await response.json()) as {
+  const body = await requestJson<{
     message: Omit<OutreachResponse['messages'][number], 'createdAt'> & {
       createdAt: string;
     };
-  };
+  }>(
+    `/api/offers/${id}/outreach/follow-up`,
+    { method: 'POST' },
+    'Failed to draft a follow-up.',
+  );
 
   return {
     message: { ...body.message, createdAt: new Date(body.message.createdAt) },
@@ -218,18 +168,15 @@ export async function markOutreachSent(
   offerId: string,
   messageId: string,
 ): Promise<void> {
-  const response = await fetch(`/api/offers/${offerId}/outreach/mark-sent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messageId }),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? 'Failed to mark the message as sent.');
-  }
+  await requestJson(
+    `/api/offers/${offerId}/outreach/mark-sent`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId }),
+    },
+    'Failed to mark the message as sent.',
+  );
 }
 
 export function generateCoverLetter(id: string): Promise<CoverLetterResponse> {

@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
 
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import {
   OutreachBlockedError,
@@ -30,7 +30,7 @@ export function useOutreach() {
       // The no-contact path is an expected state shown inline (posting URL
       // + reason), not a failure worth a toast.
       if (error instanceof OutreachBlockedError) return;
-      toast.error(error.message);
+      toastError(error.message);
     },
   });
 }

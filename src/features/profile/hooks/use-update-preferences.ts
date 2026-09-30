@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import type { JobPreferences } from '@/entities/profile/types';
 import { updateProfilePreferences } from '@/features/profile/api/profile.api';
@@ -15,6 +15,6 @@ export function useUpdatePreferences() {
       toast.success('Preferences saved');
       router.refresh();
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toastError(error.message),
   });
 }
