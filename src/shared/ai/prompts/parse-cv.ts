@@ -1,3 +1,7 @@
+import {
+  untrusted,
+  untrustedContentNotice,
+} from '@/shared/ai/prompts/untrusted';
 export const parseCvSystemPrompt = `You turn raw CV text into a structured profile. Extract a concise
 professional summary, a flat list of skills, and the work experience history
 (company, title, start date, end date or null if current, and a short
@@ -20,8 +24,8 @@ claim text itself, a sourceRef identifying where it came from (e.g. "skills[2]",
 seniority label (e.g. "Senior", "Lead"), or a leadership/ownership scope (e.g.
 "led the team", "owned the migration"); mark everything else "low". Set metric
 to { value, unit } when the claim states a concrete number (e.g. "reduced
-latency by 40%" -> { value: 40, unit: "%" }), otherwise null.`;
+latency by 40%" -> { value: 40, unit: "%" }), otherwise null.\n\n${untrustedContentNotice}`;
 
 export function buildParseCvUserMessage(cvText: string): string {
-  return `Here is the CV text:\n\n${cvText}`;
+  return `Here is the CV text:\n\n${untrusted('cv', cvText)}`;
 }

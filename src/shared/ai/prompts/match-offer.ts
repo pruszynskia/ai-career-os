@@ -1,4 +1,8 @@
 import type { FitCriterion } from '@/entities/job-offer/types';
+import {
+  untrusted,
+  untrustedContentNotice,
+} from '@/shared/ai/prompts/untrusted';
 
 // Four of the nine fit criteria - coreStack, industry, workMode and salary -
 // are computed mechanically in TypeScript (see mechanical-subscores.ts) and
@@ -41,7 +45,7 @@ Also return:
   candidate's structured experience list below but are not present in their
   structured skills list - things they have demonstrably done but never
   labelled. Judge this against the skills list and experience list given
-  below, not against the free-form CV text.`;
+  below, not against the free-form CV text.\n\n${untrustedContentNotice}`;
 
 export function buildMatchOfferUserMessage(
   profileText: string,
@@ -60,11 +64,11 @@ export function buildMatchOfferUserMessage(
   const factLine = (label: string, criterion: FitCriterion) =>
     `- ${label}: ${criterion.score === null ? 'unknown' : criterion.score} (${criterion.reasoning})`;
 
-  return `Candidate profile:\n\n${profileText}\n\nCandidate skills list (explicit skills only):\n${JSON.stringify(
+  return `Candidate profile:\n\n${untrusted('cv', profileText)}\n\nCandidate skills list (explicit skills only):\n${JSON.stringify(
     profileEvidence.skills,
   )}\n\nCandidate structured experience (evidence base for absentButTrue):\n${JSON.stringify(
     profileEvidence.experience,
-  )}\n\nJob offer:\n\n${offerText}\n\nAlready-computed facts, do not recompute:\n${factLine(
+  )}\n\nJob offer:\n\n${untrusted('offer', offerText)}\n\nAlready-computed facts, do not recompute:\n${factLine(
     'coreStack',
     mechanicalFacts.coreStack,
   )}\n${factLine('industry', mechanicalFacts.industry)}\n${factLine(

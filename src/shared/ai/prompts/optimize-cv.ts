@@ -1,3 +1,7 @@
+import {
+  untrusted,
+  untrustedContentNotice,
+} from '@/shared/ai/prompts/untrusted';
 export const optimizeCvSystemPrompt = `You improve CV text for clarity, impact, and ATS-friendliness. Rewrite the
 CV to use strong action verbs, quantify achievements where the source
 supports it, and tighten wording, without inventing experience, employers, or
@@ -13,8 +17,8 @@ structured improvement with:
 - before: the exact original text you changed (quoted from the source CV)
 - after: the exact replacement text
 - rationale: why this helps — call out specifically whether it helps ATS
-  keyword/formatting filtering, a recruiter's manual review, or both`;
+  keyword/formatting filtering, a recruiter's manual review, or both\n\n${untrustedContentNotice}`;
 
 export function buildOptimizeCvUserMessage(cvText: string): string {
-  return `Here is the current CV text:\n\n${cvText}`;
+  return `Here is the current CV text:\n\n${untrusted('cv', cvText)}`;
 }

@@ -1,3 +1,7 @@
+import {
+  untrusted,
+  untrustedContentNotice,
+} from '@/shared/ai/prompts/untrusted';
 export const optimizeCoverLetterSystemPrompt = `You improve cover letter text for clarity, impact, and tone, without inventing
 experience, employers, or skills that aren't in the original text.
 
@@ -8,10 +12,10 @@ structured improvement with:
   with strong ones), "structure" (paragraph/flow fixes), or "other"
 - before: the exact original text you changed (quoted from the source letter)
 - after: the exact replacement text
-- rationale: why this helps a recruiter's manual review`;
+- rationale: why this helps a recruiter's manual review\n\n${untrustedContentNotice}`;
 
 export function buildOptimizeCoverLetterUserMessage(
   coverLetterText: string,
 ): string {
-  return `Here is the current cover letter text:\n\n${coverLetterText}`;
+  return `Here is the current cover letter text:\n\n${untrusted('cover_letter', coverLetterText)}`;
 }
