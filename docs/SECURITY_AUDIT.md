@@ -37,9 +37,8 @@ from this list.
 
 Fixed on `security`: #1 (next 16.3.8, audit clean), #2 (SSRF), #3 (option b, ADR-024), #4, #5, #6 (code + `NEXT_PUBLIC_SITE_URL` set on Vercel prod), #7, #8, #11, #12.
 
-Open, dashboard/config only (not code):
-- #6/#10 Supabase Auth: Site URL + redirect allow-list = `https://ai-career-os-mu.vercel.app`, leaked-password protection (advisor confirms OFF), min password length, secure password change.
-- #9 Upstash: `UPSTASH_REDIS_REST_URL` / `_TOKEN` not set on Vercel prod, so rate limits fail open.
-- Redeploy prod after merge so the `NEXT_PUBLIC_SITE_URL` build-time value is picked up.
+Config applied 2026-10-01:
+- #6/#10 Supabase Auth (Management API): `site_url` = `https://ai-career-os-mu.vercel.app` (was an SSO-protected Vercel alias), prod + preview `/auth/callback` added to the redirect allow-list, `password_min_length` 6 → 8, secure password change on.
+- #9 Upstash for Redis (`upstash-kv-pink-lens`) connected to Production + Preview; app reads its `KV_REST_API_*` vars. Live once `security` is merged and deployed.
 
-Accepted: Free owner can read own `fit` / `tailoring_report` via PostgREST (ADR-024); DOCX zip-bomb inflation inside mammoth (`ponytail:` in extract-cv-text.ts).
+Accepted: leaked-password protection (HIBP) — Supabase Pro-only, project is on Free; Free owner can read own `fit` / `tailoring_report` via PostgREST (ADR-024); DOCX zip-bomb inflation inside mammoth (`ponytail:` in extract-cv-text.ts).
