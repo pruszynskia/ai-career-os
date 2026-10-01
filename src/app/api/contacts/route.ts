@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ContactExistsError, contactService } from '@/entities/contact/service';
 import { classifyTitle } from '@/features/contact/services/classify-title';
 import { getOwnerId } from '@/shared/auth/session';
+import { httpUrlSchema } from '@/shared/utils/http-url';
 
 // The manual add path (TASK-084 deliverable: the feature works without an
 // import). Classification runs the same deterministic matcher as the CSV
@@ -12,7 +13,7 @@ const addContactSchema = z.object({
   name: z.string().min(1).max(200),
   company: z.string().min(1).max(200),
   title: z.string().max(200).default(''),
-  profileUrl: z.string().url().max(2048).optional(),
+  profileUrl: httpUrlSchema.optional(),
 });
 
 export async function POST(request: Request) {

@@ -4,12 +4,13 @@ import { z } from 'zod';
 import { addOffer } from '@/features/job-offer/services/add-offer.service';
 import { OfferFetchError } from '@/features/job-offer/services/extract-offer-text';
 import { toAiErrorResponse } from '@/shared/ai/errors';
+import { httpUrlSchema } from '@/shared/utils/http-url';
 
 // PIPE-12: without a cap, a huge paste blows the AI context window and
 // 500s after the metered quota is already spent.
 const addOfferSchema = z
   .object({
-    url: z.string().url().max(2048).optional(),
+    url: httpUrlSchema.optional(),
     rawText: z.string().min(1).max(50_000).optional(),
   })
   .refine((value) => Boolean(value.url) !== Boolean(value.rawText), {
