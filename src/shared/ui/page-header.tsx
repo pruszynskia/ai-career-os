@@ -17,9 +17,7 @@ function PageHeader({ eyebrow, title, subtitle, action }: PageHeaderProps) {
   return (
     <Flex align="center" justify="between" data-slot="page-header">
       <Box>
-        {eyebrow && (
-          <SectionLabel className="block">{eyebrow}</SectionLabel>
-        )}
+        {eyebrow && <SectionLabel className="block">{eyebrow}</SectionLabel>}
         <Heading level={1}>{title}</Heading>
         {subtitle && (
           <Text size="sm" color="muted">

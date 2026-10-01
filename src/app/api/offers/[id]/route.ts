@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { jobOfferSchema } from '@/entities/job-offer/types';
 import { deleteOffer } from '@/features/job-offer/services/delete-offer.service';
+import { isUuid } from '@/shared/utils/uuid';
 import {
   OfferNotFoundError,
   updateOffer,
@@ -37,6 +38,9 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const jobOffer = await updateOffer(id, parsedInput.data);
@@ -59,6 +63,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     await deleteOffer(id);

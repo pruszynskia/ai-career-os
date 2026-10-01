@@ -80,9 +80,9 @@ describe('isPreviousVersion', () => {
       'TAILORED',
       'OPTIMIZED_COVER_LETTER',
     ] as const) {
-      expect(
-        isPreviousVersion(document({ kind, isMaster: false })),
-      ).toBe(false);
+      expect(isPreviousVersion(document({ kind, isMaster: false }))).toBe(
+        false,
+      );
     }
   });
 });

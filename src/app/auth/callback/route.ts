@@ -12,10 +12,14 @@ import { createClient } from '@/shared/db/client';
 export function safeNextPath(raw: string | null): string {
   if (!raw?.startsWith('/')) return '/dashboard';
   const base = 'http://n';
-  const url = new URL(raw, base);
-  return url.origin === base
-    ? url.pathname + url.search + url.hash
-    : '/dashboard';
+  try {
+    const url = new URL(raw, base);
+    return url.origin === base
+      ? url.pathname + url.search + url.hash
+      : '/dashboard';
+  } catch {
+    return '/dashboard';
+  }
 }
 
 // Completes email confirmation and password-reset links. Two shapes:

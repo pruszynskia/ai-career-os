@@ -99,7 +99,8 @@ function PopoverMenuItem({
   warningDot?: boolean;
   action?: React.ReactNode;
   onClick?: (
-    event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+    event:
+      React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
   ) => void;
 }) {
   // A plain <div> (not <button>) because `action` can render its own

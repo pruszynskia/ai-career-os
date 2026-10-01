@@ -28,4 +28,8 @@ describe('safeNextPath', () => {
   it('falls back to /dashboard for an absolute URL', () => {
     expect(safeNextPath('https://evil.com')).toBe('/dashboard');
   });
+
+  it('falls back to /dashboard for an unparseable path', () => {
+    expect(safeNextPath('//[')).toBe('/dashboard');
+  });
 });

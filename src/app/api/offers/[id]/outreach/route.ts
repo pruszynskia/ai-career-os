@@ -16,6 +16,7 @@ import { OutreachValidationError } from '@/shared/ai/outreach-validator';
 import { getOwnerId } from '@/shared/auth/session';
 import { requirePlan } from '@/shared/billing/entitlements';
 import { httpUrlSchema } from '@/shared/utils/http-url';
+import { isUuid } from '@/shared/utils/uuid';
 
 // Longer than the 90s SDK timeout (AI-7) so a slow provider's own timeout
 // error reaches the fallback logic instead of Vercel killing the function
@@ -32,6 +33,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
   const body = await request.json().catch(() => ({}));
   const parsedInput = outreachRequestSchema.safeParse(body);
 

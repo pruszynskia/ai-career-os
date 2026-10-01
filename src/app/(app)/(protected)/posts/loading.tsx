@@ -10,11 +10,7 @@ export default function PostsLoading() {
         <VStack gap={4}>
           <div className="flex gap-6 border-b border-border pb-0">
             {['w-10', 'w-14', 'w-20', 'w-14'].map((width, index) => (
-              <Skeleton
-                key={index}
-                variant="line"
-                className={`h-6 ${width}`}
-              />
+              <Skeleton key={index} variant="line" className={`h-6 ${width}`} />
             ))}
           </div>
           <Skeleton className="h-32" />

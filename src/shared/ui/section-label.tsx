@@ -9,10 +9,7 @@ import { cn } from '@/shared/ui/utils';
  * (a caption, not a form label) are different enough to warrant its own
  * small component.
  */
-function SectionLabel({
-  className,
-  ...props
-}: React.ComponentProps<'span'>) {
+function SectionLabel({ className, ...props }: React.ComponentProps<'span'>) {
   return (
     <span
       data-slot="section-label"

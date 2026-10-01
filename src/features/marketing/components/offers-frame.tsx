@@ -13,9 +13,27 @@ import { Meter } from '@/shared/ui/primitives';
 // sample data - never the live widget, which fetches and mutates via
 // react-query and would pull data-fetching into a static marketing page.
 const SAMPLE_OFFERS = [
-  { company: 'Brightwave', title: 'Senior Frontend Engineer', tier: 1 as const, match: 88, callback: 70 },
-  { company: 'Northwind Analytics', title: 'Staff Frontend Engineer', tier: 2 as const, match: 76, callback: 54 },
-  { company: 'Solstice Health', title: 'Frontend Engineer', tier: 3 as const, match: 61, callback: 38 },
+  {
+    company: 'Brightwave',
+    title: 'Senior Frontend Engineer',
+    tier: 1 as const,
+    match: 88,
+    callback: 70,
+  },
+  {
+    company: 'Northwind Analytics',
+    title: 'Staff Frontend Engineer',
+    tier: 2 as const,
+    match: 76,
+    callback: 54,
+  },
+  {
+    company: 'Solstice Health',
+    title: 'Frontend Engineer',
+    tier: 3 as const,
+    match: 61,
+    callback: 38,
+  },
 ];
 
 const COLUMNS = 'minmax(0,1fr) 110px 90px';

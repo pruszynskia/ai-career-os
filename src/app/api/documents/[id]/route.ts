@@ -6,6 +6,7 @@ import {
   cvDocumentService,
 } from '@/entities/cv-document/service';
 import { getOwnerId } from '@/shared/auth/session';
+import { isUuid } from '@/shared/utils/uuid';
 
 const updateDocumentSchema = z.object({
   content: z.string().max(50_000),
@@ -26,6 +27,9 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const ownerId = await getOwnerId();

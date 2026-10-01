@@ -7,6 +7,13 @@ import { authErrorKey, MIN_PASSWORD_LENGTH } from '@/shared/auth/auth-error';
 import { createClient } from '@/shared/db/client';
 import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 
+// A missing or non-text field must read as empty (and fail validation), not
+// throw a 500.
+function field(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  return typeof value === 'string' ? value : '';
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -33,7 +40,7 @@ async function siteOrigin() {
 
 export async function signUp(formData: FormData) {
   await guardAuthRateLimit('/sign-up');
-  const password = formData.get('password') as string;
+  const password = field(formData, 'password');
   // Supabase's own minimum is lower (config.toml), so the form's minLength
   // is only enforced if we check it here too.
   if (password.length < MIN_PASSWORD_LENGTH) {
@@ -42,7 +49,7 @@ export async function signUp(formData: FormData) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
-    email: formData.get('email') as string,
+    email: field(formData, 'email'),
     password,
     options: { emailRedirectTo: `${await siteOrigin()}/auth/callback` },
   });
@@ -80,7 +87,7 @@ export async function requestPasswordReset(formData: FormData) {
   await guardAuthRateLimit('/forgot-password');
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(
-    formData.get('email') as string,
+    field(formData, 'email'),
     { redirectTo: `${await siteOrigin()}/auth/callback` },
   );
 
@@ -102,8 +109,8 @@ export async function requestPasswordReset(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
-  const password = formData.get('password') as string;
-  const confirmPassword = formData.get('confirmPassword') as string;
+  const password = field(formData, 'password');
+  const confirmPassword = field(formData, 'confirmPassword');
 
   if (password !== confirmPassword) {
     redirect('/reset-password?error=mismatch');
