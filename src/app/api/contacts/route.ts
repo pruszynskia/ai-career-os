@@ -9,10 +9,10 @@ import { getOwnerId } from '@/shared/auth/session';
 // import). Classification runs the same deterministic matcher as the CSV
 // import - one code path regardless of how the contact was added.
 const addContactSchema = z.object({
-  name: z.string().min(1),
-  company: z.string().min(1),
-  title: z.string().default(''),
-  profileUrl: z.string().url().optional(),
+  name: z.string().min(1).max(200),
+  company: z.string().min(1).max(200),
+  title: z.string().max(200).default(''),
+  profileUrl: z.string().url().max(2048).optional(),
 });
 
 export async function POST(request: Request) {

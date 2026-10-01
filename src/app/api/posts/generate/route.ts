@@ -17,7 +17,7 @@ import { toAiErrorResponse } from '@/shared/ai/errors';
 export const maxDuration = 120;
 
 const generatePostSchema = z.object({
-  topic: z.string().min(1),
+  topic: z.string().min(1).max(2_000),
 });
 
 export async function POST(request: Request) {

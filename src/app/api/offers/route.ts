@@ -9,7 +9,7 @@ import { toAiErrorResponse } from '@/shared/ai/errors';
 // 500s after the metered quota is already spent.
 const addOfferSchema = z
   .object({
-    url: z.string().url().optional(),
+    url: z.string().url().max(2048).optional(),
     rawText: z.string().min(1).max(50_000).optional(),
   })
   .refine((value) => Boolean(value.url) !== Boolean(value.rawText), {

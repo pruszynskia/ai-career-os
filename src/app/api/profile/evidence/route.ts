@@ -9,13 +9,13 @@ import {
 } from '@/features/profile/services/update-evidence.service';
 
 const claimUpdateSchema = z.object({
-  claimId: z.string(),
+  claimId: z.string().max(200),
   state: claimStateSchema,
 });
 
 const rulesUpdateSchema = z.object({
-  neverInclude: z.array(z.string()),
-  alwaysIncludeWhenRelevant: z.array(z.string()),
+  neverInclude: z.array(z.string().max(500)).max(100),
+  alwaysIncludeWhenRelevant: z.array(z.string().max(500)).max(100),
 });
 
 const updateEvidenceSchema = z.union([claimUpdateSchema, rulesUpdateSchema]);

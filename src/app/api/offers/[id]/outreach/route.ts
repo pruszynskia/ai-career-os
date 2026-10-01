@@ -22,8 +22,8 @@ import { requirePlan } from '@/shared/billing/entitlements';
 export const maxDuration = 120;
 
 const outreachRequestSchema = z.object({
-  contactName: z.string().optional(),
-  contactUrl: z.string().url().optional(),
+  contactName: z.string().max(200).optional(),
+  contactUrl: z.string().url().max(2048).optional(),
 });
 
 export async function POST(

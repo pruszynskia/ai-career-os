@@ -11,7 +11,7 @@ import { deletePost } from '@/features/linkedin-posts/services/delete-post.servi
 
 const patchBodySchema = z
   .object({
-    content: z.string().min(1).optional(),
+    content: z.string().min(1).max(50_000).optional(),
     status: postStatusSchema.optional(),
   })
   .refine(

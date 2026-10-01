@@ -8,7 +8,7 @@ import {
 import { getOwnerId } from '@/shared/auth/session';
 
 const updateDocumentSchema = z.object({
-  content: z.string(),
+  content: z.string().max(50_000),
 });
 
 export async function PATCH(
