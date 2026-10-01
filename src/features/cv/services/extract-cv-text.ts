@@ -1,5 +1,6 @@
 import 'server-only';
 
+import JSZip from 'jszip';
 import mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
 import { CanvasFactory } from 'pdf-parse/worker';
@@ -32,6 +33,9 @@ const MIN_READABLE_CHARS = 200;
 // path - the extracted text goes straight into an AI prompt.
 const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 const MAX_TEXT_CHARS = 50_000;
+// A real CV DOCX inflates to well under this; the 4 MB cap above bounds only
+// the compressed size, so a zip bomb (5 MB -> GBs) is caught here instead.
+const MAX_DOCX_UNCOMPRESSED_BYTES = 50 * 1024 * 1024;
 
 // Extension alone is user-controlled; a DOCX is a zip ("PK\x03\x04").
 const MAGIC_BYTES = { pdf: '%PDF-', docx: 'PK\x03\x04' } as const;
@@ -39,6 +43,31 @@ const MAGIC_BYTES = { pdf: '%PDF-', docx: 'PK\x03\x04' } as const;
 export function isSupportedCvFile(filename: string): boolean {
   const extension = filename.toLowerCase().split('.').pop();
   return extension === 'pdf' || extension === 'docx';
+}
+
+// loadAsync reads only the central directory (no inflation), so this is cheap.
+// ponytail: relies on JSZip's internal _data.uncompressedSize (no public
+// getter in 3.x); JSZip itself errors if the real size contradicts the header.
+async function assertDocxNotZipBomb(buffer: Buffer): Promise<void> {
+  let zip: JSZip;
+  try {
+    zip = await JSZip.loadAsync(buffer);
+  } catch {
+    throw new UnsupportedFileTypeError(
+      'The file content does not match its type. Upload a real PDF or DOCX file.',
+    );
+  }
+  let total = 0;
+  for (const entry of Object.values(zip.files)) {
+    total +=
+      (entry as unknown as { _data?: { uncompressedSize?: number } })._data
+        ?.uncompressedSize ?? 0;
+  }
+  if (total > MAX_DOCX_UNCOMPRESSED_BYTES) {
+    throw new UnsupportedFileTypeError(
+      'This DOCX expands to an unreasonable size. Upload a normal CV file.',
+    );
+  }
 }
 
 export async function extractCvText(
@@ -69,6 +98,7 @@ export async function extractCvText(
       await parser.destroy();
     }
   } else if (extension === 'docx') {
+    await assertDocxNotZipBomb(buffer);
     const result = await mammoth.extractRawText({ buffer });
     text = result.value;
   } else {
@@ -78,8 +108,5 @@ export async function extractCvText(
   if (text.trim().length < MIN_READABLE_CHARS) {
     throw new EmptyDocumentError();
   }
-  // ponytail: a DOCX zip bomb still inflates inside mammoth before this cap
-  // applies (the 4 MB limit bounds the compressed size only); add a zip
-  // central-directory uncompressed-size check if that ever matters.
   return text.slice(0, MAX_TEXT_CHARS);
 }
