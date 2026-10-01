@@ -8,6 +8,7 @@ import {
   NoEvidenceBaseError,
 } from '@/shared/ai/claim-validator';
 import { toAiErrorResponse } from '@/shared/ai/errors';
+import { isUuid } from '@/shared/utils/uuid';
 
 // Longer than the 90s SDK timeout (AI-7) so a slow provider's own timeout
 // error reaches the fallback logic instead of Vercel killing the function
@@ -19,6 +20,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const cvDocument = await generateCoverLetter(id);

@@ -49,7 +49,9 @@ export default async function PricingPage({
       )}
 
       <VStack gap={3} align="start">
-        <Heading level={1}>{isSignedIn ? 'Choose your plan' : 'Pricing'}</Heading>
+        <Heading level={1}>
+          {isSignedIn ? 'Choose your plan' : 'Pricing'}
+        </Heading>
         <Text size="lg" color="muted">
           Every plan includes the full application tracker, your match score and
           your monthly AI-action allowance. Pro adds the {proCapabilityList}{' '}

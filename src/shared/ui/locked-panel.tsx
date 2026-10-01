@@ -18,7 +18,12 @@ interface LockedPanelProps {
   className?: string;
 }
 
-function LockedPanel({ message, action, children, className }: LockedPanelProps) {
+function LockedPanel({
+  message,
+  action,
+  children,
+  className,
+}: LockedPanelProps) {
   return (
     <div
       data-slot="locked-panel"

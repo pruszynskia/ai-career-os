@@ -13,12 +13,13 @@ export const RECOMMENDED_ACTION_LABEL: Record<RecommendedAction, string> = {
 
 // tokens.json's tier order (applyImmediately/strongOpportunity/consider/
 // ignore -> tier-1..4) mirrors RecommendedAction 1:1.
-export const RECOMMENDED_ACTION_TIER: Record<RecommendedAction, 1 | 2 | 3 | 4> = {
-  APPLY_IMMEDIATELY: 1,
-  STRONG_OPPORTUNITY: 2,
-  CONSIDER: 3,
-  IGNORE: 4,
-};
+export const RECOMMENDED_ACTION_TIER: Record<RecommendedAction, 1 | 2 | 3 | 4> =
+  {
+    APPLY_IMMEDIATELY: 1,
+    STRONG_OPPORTUNITY: 2,
+    CONSIDER: 3,
+    IGNORE: 4,
+  };
 
 // TIER_LABEL by number (rather than by RecommendedAction) - one copy for
 // both offers-summary.tsx's mix legend and unified-offer-list.tsx's group

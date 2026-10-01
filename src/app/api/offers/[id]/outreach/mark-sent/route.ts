@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { outreachMessageService } from '@/entities/outreach-message/service';
 import { getOwnerId } from '@/shared/auth/session';
 
-const bodySchema = z.object({ messageId: z.string().min(1) });
+const bodySchema = z.object({ messageId: z.uuid() });
 
 // Nested under this offer's outreach route for consistency, but mark-sent
 // only ever needs the message id + owner - the offer id in the path isn't

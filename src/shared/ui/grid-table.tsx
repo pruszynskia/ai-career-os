@@ -67,8 +67,7 @@ function GridTableRow({ className, selected, ...props }: GridTableRowProps) {
 // Numeric cells (score, count, date columns) are right-aligned tabular by
 // convention - apply this to the cell's own className rather than adding a
 // dedicated Cell component (Head/Row accept arbitrary children per column).
-const gridTableNumericCellClassName =
-  'text-right text-xs tabular-nums';
+const gridTableNumericCellClassName = 'text-right text-xs tabular-nums';
 
 interface GridTableGroupHeaderProps extends Omit<
   React.ComponentProps<'div'>,

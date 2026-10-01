@@ -46,7 +46,7 @@ export default async function OnboardingPage({
             </Heading>
             <Text size="lg" color="muted">
               {isDone
-                ? "Your account is ready."
+                ? 'Your account is ready.'
                 : 'A few quick steps to get your account ready.'}
             </Text>
           </div>

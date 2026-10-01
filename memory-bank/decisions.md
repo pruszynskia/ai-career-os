@@ -1175,3 +1175,44 @@ Consequences:
 - The guardrail checklist's radius grep changes from a flat "nothing above
   8px" rule to "12px only on `dialog.tsx`", so a future `rounded-xl` call
   site anywhere else remains a caught spec bug, not a silently allowed one.
+
+## ADR-024
+
+Date:
+
+2026-10-01
+
+Decision:
+
+Pro-only payloads — `job_offers.fit` (full fit report) and
+`cv_documents.tailoring_report` — keep being generated and persisted for
+every plan. They are gated at every server read path instead: the offer
+page (TASK-088) and `GET /api/account/export` replace them with `null` for
+Free owners. Direct PostgREST reads of the owner's own rows are an accepted
+residual risk (SECURITY_AUDIT.md #3).
+
+Reason:
+
+Not generating them for Free saves nothing: the fit assessment's posting
+keywords feed Free CV tailoring (`tailor-cv.service.ts`), so the AI call
+runs anyway, and the tailoring report is deterministic code over data that
+already exists. Keeping them means an upgrade reveals every existing report
+instantly and the Free UI can truthfully advertise "report ready" as an
+upsell.
+
+Alternatives Considered:
+
+- Don't generate/persist Pro-only fields for Free — rejected: breaks or
+  degrades Free tailoring's keyword source for zero AI-cost saving, and
+  every old offer is empty on upgrade.
+- Move the fields to a Pro-gated table/column privilege now — deferred: a
+  migration plus RLS that checks the plan, to stop a Free owner reading
+  their own data via devtools. Revisit if that leak is ever used at scale.
+
+Consequences:
+
+- Any new read path that returns `job_offers` or `cv_documents` to a Free
+  owner must null `fit` / `tailoringReport`, the way the offer page and the
+  export route do.
+- A Free owner with the anon key and their session cookie can still read
+  these fields over PostgREST.

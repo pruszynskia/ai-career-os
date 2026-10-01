@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { isUuid } from '@/shared/utils/uuid';
 
 import {
   ApplicationNotFoundError,
@@ -25,6 +26,9 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const application = await updateApplicationNotes(

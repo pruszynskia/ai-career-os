@@ -13,7 +13,11 @@ const createApplicationSchema = applicationSchema
   .pick({ jobOfferId: true, sentCvId: true, recruiterMessage: true })
   // Empty is allowed: tracking may run before a recruiter message is
   // generated (TASK-044). The column stays NOT NULL.
-  .extend({ recruiterMessage: z.string() });
+  .extend({
+    jobOfferId: z.uuid(),
+    sentCvId: z.uuid(),
+    recruiterMessage: z.string().max(10_000),
+  });
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

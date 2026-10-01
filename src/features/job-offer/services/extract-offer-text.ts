@@ -1,7 +1,9 @@
 import 'server-only';
 
-import dns from 'node:dns/promises';
-import net from 'node:net';
+import dns from 'node:dns';
+import http, { type IncomingMessage } from 'node:http';
+import https from 'node:https';
+import net, { type LookupFunction } from 'node:net';
 
 import { convert } from 'html-to-text';
 
@@ -22,122 +24,139 @@ export class OfferFetchError extends Error {
   }
 }
 
-// An IPv4-mapped IPv6 address (e.g. "::ffff:127.0.0.1") embeds a real IPv4
-// address that net.isIPv4 doesn't recognize as one, since the string itself
-// is IPv6 syntax (PIPE-11) - without unwrapping it here, a loopback/private
-// IPv4 address reached this way skipped the IPv4 range check entirely.
-function unwrapIpv4MappedAddress(ip: string): string | null {
-  const match = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
-  return match ? match[1] : null;
+// IANA special-purpose ranges that are not globally reachable. BlockList
+// applies the IPv4 rules to IPv4-mapped IPv6 addresses in any notation
+// ("::ffff:127.0.0.1" and "::ffff:7f00:1" alike), which is what PIPE-11's
+// regex unwrap only half covered.
+const blockedRanges = new net.BlockList();
+for (const [prefix, bits] of [
+  ['0.0.0.0', 8],
+  ['10.0.0.0', 8],
+  ['100.64.0.0', 10],
+  ['127.0.0.0', 8],
+  ['169.254.0.0', 16],
+  ['172.16.0.0', 12],
+  ['192.0.0.0', 24],
+  ['192.0.2.0', 24],
+  ['192.168.0.0', 16],
+  ['198.18.0.0', 15],
+  ['198.51.100.0', 24],
+  ['203.0.113.0', 24],
+  ['224.0.0.0', 4],
+  ['240.0.0.0', 4],
+] as const) {
+  blockedRanges.addSubnet(prefix, bits, 'ipv4');
+}
+for (const [prefix, bits] of [
+  ['::', 96], // unspecified, loopback, deprecated IPv4-compatible
+  ['64:ff9b::', 96], // NAT64
+  ['64:ff9b:1::', 48],
+  ['100::', 64],
+  ['2001::', 23], // Teredo and other IETF protocol assignments
+  ['2001:db8::', 32],
+  ['2002::', 16], // 6to4
+  ['fc00::', 7],
+  ['fe80::', 10],
+  ['ff00::', 8],
+] as const) {
+  blockedRanges.addSubnet(prefix, bits, 'ipv6');
 }
 
-// ponytail: covers the common private/loopback/link-local ranges (including
-// the 169.254.169.254 cloud metadata address); not an exhaustive IANA
-// special-registry check. Revisit if this ever fetches on behalf of
-// untrusted multi-tenant users (ADR-005).
-function isPrivateOrReservedIp(ip: string): boolean {
-  const mappedIpv4 = unwrapIpv4MappedAddress(ip);
-  if (mappedIpv4) return isPrivateOrReservedIp(mappedIpv4);
-
-  if (net.isIPv4(ip)) {
-    const [a, b] = ip.split('.').map(Number);
-    return (
-      a === 10 ||
-      a === 127 ||
-      a === 0 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127)
-    );
-  }
-
-  const normalized = ip.toLowerCase();
-  return (
-    normalized === '::1' ||
-    normalized === '::' ||
-    normalized.startsWith('fc') ||
-    normalized.startsWith('fd') ||
-    normalized.startsWith('fe80')
-  );
+export function isPrivateOrReservedIp(ip: string): boolean {
+  const family = net.isIP(ip);
+  if (family === 0) return true;
+  return blockedRanges.check(ip, family === 4 ? 'ipv4' : 'ipv6');
 }
 
-async function assertPublicHost(hostname: string): Promise<void> {
-  let addresses: string[];
-  try {
-    addresses = (await dns.lookup(hostname, { all: true })).map(
-      (entry) => entry.address,
-    );
-  } catch {
-    throw new OfferFetchError();
+// Runs inside the socket's own DNS resolution, so the address that passes the
+// check is the address that gets connected to - a separate pre-check followed
+// by fetch() resolved twice and was open to DNS rebinding.
+const publicOnlyLookup: LookupFunction = (hostname, options, callback) => {
+  dns.lookup(hostname, { ...options, all: true }, (error, addresses) => {
+    if (error) return callback(error, '', 0);
+    if (
+      addresses.length === 0 ||
+      addresses.some((entry) => isPrivateOrReservedIp(entry.address))
+    ) {
+      return callback(new OfferFetchError(), '', 0);
+    }
+    if (options.all) {
+      (callback as unknown as (e: null, a: dns.LookupAddress[]) => void)(
+        null,
+        addresses,
+      );
+      return;
+    }
+    callback(null, addresses[0].address, addresses[0].family);
+  });
+};
+
+function get(url: URL, signal: AbortSignal): Promise<IncomingMessage> {
+  // Node skips the lookup function for IP-literal hosts, so check those here.
+  const host = url.hostname.replace(/^\[|\]$/g, '');
+  if (net.isIP(host) && isPrivateOrReservedIp(host)) {
+    return Promise.reject(new OfferFetchError());
   }
 
-  if (addresses.length === 0 || addresses.some(isPrivateOrReservedIp)) {
-    throw new OfferFetchError();
-  }
+  const client = url.protocol === 'https:' ? https : http;
+  return new Promise((resolve, reject) => {
+    client
+      .get(url, { lookup: publicOnlyLookup, signal }, resolve)
+      .on('error', reject);
+  });
 }
 
-async function readWithSizeLimit(response: Response): Promise<string> {
-  const reader = response.body?.getReader();
-  if (!reader) return response.text();
-
-  const chunks: Uint8Array[] = [];
+async function readWithSizeLimit(response: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
   let total = 0;
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    total += value.byteLength;
+  for await (const chunk of response as AsyncIterable<Buffer>) {
+    total += chunk.byteLength;
     if (total > MAX_RESPONSE_BYTES) {
-      await reader.cancel();
+      response.destroy();
       throw new OfferFetchError();
     }
-    chunks.push(value);
+    chunks.push(chunk);
   }
 
   return Buffer.concat(chunks).toString('utf-8');
 }
 
-export async function fetchAndStripUrl(url: string): Promise<string> {
-  let currentUrl = url;
+async function fetchHtml(url: string): Promise<string> {
+  const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+  let currentUrl = new URL(url);
 
   for (let redirectCount = 0; ; redirectCount++) {
     if (redirectCount > MAX_REDIRECTS) throw new OfferFetchError();
-
-    let parsed: URL;
-    try {
-      parsed = new URL(currentUrl);
-    } catch {
+    if (currentUrl.protocol !== 'http:' && currentUrl.protocol !== 'https:') {
       throw new OfferFetchError();
     }
 
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      throw new OfferFetchError();
-    }
+    const response = await get(currentUrl, signal);
+    const status = response.statusCode ?? 0;
 
-    await assertPublicHost(parsed.hostname);
-
-    let response: Response;
-    try {
-      response = await fetch(currentUrl, {
-        redirect: 'manual',
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      });
-    } catch {
-      throw new OfferFetchError();
-    }
-
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('location');
+    if (status >= 300 && status < 400) {
+      response.resume();
+      const location = response.headers.location;
       if (!location) throw new OfferFetchError();
-      currentUrl = new URL(location, currentUrl).toString();
+      currentUrl = new URL(location, currentUrl);
       continue;
     }
 
-    if (!response.ok) throw new OfferFetchError();
+    if (status < 200 || status >= 300) {
+      response.resume();
+      throw new OfferFetchError();
+    }
 
-    const html = await readWithSizeLimit(response);
+    return readWithSizeLimit(response);
+  }
+}
+
+export async function fetchAndStripUrl(url: string): Promise<string> {
+  try {
+    const html = await fetchHtml(url);
     return convert(html, { wordwrap: false }).trim().slice(0, MAX_TEXT_CHARS);
+  } catch {
+    throw new OfferFetchError();
   }
 }

@@ -31,7 +31,7 @@ function ThemeToggle() {
   return (
     <SegmentedControl
       aria-label="Theme"
-      value={mounted ? theme ?? 'system' : 'system'}
+      value={mounted ? (theme ?? 'system') : 'system'}
       onValueChange={(value) => setTheme(value)}
     >
       {OPTIONS.map(({ value, label, icon: Icon }) => (

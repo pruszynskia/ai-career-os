@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { jobOfferSchema } from '@/entities/job-offer/types';
+import { isUuid } from '@/shared/utils/uuid';
 import {
   OfferNotFoundError,
   toggleFavorite,
@@ -23,6 +24,9 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const jobOffer = await toggleFavorite(id, parsedInput.data.isFavorite);

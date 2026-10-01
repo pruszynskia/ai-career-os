@@ -4,7 +4,8 @@ import { Redis } from '@upstash/redis';
 // Our own request-rate limiting for the surfaces that accept unlimited
 // attempts today: the auth pages and the AI endpoints. Storage is Upstash
 // Redis over its REST client. Configure with UPSTASH_REDIS_REST_URL /
-// UPSTASH_REDIS_REST_TOKEN; unset means "not enforced" (local dev, CI).
+// UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_URL / KV_REST_API_TOKEN pair the
+// Vercel Upstash integration creates); unset means "not enforced" (local dev, CI).
 //
 // Two call sites, because they need different enforcement points:
 //   - 'ai'   → route handlers, limited in src/proxy.ts, which answers 429.
@@ -81,8 +82,9 @@ function getRedis(): Redis | null {
   // Only a *successful* client is cached. Caching the miss would freeze the
   // unconfigured state for the life of the process and defeat the lazy read.
   if (redisInstance) return redisInstance;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
   if (!url || !token) {
     if (!warnedMissing) {
       warnedMissing = true;

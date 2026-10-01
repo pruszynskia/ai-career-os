@@ -1,3 +1,4 @@
+import { untrusted } from '@/shared/ai/prompts/untrusted';
 import { generationContractFragment } from '@/shared/ai/prompts/generation-contract';
 
 export const coverLetterSystemPrompt = `You write a professional cover letter tailored to a specific job offer,
@@ -11,5 +12,5 @@ export function buildCoverLetterUserMessage(
   evidenceText: string,
   offerText: string,
 ): string {
-  return `${evidenceText}\n\nJob offer to write the cover letter for:\n\n${offerText}`;
+  return `${evidenceText}\n\nJob offer to write the cover letter for:\n\n${untrusted('offer', offerText)}`;
 }

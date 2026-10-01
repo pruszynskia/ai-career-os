@@ -10,7 +10,7 @@ import {
 const scheduleBodySchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('schedule'),
-    id: z.string(),
+    id: z.uuid(),
     // POST-2: without this, a stale client (or a direct API call) can
     // schedule a post in the past, which then never gets a "due" nudge. The
     // client only sends a day (no time), converted to that day's local
@@ -25,7 +25,7 @@ const scheduleBodySchema = z.discriminatedUnion('action', [
   }),
   z.object({
     action: z.literal('mark-sent'),
-    id: z.string(),
+    id: z.uuid(),
   }),
 ]);
 

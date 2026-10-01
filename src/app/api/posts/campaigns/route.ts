@@ -19,7 +19,7 @@ import { getOwnerId } from '@/shared/auth/session';
 export const maxDuration = 120;
 
 const generateCampaignSchema = z.object({
-  theme: z.string().min(1),
+  theme: z.string().min(1).max(2_000),
   postCount: z.number().int().min(1).max(10),
   cadenceDays: z.number().int().min(1).max(30),
 });

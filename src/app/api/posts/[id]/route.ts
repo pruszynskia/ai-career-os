@@ -8,10 +8,11 @@ import {
   updatePost,
 } from '@/features/linkedin-posts/services/update-post.service';
 import { deletePost } from '@/features/linkedin-posts/services/delete-post.service';
+import { isUuid } from '@/shared/utils/uuid';
 
 const patchBodySchema = z
   .object({
-    content: z.string().min(1).optional(),
+    content: z.string().min(1).max(50_000).optional(),
     status: postStatusSchema.optional(),
   })
   .refine(
@@ -36,6 +37,9 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     const post = await updatePost(id, parsedInput.data);
@@ -61,6 +65,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ message: 'Not found.' }, { status: 404 });
+  }
 
   try {
     await deletePost(id);

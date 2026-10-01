@@ -1,3 +1,4 @@
+import { untrusted } from '@/shared/ai/prompts/untrusted';
 import { generationContractFragment } from '@/shared/ai/prompts/generation-contract';
 
 export const tailorCvSystemPrompt = `You tailor a candidate's CV to a specific job offer. Reorder, emphasize and
@@ -10,5 +11,5 @@ export function buildTailorCvUserMessage(
   evidenceText: string,
   offerText: string,
 ): string {
-  return `${evidenceText}\n\nJob offer to tailor the CV for:\n\n${offerText}`;
+  return `${evidenceText}\n\nJob offer to tailor the CV for:\n\n${untrusted('offer', offerText)}`;
 }

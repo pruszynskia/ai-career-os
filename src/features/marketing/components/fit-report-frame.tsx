@@ -16,9 +16,21 @@ import { Grid, Meter, Text } from '@/shared/ui/primitives';
 // onAddSkill handler that only makes sense wired to a signed-in owner's
 // data, not something a marketing page can fake cleanly as a prop.
 const SAMPLE_CRITERIA = [
-  { label: 'Technical match', score: 92, reasoning: 'React, TypeScript and Next.js match the stack directly.' },
-  { label: 'Seniority match', score: 85, reasoning: 'Scope and ownership line up with the posting.' },
-  { label: 'Core stack', score: 100, reasoning: 'Every required technology is already on file.' },
+  {
+    label: 'Technical match',
+    score: 92,
+    reasoning: 'React, TypeScript and Next.js match the stack directly.',
+  },
+  {
+    label: 'Seniority match',
+    score: 85,
+    reasoning: 'Scope and ownership line up with the posting.',
+  },
+  {
+    label: 'Core stack',
+    score: 100,
+    reasoning: 'Every required technology is already on file.',
+  },
 ];
 
 const COLUMNS = 'minmax(0,1fr) 90px minmax(0,1.3fr)';
@@ -44,12 +56,19 @@ export function FitReportFrame() {
             <span>Reasoning</span>
           </GridTableHead>
           {SAMPLE_CRITERIA.map((criterion) => (
-            <GridTableRow key={criterion.label} className="h-auto min-h-9 py-1.5">
+            <GridTableRow
+              key={criterion.label}
+              className="h-auto min-h-9 py-1.5"
+            >
               <Text weight="medium" size="sm">
                 {criterion.label}
               </Text>
               <div className="flex items-center gap-2">
-                <Meter variant="inline" value={criterion.score} className="w-10" />
+                <Meter
+                  variant="inline"
+                  value={criterion.score}
+                  className="w-10"
+                />
                 <span className={gridTableNumericCellClassName}>
                   {criterion.score}
                 </span>

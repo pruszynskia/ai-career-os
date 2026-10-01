@@ -1,3 +1,4 @@
+import { untrusted } from '@/shared/ai/prompts/untrusted';
 import { generationContractFragment } from '@/shared/ai/prompts/generation-contract';
 
 // Voice rules (TASK-083): short lines over paragraphs, the reason for
@@ -50,7 +51,7 @@ export function buildOutreachUserMessage(
     ? `Posting URL (paste inline, unformatted, where relevant): ${offerUrl}`
     : 'No posting URL is available - do not invent one.';
 
-  return `${evidenceText}\n\nRecipient's first name: ${contactName}\n\n${urlLine}\n\nJob offer:\n\n${offerText}`;
+  return `${evidenceText}\n\nRecipient's first name: ${contactName}\n\n${urlLine}\n\nJob offer:\n\n${untrusted('offer', offerText)}`;
 }
 
 // Follow-up channel (TASK-086): a nudge after 7+ days of silence, not a
@@ -90,5 +91,5 @@ export function buildFollowUpUserMessage(
     ? `Recipient's first name: ${contactName}`
     : "Recipient's first name: unknown - address generically, do not invent one";
 
-  return `${evidenceText}\n\n${nameLine}\n\nThe earlier message this follows up on:\n\n${originalMessage}\n\nKeep the follow-up well under ${maxChars} characters - shorter than the message above.\n\nJob offer:\n\n${offerText}`;
+  return `${evidenceText}\n\n${nameLine}\n\nThe earlier message this follows up on:\n\n${originalMessage}\n\nKeep the follow-up well under ${maxChars} characters - shorter than the message above.\n\nJob offer:\n\n${untrusted('offer', offerText)}`;
 }

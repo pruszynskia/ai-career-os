@@ -1,5 +1,6 @@
 import type { NewContact } from '@/entities/contact/service';
 import { classifyTitle } from '@/features/contact/services/classify-title';
+import { httpUrlSchema } from '@/shared/utils/http-url';
 
 export interface ParsedConnections {
   contacts: NewContact[];
@@ -108,7 +109,8 @@ export function parseConnectionsCsv(csvText: string): ParsedConnections {
     const name = `${firstName} ${lastName}`.trim();
     const company = companyIdx >= 0 ? (row[companyIdx] ?? '').trim() : '';
     const title = positionIdx >= 0 ? (row[positionIdx] ?? '').trim() : '';
-    const profileUrl = urlIdx >= 0 ? (row[urlIdx] ?? '').trim() || null : null;
+    const rawUrl = urlIdx >= 0 ? (row[urlIdx] ?? '').trim() : '';
+    const profileUrl = httpUrlSchema.safeParse(rawUrl).success ? rawUrl : null;
 
     if (!company || !name) {
       skipped++;

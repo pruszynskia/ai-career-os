@@ -4,6 +4,8 @@ import type { Claim, EvidenceBase } from '@/entities/profile/types';
 // evidence-grounding rule lives in one shared place instead of drifting
 // across tailor-cv, cover-letter and recruiter-message. This fragment tells
 // the model the rule; claim-validator.ts is what actually enforces it.
+import { untrustedContentNotice } from '@/shared/ai/prompts/untrusted';
+
 export const generationContractFragment = `You may only draw on the claims listed in "Evidence base" below - never on
 any other knowledge, assumption or inference about the candidate. For every
 claim you draw on, cite its id in the claimsUsed array you return.
@@ -26,7 +28,9 @@ rather than that it is relevant to this specific offer.
 Verb rule: you may strengthen wording without changing the underlying claim
 - "contributed" never becomes "led" because the offer wants a leader. If a
 request would require inflating a fact beyond what its claim supports,
-decline it and offer the honest alternative instead.`;
+decline it and offer the honest alternative instead.
+
+${untrustedContentNotice}`;
 
 function formatClaim(claim: Claim): string {
   const metric = claim.metric
