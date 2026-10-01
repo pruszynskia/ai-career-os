@@ -33,6 +33,25 @@ export const aiUsageService = {
     return true;
   },
 
+  // Backs the account export (data portability).
+  async findAllByOwnerId(
+    ownerId: string,
+  ): Promise<{ action: string; provider: string | null; createdAt: Date }[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('ai_usage')
+      .select('action, provider, created_at')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      action: row.action as string,
+      provider: (row.provider as string | null) ?? null,
+      createdAt: new Date(row.created_at as string),
+    }));
+  },
+
   async countForOwnerSince(ownerId: string, since: Date): Promise<number> {
     const supabase = await createClient();
     const { count, error } = await supabase

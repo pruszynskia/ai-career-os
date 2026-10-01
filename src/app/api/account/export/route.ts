@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 
+import { aiUsageService } from '@/entities/ai-usage/service';
 import { applicationService } from '@/entities/application/service';
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { contactService } from '@/entities/contact/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { jobOfferService } from '@/entities/job-offer/service';
+import { outreachMessageService } from '@/entities/outreach-message/service';
+import { postCampaignService } from '@/entities/post-campaign/service';
 import { postService } from '@/entities/post/service';
 import { profileService } from '@/entities/profile/service';
 import { subscriptionService } from '@/entities/subscription/service';
@@ -29,6 +32,9 @@ export async function GET() {
     subscription,
     contacts,
     plan,
+    outreachMessages,
+    postCampaigns,
+    aiUsage,
   ] = await Promise.all([
     profileService.findUnique(ownerId),
     jobOfferService.findMany({ ownerId }),
@@ -39,6 +45,9 @@ export async function GET() {
     subscriptionService.findByOwnerId(ownerId),
     contactService.findAllByOwnerId(ownerId),
     getPlanForOwner(ownerId),
+    outreachMessageService.findAllByOwnerId(ownerId),
+    postCampaignService.findMany({ ownerId }),
+    aiUsageService.findAllByOwnerId(ownerId),
   ]);
   const isPro = meetsPlan(plan, 'pro');
 
@@ -57,6 +66,9 @@ export async function GET() {
       statusEvents,
       subscription,
       contacts,
+      outreachMessages,
+      postCampaigns,
+      aiUsage,
     },
     {
       headers: {

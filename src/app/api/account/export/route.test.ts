@@ -35,6 +35,16 @@ vi.mock('@/entities/contact/service', () => ({
   contactService: { findAllByOwnerId: async () => [] },
 }));
 
+vi.mock('@/entities/outreach-message/service', () => ({
+  outreachMessageService: { findAllByOwnerId: async () => [{ id: 'm1' }] },
+}));
+vi.mock('@/entities/post-campaign/service', () => ({
+  postCampaignService: { findMany: async () => [{ id: 'pc1' }] },
+}));
+vi.mock('@/entities/ai-usage/service', () => ({
+  aiUsageService: { findAllByOwnerId: async () => [{ action: 'match' }] },
+}));
+
 const { GET } = await import('./route');
 
 describe('GET /api/account/export', () => {
@@ -46,6 +56,13 @@ describe('GET /api/account/export', () => {
     const body = await (await GET()).json();
     expect(body.jobOffers[0].fit).toBeNull();
     expect(body.cvDocuments[0].tailoringReport).toBeNull();
+  });
+
+  it('includes outreach, campaigns and AI usage', async () => {
+    const body = await (await GET()).json();
+    expect(body.outreachMessages).toHaveLength(1);
+    expect(body.postCampaigns).toHaveLength(1);
+    expect(body.aiUsage).toHaveLength(1);
   });
 
   it('keeps Pro-only reports for a Pro owner', async () => {

@@ -99,6 +99,19 @@ export const outreachMessageService = {
     return (data ?? []).map((row) => row.body as string);
   },
 
+  // Backs the account export (data portability) - every message, full rows.
+  async findAllByOwnerId(ownerId: string): Promise<OutreachMessage[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('outreach_messages')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(toOutreachMessage);
+  },
+
   // Backs the response-rate readout's by-channel grouping (TASK-085,
   // response-rate-readout.service.ts) - just enough to join an offer to the
   // channel(s) it was outreached on, no message content.
