@@ -21,6 +21,11 @@ async function siteOrigin() {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL;
   }
+  // Request headers are attacker-controlled; never build emailed links from
+  // them in production.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be set in production.');
+  }
   const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host');
   return h.get('origin') ?? (host ? `http://${host}` : 'http://localhost:3000');
