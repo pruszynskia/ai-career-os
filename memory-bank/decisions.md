@@ -1214,5 +1214,58 @@ Consequences:
 - Any new read path that returns `job_offers` or `cv_documents` to a Free
   owner must null `fit` / `tailoringReport`, the way the offer page and the
   export route do.
-- A Free owner with the anon key and their session cookie can still read
-  these fields over PostgREST.
+- ~~A Free owner with the anon key and their session cookie can still read
+  these fields over PostgREST.~~ Closed by ADR-025.
+
+## ADR-025
+
+Date:
+
+2026-10-01
+
+Decision:
+
+`authenticated` (and `anon`) lose SELECT on `job_offers.fit` and
+`cv_documents.tailoring_report` (migration
+`20261001120000_gate_pro_report_columns.sql`): the table-level SELECT grant is
+revoked and every other column re-granted by name. Server code reads the two
+columns with the service-role client in `src/shared/db/gated-columns.ts`
+(`readOwnedColumn`), only for rows an RLS-scoped query under the user's
+session has just returned, filtered by that row's `owner_id`. Supersedes
+ADR-024's deferred "Pro-gated column privilege" alternative and amends
+ADR-015: `gated-columns.ts` is the third allowed importer of
+`createAdminClient()` (ESLint allowlist updated).
+
+Reason:
+
+ADR-024 left the Pro-only reports readable by a Free owner over PostgREST
+(public anon key + JS-readable session cookie). Column privileges close that
+without changing what is generated or stored, so ADR-024's reasons for
+generating them for every plan still hold.
+
+Alternatives Considered:
+
+- Plan check inside the gated read - rejected: Free CV tailoring reads
+  `offer.fit` keywords server-side (ADR-024), so plan gating stays at the
+  response boundaries (offer page, preview, match / tailor-cv routes, export).
+- SECURITY DEFINER RPC returning the columns - rejected: callable by the
+  same user over PostgREST, so it would need the same plan check and still
+  break Free tailoring.
+- Separate Pro-gated table - rejected: a second table and join for two
+  columns; column grants do the same job in one migration.
+
+Consequences:
+
+- Every `job_offers` / `cv_documents` select names its columns via
+  `JOB_OFFER_COLUMNS` / `CV_DOCUMENT_COLUMNS`; `select('*')` and bare
+  `.select()` on these tables now fail with 42501.
+- A column added to either table later must also be `grant select (col)` to
+  `authenticated`, and added to the matching constant.
+- Embedded selects (application bundles, status events) carry no gated
+  columns: `jobOffer.fit` / `sentCv.tailoringReport` are always null there.
+  A caller that needs them (the Pro response-rate readout) reads them through
+  the entity service. This also closes the account export leaking them via
+  `applications`.
+- The offers list's callback-probability sort runs in JS after the gated
+  read, since `authenticated` can no longer ORDER BY `fit`.
+- ADR-024's response-boundary nulling for Free owners is still required.

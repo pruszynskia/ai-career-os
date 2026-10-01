@@ -25,6 +25,8 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   weak_password:
     'That password is too weak. Use at least 8 characters and avoid common passwords.',
   short_password: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+  breached_password:
+    'That password appeared in a known data breach. Choose a different one.',
   invalid_email: 'That email address is not valid.',
   exists: 'An account with this email already exists. Sign in instead.',
   unconfirmed:

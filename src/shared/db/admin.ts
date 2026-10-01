@@ -5,8 +5,10 @@ import { getClientEnv, getServerEnv } from '@/shared/env';
 
 // Service-role client — bypasses RLS. Only for scripts/create-owner-user.ts
 // and the Stripe webhook path (see ADR-015): a signature-verified webhook
-// has no user session and therefore no auth.uid() for RLS to match. Do not
-// import this into any other request-handling code.
+// has no user session and therefore no auth.uid() for RLS to match - and
+// src/shared/db/gated-columns.ts (ADR-025), which reads Pro-only columns
+// `authenticated` can't SELECT, scoped to rows an RLS read already returned.
+// Do not import this into any other request-handling code.
 export function createAdminClient() {
   return createClient(
     getClientEnv().NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL,

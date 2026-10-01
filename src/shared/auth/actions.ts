@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { authErrorKey, MIN_PASSWORD_LENGTH } from '@/shared/auth/auth-error';
 import { createClient } from '@/shared/db/client';
+import { isPasswordBreached } from '@/shared/auth/pwned-password';
 import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 
 // A missing or non-text field must read as empty (and fail validation), not
@@ -50,6 +51,9 @@ export async function signUp(formData: FormData) {
   // is only enforced if we check it here too.
   if (password.length < MIN_PASSWORD_LENGTH) {
     redirect('/sign-up?error=short_password');
+  }
+  if (await isPasswordBreached(password)) {
+    redirect('/sign-up?error=breached_password');
   }
 
   const supabase = await createClient();
@@ -122,6 +126,9 @@ export async function updatePassword(formData: FormData) {
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
     redirect('/reset-password?error=short_password');
+  }
+  if (await isPasswordBreached(password)) {
+    redirect('/reset-password?error=breached_password');
   }
 
   const supabase = await createClient();
