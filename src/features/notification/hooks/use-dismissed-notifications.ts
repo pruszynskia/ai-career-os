@@ -29,8 +29,29 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
+// MISC-7: storage access itself (not just JSON.parse) can throw - private
+// browsing, blocked cookies/storage, a full quota - and getSnapshot runs
+// inside useSyncExternalStore, so an unguarded throw here crashed every page
+// that renders a notification list.
+function readDismissedRaw(): string | null {
+  try {
+    return window.localStorage.getItem(DISMISSED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeDismissedRaw(raw: string): void {
+  try {
+    window.localStorage.setItem(DISMISSED_KEY, raw);
+  } catch {
+    // Storage blocked/full - dismissal still applies for this session via
+    // cachedSet/listeners below, it just won't survive a refresh.
+  }
+}
+
 function getSnapshot(): Set<string> {
-  const raw = window.localStorage.getItem(DISMISSED_KEY);
+  const raw = readDismissedRaw();
   if (raw === cachedRaw) return cachedSet;
   cachedRaw = raw;
   try {
@@ -49,7 +70,7 @@ export function dismissNotification(id: string): void {
   const next = new Set(getSnapshot()).add(id);
   cachedRaw = JSON.stringify(Array.from(next));
   cachedSet = next;
-  window.localStorage.setItem(DISMISSED_KEY, cachedRaw);
+  writeDismissedRaw(cachedRaw);
   listeners.forEach((listener) => listener());
 }
 
@@ -62,7 +83,7 @@ function prune(liveIds: Set<string>): void {
   if (next.size === current.size) return;
   cachedRaw = JSON.stringify(Array.from(next));
   cachedSet = next;
-  window.localStorage.setItem(DISMISSED_KEY, cachedRaw);
+  writeDismissedRaw(cachedRaw);
   listeners.forEach((listener) => listener());
 }
 
@@ -76,12 +97,24 @@ export function useDismissedNotifications(notifications: Notification[]): {
     getServerSnapshot,
   );
 
-  useEffect(() => {
-    prune(new Set(notifications.map((n) => n.id)));
-  }, [notifications]);
-
   return {
     visible: notifications.filter((n) => !dismissed.has(n.id)),
     dismiss: dismissNotification,
   };
+}
+
+// Prunes stale dismissed ids against the full notification list (PIPE-4).
+// Call this only from the one caller that has the complete list
+// (NotificationCenter) - every other caller (e.g. NeedsAttentionCard) only
+// sees a subset of notification types, and pruning against a subset drops
+// dismissals for the types it doesn't know about. Also skips an empty list
+// outright, so a transient fetch failure (getNotifications' own catch
+// returns []) can't wipe every dismissal.
+export function usePruneDismissedNotifications(
+  notifications: Notification[],
+): void {
+  useEffect(() => {
+    if (notifications.length === 0) return;
+    prune(new Set(notifications.map((n) => n.id)));
+  }, [notifications]);
 }

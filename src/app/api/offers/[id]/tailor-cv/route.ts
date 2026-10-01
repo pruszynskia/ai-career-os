@@ -12,6 +12,11 @@ import { toAiErrorResponse } from '@/shared/ai/errors';
 import { getOwnerId } from '@/shared/auth/session';
 import { getPlanForOwner, meetsPlan } from '@/shared/billing/entitlements';
 
+// Longer than the 90s SDK timeout (AI-7) so a slow provider's own timeout
+// error reaches the fallback logic instead of Vercel killing the function
+// first and returning a non-JSON 504.
+export const maxDuration = 120;
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },

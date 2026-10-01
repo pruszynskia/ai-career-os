@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { CvDocument, CvDocumentKind } from '@/entities/cv-document/types';
 import { CV_DOCUMENT_KIND_LABEL } from '@/entities/cv-document/types';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
+import { formatDate } from '@/shared/utils/format-date';
 import {
   Heading,
   Input,
@@ -84,8 +85,8 @@ export function matchesTypeFilter(
 
 export function DocumentList({ documents }: { documents: CvDocument[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(
-    (documents.find((document) => !isPreviousVersion(document)) ??
-      documents[0])?.id ?? null,
+    (documents.find((document) => !isPreviousVersion(document)) ?? documents[0])
+      ?.id ?? null,
   );
   const [isEditing, setIsEditing] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -174,7 +175,7 @@ export function DocumentList({ documents }: { documents: CvDocument[] }) {
               >
                 <Tag size="sm">{documentLabel(document)}</Tag>
                 <span className="text-xs text-muted-foreground">
-                  Updated {document.updatedAt.toLocaleDateString()}
+                  Updated {formatDate(document.updatedAt)}
                 </span>
               </button>
             ))

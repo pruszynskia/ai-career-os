@@ -12,6 +12,7 @@ import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { HStack, Text, VStack } from '@/shared/ui/primitives';
+import { SubmitButton } from '@/shared/ui/submit-button';
 
 const STEPS = [
   'Choose a plan',
@@ -39,9 +40,9 @@ export async function OnboardingPanel({ step }: { step: number }) {
   );
   const skipButton = !isLastFormStep && (
     <form action={completeOnboarding}>
-      <Button type="submit" variant="quiet" size="lg">
+      <SubmitButton variant="quiet" size="lg">
         Skip for now
-      </Button>
+      </SubmitButton>
     </form>
   );
   const nextButton = (
@@ -73,7 +74,7 @@ export async function OnboardingPanel({ step }: { step: number }) {
             <Text size="sm" color="muted" className="mb-3">
               Paste a link to a job posting or its full text.
             </Text>
-            <AddOfferForm />
+            <AddOfferForm inOnboarding />
           </CardContent>
         </Card>
       )}
@@ -165,9 +166,7 @@ function OnboardingDoneStep() {
   return (
     <VStack gap={6}>
       <form action={completeOnboarding}>
-        <Button type="submit" size="lg">
-          Go to dashboard
-        </Button>
+        <SubmitButton size="lg">Go to dashboard</SubmitButton>
       </form>
     </VStack>
   );

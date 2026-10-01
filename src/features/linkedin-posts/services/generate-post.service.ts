@@ -52,9 +52,12 @@ export async function generatePost(topic: string) {
     ],
     schema: generatedPostSchema,
     schemaName: 'generated_post',
+    validate: (result) =>
+      assertValidClaims(profile.evidence, {
+        claimsUsed: result.claimsUsed,
+        text: result.content,
+      }),
   });
-
-  assertValidClaims(profile.evidence, { claimsUsed, text: content });
 
   const post = await postService.create({
     ownerId,

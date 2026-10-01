@@ -2,6 +2,7 @@ import type { Post } from '@/entities/post/types';
 import type { PostCampaign } from '@/entities/post-campaign/types';
 
 import { PostCard } from '@/features/linkedin-posts/components/post-list';
+import { formatDate } from '@/shared/utils/format-date';
 import { Heading, Text, surfaceVariants } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 
@@ -36,7 +37,7 @@ export function CampaignList({
               {campaign.theme}
             </Heading>
             <Text size="xs" color="muted">
-              {campaign.createdAt.toLocaleDateString()}
+              {formatDate(campaign.createdAt)}
             </Text>
           </div>
           {posts

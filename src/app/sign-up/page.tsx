@@ -1,12 +1,13 @@
 import Link from 'next/link';
 
 import { signInWithGoogle, signUp } from '@/shared/auth/actions';
+import { AUTH_ERROR_MESSAGES } from '@/shared/auth/auth-error';
 import { Banner } from '@/shared/ui/banner';
-import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Input } from '@/shared/ui/input';
 import { Divider, Heading } from '@/shared/ui/primitives';
+import { SubmitButton } from '@/shared/ui/submit-button';
 
 export default async function SignUpPage({
   searchParams,
@@ -29,14 +30,14 @@ export default async function SignUpPage({
         <CardContent className="flex flex-col gap-4">
           {sent && (
             <Banner tone="success">
-              Check your email for a confirmation link.
+              Check your email for a confirmation link. If this email already
+              has an account, sign in instead.
             </Banner>
           )}
           {error && (
             <Banner tone="danger">
-              {error === 'rate_limit'
-                ? 'Too many attempts. Please wait a minute and try again.'
-                : 'Could not create account. Try a different email.'}
+              {AUTH_ERROR_MESSAGES[error] ??
+                'Could not create account. Please try again.'}
             </Banner>
           )}
           <form action={signUp} className="flex flex-col gap-4">
@@ -52,9 +53,9 @@ export default async function SignUpPage({
                 required
               />
             </Field>
-            <Button type="submit" size="lg" className="mt-1 w-full">
+            <SubmitButton size="lg" className="mt-1 w-full">
               Sign up
-            </Button>
+            </SubmitButton>
           </form>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <Divider className="flex-1" />
@@ -62,14 +63,9 @@ export default async function SignUpPage({
             <Divider className="flex-1" />
           </div>
           <form action={signInWithGoogle}>
-            <Button
-              type="submit"
-              variant="secondary"
-              size="lg"
-              className="w-full"
-            >
+            <SubmitButton variant="secondary" size="lg" className="w-full">
               Continue with Google
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>

@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { authErrorKey, MIN_PASSWORD_LENGTH } from '@/shared/auth/auth-error';
 import { createClient } from '@/shared/db/client';
 import { guardAuthRateLimit } from '@/shared/rate-limit/auth-guard';
 
@@ -27,15 +28,29 @@ async function siteOrigin() {
 
 export async function signUp(formData: FormData) {
   await guardAuthRateLimit('/sign-up');
+  const password = formData.get('password') as string;
+  // Supabase's own minimum is lower (config.toml), so the form's minLength
+  // is only enforced if we check it here too.
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    redirect('/sign-up?error=short_password');
+  }
+
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: formData.get('email') as string,
-    password: formData.get('password') as string,
+    password,
     options: { emailRedirectTo: `${await siteOrigin()}/auth/callback` },
   });
 
   if (error) {
-    redirect('/sign-up?error=1');
+    console.error('[auth] signUp failed', error.code, error.message);
+    redirect(`/sign-up?error=${authErrorKey(error)}`);
+  }
+
+  // With email confirmation off, signUp returns a live session and the
+  // cookies are already set — there is no email to wait for.
+  if (data.session) {
+    redirect('/onboarding');
   }
 
   redirect('/sign-up?sent=1');
@@ -59,11 +74,25 @@ export async function signInWithGoogle() {
 export async function requestPasswordReset(formData: FormData) {
   await guardAuthRateLimit('/forgot-password');
   const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(formData.get('email') as string, {
-    redirectTo: `${await siteOrigin()}/auth/callback`,
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    formData.get('email') as string,
+    { redirectTo: `${await siteOrigin()}/auth/callback` },
+  );
 
-  // Always report success — never disclose whether an account exists.
+  if (error) {
+    console.error(
+      '[auth] resetPasswordForEmail failed',
+      error.code,
+      error.message,
+    );
+    // A rate limit is project-wide, so surfacing it discloses nothing about
+    // whether this email has an account.
+    if (authErrorKey(error) === 'rate_limit') {
+      redirect('/forgot-password?error=rate_limit');
+    }
+  }
+
+  // Otherwise always report success — never disclose whether an account exists.
   redirect('/forgot-password?sent=1');
 }
 
@@ -74,12 +103,16 @@ export async function updatePassword(formData: FormData) {
   if (password !== confirmPassword) {
     redirect('/reset-password?error=mismatch');
   }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    redirect('/reset-password?error=short_password');
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
-    redirect('/reset-password?error=1');
+    console.error('[auth] updateUser failed', error.code, error.message);
+    redirect(`/reset-password?error=${authErrorKey(error)}`);
   }
 
   redirect('/dashboard');

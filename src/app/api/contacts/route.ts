@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { contactService } from '@/entities/contact/service';
+import { ContactExistsError, contactService } from '@/entities/contact/service';
 import { classifyTitle } from '@/features/contact/services/classify-title';
 import { getOwnerId } from '@/shared/auth/session';
 
@@ -20,10 +20,13 @@ export async function POST(request: Request) {
   const parsedInput = addContactSchema.safeParse(body);
 
   if (!parsedInput.success) {
-    return NextResponse.json(
-      { message: 'name and company are required.' },
-      { status: 400 },
-    );
+    // MISC-1: a bad profileUrl (e.g. missing "https://") previously
+    // reported the same generic message as a missing name/company.
+    const fieldErrors = parsedInput.error.flatten().fieldErrors;
+    const message = fieldErrors.profileUrl
+      ? 'Enter a valid URL, including https:// (e.g. https://linkedin.com/in/...).'
+      : 'name and company are required.';
+    return NextResponse.json({ message }, { status: 400 });
   }
 
   try {
@@ -39,6 +42,10 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(contact);
   } catch (error) {
+    if (error instanceof ContactExistsError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
+    }
+
     console.error('Failed to add the contact', error);
     return NextResponse.json(
       { message: 'Failed to add the contact.' },

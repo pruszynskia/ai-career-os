@@ -2,7 +2,10 @@
 // data-fetching/'server-only' so it's unit-testable, mirroring
 // response-rate-readout.ts's split from its .service.ts wrapper.
 
-import type { ApplicationBundle, ApplicationStatus } from '@/entities/application/types';
+import type {
+  ApplicationBundle,
+  ApplicationStatus,
+} from '@/entities/application/types';
 import { isTerminalApplicationStatus } from '@/entities/application/types';
 import type { ApplicationStatusEvent } from '@/entities/application-status-event/types';
 import type { JobOffer } from '@/entities/job-offer/types';
@@ -99,6 +102,7 @@ export interface OutreachSend {
   channel: OutreachChannel;
   status: 'DRAFT' | 'SENT';
   createdAt: Date;
+  sentAt: Date | null;
 }
 
 // Shared aggregation over raw entities into the two nudge lists above -
@@ -128,9 +132,12 @@ export function deriveNudges(
   const latestSendByOffer = new Map<string, Date>();
   for (const send of outreachSends) {
     if (send.status !== 'SENT') continue;
+    // PIPE-6: a message can be drafted well before it's actually sent -
+    // createdAt alone made the nudge count from the draft, not the send.
+    const sentAt = send.sentAt ?? send.createdAt;
     const current = latestSendByOffer.get(send.jobOfferId);
-    if (!current || send.createdAt > current) {
-      latestSendByOffer.set(send.jobOfferId, send.createdAt);
+    if (!current || sentAt > current) {
+      latestSendByOffer.set(send.jobOfferId, sentAt);
     }
   }
 
@@ -170,7 +177,7 @@ export function deriveNudges(
         outreachMessageId: send.id,
         jobOfferId: send.jobOfferId,
         company: offer.company,
-        sentAt: send.createdAt,
+        sentAt: send.sentAt ?? send.createdAt,
       },
       now,
     );

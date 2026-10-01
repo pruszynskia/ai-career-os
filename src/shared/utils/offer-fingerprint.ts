@@ -8,6 +8,24 @@ export function normalizeText(value: string): string {
     .replace(/\s+/g, ' ');
 }
 
+// Stripped before comparing (PIPE-2): these vary per link share/click even
+// when the URL points at the same posting, so keeping them made two shares
+// of the same job compare as different offers. Any other query param is
+// kept - e.g. Indeed/Greenhouse encode the actual job id in one (`?jk=`),
+// and dropping it collapsed genuinely different postings into "duplicate".
+const TRACKING_PARAMS = new Set([
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'trk',
+  'refid',
+  'trackingid',
+  'fbclid',
+  'gclid',
+]);
+
 export function canonicalizeUrl(url: string | null | undefined): string | null {
   if (!url) return null;
 
@@ -15,7 +33,16 @@ export function canonicalizeUrl(url: string | null | undefined): string | null {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
     const path = parsed.pathname.replace(/\/+$/, '');
-    return `${host}${path}`;
+
+    const params = Array.from(parsed.searchParams.entries())
+      .filter(([key]) => !TRACKING_PARAMS.has(key.toLowerCase()))
+      .sort(([a], [b]) => a.localeCompare(b));
+    const query =
+      params.length > 0
+        ? `?${params.map(([key, value]) => `${key}=${value}`).join('&')}`
+        : '';
+
+    return `${host}${path}${query}`;
   } catch {
     return null;
   }

@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { applicationService } from '@/entities/application/service';
-import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { cvDocumentService } from '@/entities/cv-document/service';
 import { canBeSentCv } from '@/entities/cv-document/types';
 import { getOfferOrThrow } from '@/entities/job-offer/service';
@@ -16,6 +15,16 @@ export class CvNotFoundError extends Error {
   }
 }
 
+export class ApplicationExistsError extends Error {
+  constructor() {
+    super('This offer is already tracked.');
+    this.name = 'ApplicationExistsError';
+  }
+}
+
+// Postgres unique_violation — applications_job_offer_id_key lost a race.
+const UNIQUE_VIOLATION = '23505';
+
 export async function createApplication(input: {
   jobOfferId: string;
   sentCvId: string;
@@ -23,6 +32,9 @@ export async function createApplication(input: {
 }) {
   const ownerId = await getOwnerId();
   const offer = await getOfferOrThrow(input.jobOfferId);
+  if (await applicationService.findByOffer(ownerId, offer.id)) {
+    throw new ApplicationExistsError();
+  }
 
   const sentCv = await cvDocumentService.findFirst({
     id: input.sentCvId,
@@ -30,26 +42,17 @@ export async function createApplication(input: {
   });
   if (!sentCv || !canBeSentCv(sentCv, offer.id)) throw new CvNotFoundError();
 
-  const application = await applicationService.create({
-    ownerId,
-    jobOfferId: offer.id,
-    sentCvId: sentCv.id,
-    recruiterMessage: input.recruiterMessage,
-  });
-
-  // ponytail: history write is best-effort — a failed event must not fail
-  // the request that already committed (createApplication has no duplicate
-  // guard, so a retry would create a second application). Move both writes
-  // into a Postgres RPC if history ever has to be transactional.
-  await applicationStatusEventService
+  // The APPLIED status event is written by the applications_status_event
+  // trigger in the same statement.
+  return applicationService
     .create({
       ownerId,
-      applicationId: application.id,
-      status: application.status,
+      jobOfferId: offer.id,
+      sentCvId: sentCv.id,
+      recruiterMessage: input.recruiterMessage,
     })
-    .catch((error) =>
-      console.error('Failed to record the status event', error),
-    );
-
-  return application;
+    .catch((error: { code?: string }) => {
+      if (error.code === UNIQUE_VIOLATION) throw new ApplicationExistsError();
+      throw error;
+    });
 }

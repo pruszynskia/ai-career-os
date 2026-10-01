@@ -18,6 +18,11 @@ describe('classifyRateLimit', () => {
     expect(classifyRateLimit('POST', '/api/offers/abc-123/tailor-cv')).toBe(
       'ai',
     );
+    // AI-9: this suffix is distinct from '/outreach' (doesn't end with it),
+    // so it needs its own entry or it bypasses the limiter entirely.
+    expect(
+      classifyRateLimit('POST', '/api/offers/abc-123/outreach/follow-up'),
+    ).toBe('ai');
   });
 
   it('never rate limits the Stripe webhook', () => {

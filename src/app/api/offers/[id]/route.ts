@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { jobOfferSchema } from '@/entities/job-offer/types';
-import {
-  deleteOffer,
-  OfferHasApplicationError,
-} from '@/features/job-offer/services/delete-offer.service';
+import { deleteOffer } from '@/features/job-offer/services/delete-offer.service';
 import {
   OfferNotFoundError,
   updateOffer,
@@ -19,6 +16,9 @@ const updateOfferSchema = jobOfferSchema
     company: requiredText,
     title: requiredText,
     description: z.string().trim(),
+    // PIPE-5: JSON has no Date type, so the client sends an ISO string (or
+    // null to clear it) - z.coerce.date() parses that back into a Date.
+    expiresAt: z.coerce.date().nullable(),
   })
   .partial();
 
@@ -66,10 +66,6 @@ export async function DELETE(
   } catch (error) {
     if (error instanceof OfferNotFoundError) {
       return NextResponse.json({ message: error.message }, { status: 404 });
-    }
-
-    if (error instanceof OfferHasApplicationError) {
-      return NextResponse.json({ message: error.message }, { status: 409 });
     }
 
     console.error('Failed to delete the offer', error);

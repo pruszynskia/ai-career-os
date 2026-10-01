@@ -27,7 +27,11 @@ export function CheckoutButton({
       >
         {isPending ? 'Redirecting…' : label}
       </Button>
-      {error ? <Text color="destructive">{error.message}</Text> : null}
+      {error ? (
+        <Text color="destructive" role="alert">
+          {error.message}
+        </Text>
+      ) : null}
     </VStack>
   );
 }

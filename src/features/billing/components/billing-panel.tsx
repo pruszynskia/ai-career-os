@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 import type { Subscription } from '@/entities/subscription/types';
 import { PlanBadge } from '@/features/billing/components/plan-badge';
+import { requestJson } from '@/shared/api/request';
+import { formatDate } from '@/shared/utils/format-date';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Text, VStack } from '@/shared/ui/primitives';
@@ -21,14 +23,13 @@ export function BillingPanel({
     setIsPending(true);
     setError(null);
     try {
-      const response = await fetch('/api/billing/portal', { method: 'POST' });
-      const body = (await response.json().catch(() => null)) as {
-        url?: string;
-        message?: string;
-      } | null;
-
-      if (!response.ok || typeof body?.url !== 'string') {
-        throw new Error(body?.message ?? 'Failed to open the billing portal.');
+      const body = await requestJson<{ url?: string }>(
+        '/api/billing/portal',
+        { method: 'POST' },
+        'Failed to open the billing portal.',
+      );
+      if (typeof body.url !== 'string') {
+        throw new Error('Failed to open the billing portal.');
       }
 
       window.location.href = body.url;
@@ -57,7 +58,7 @@ export function BillingPanel({
               />
               {subscription.currentPeriodEnd ? (
                 <Text color="muted">
-                  Renews on {subscription.currentPeriodEnd.toLocaleDateString()}
+                  Renews on {formatDate(subscription.currentPeriodEnd)}
                 </Text>
               ) : null}
               <Button
@@ -79,7 +80,11 @@ export function BillingPanel({
               </Button>
             </>
           )}
-          {error ? <Text color="destructive">{error}</Text> : null}
+          {error ? (
+            <Text color="destructive" role="alert">
+              {error}
+            </Text>
+          ) : null}
         </VStack>
       </CardContent>
     </Card>

@@ -43,7 +43,7 @@ export async function generateCoverLetter(id: string) {
   assertEvidenceBase(evidence);
 
   const aiService = await getMeteredAiService('cover_letter');
-  const { content, claimsUsed } = await aiService.generateStructured({
+  const { content } = await aiService.generateStructured({
     messages: [
       { role: 'system', content: coverLetterSystemPrompt },
       {
@@ -57,9 +57,12 @@ export async function generateCoverLetter(id: string) {
     schema: coverLetterSchema,
     schemaName: 'cover_letter',
     maxTokens: 2048,
+    validate: (result) =>
+      assertValidClaims(evidence, {
+        claimsUsed: result.claimsUsed,
+        text: result.content,
+      }),
   });
-
-  assertValidClaims(evidence, { claimsUsed, text: content });
 
   return cvDocumentService.createVersion({
     ownerId,

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 
+import './globals.css';
 import { Button, buttonVariants } from '@/shared/ui/button';
 import { Heading, Text } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';

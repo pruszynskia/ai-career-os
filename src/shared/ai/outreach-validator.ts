@@ -8,13 +8,13 @@ export interface OutreachDraft {
 
 // Thrown by assertValidOutreach so a violating draft is surfaced as a clear
 // error rather than persisted or returned to the caller (mirrors
-// ClaimValidationError in claim-validator.ts).
+// ClaimValidationError in claim-validator.ts). `.message` is user-facing
+// (ERR-3); the dev-diagnostic detail stays in `.violations`, logged here.
 export class OutreachValidationError extends Error {
   constructor(public readonly violations: string[]) {
-    super(
-      `Outreach draft violated the outreach rules: ${violations.join('; ')}`,
-    );
+    super('Generated outreach failed our quality checks. Try again.');
     this.name = 'OutreachValidationError';
+    console.error('[OutreachValidationError]', violations.join('; '));
   }
 }
 

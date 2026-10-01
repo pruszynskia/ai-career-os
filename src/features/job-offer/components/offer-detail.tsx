@@ -19,6 +19,11 @@ import { useTailorCv } from '@/features/job-offer/hooks/use-tailor-cv';
 import { useToggleFavorite } from '@/features/job-offer/hooks/use-toggle-favorite';
 import { useUpdateOffer } from '@/features/job-offer/hooks/use-update-offer';
 import { downloadTextFile } from '@/shared/utils/download-text-file';
+import { formatDate } from '@/shared/utils/format-date';
+import {
+  parseLocalDateInput,
+  toDateInputValue,
+} from '@/shared/utils/local-date-input';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import {
@@ -174,6 +179,7 @@ export function OfferDetail({
     company: offer.company,
     title: offer.title,
     description: offer.description,
+    expiresAt: toDateInputValue(offer.expiresAt),
   });
 
   const tailoredCv = tailorCvMutation.data?.cvDocument ?? latestTailoredCv;
@@ -227,6 +233,7 @@ export function OfferDetail({
       company: offer.company,
       title: offer.title,
       description: offer.description,
+      expiresAt: toDateInputValue(offer.expiresAt),
     });
     updateOfferMutation.reset();
     setIsEditOpen(true);
@@ -237,7 +244,15 @@ export function OfferDetail({
     if (!editValues.company.trim() || !editValues.title.trim()) return;
 
     updateOfferMutation.mutate(
-      { id: offer.id, ...editValues },
+      {
+        id: offer.id,
+        company: editValues.company,
+        title: editValues.title,
+        description: editValues.description,
+        expiresAt: editValues.expiresAt
+          ? parseLocalDateInput(editValues.expiresAt).toISOString()
+          : null,
+      },
       { onSuccess: () => setIsEditOpen(false) },
     );
   }
@@ -309,7 +324,7 @@ export function OfferDetail({
               {offer.isExpired && <Tag>Expired</Tag>}
               <span>
                 {offer.expiresAt
-                  ? `Expires on ${offer.expiresAt.toLocaleDateString()}`
+                  ? `Expires on ${formatDate(offer.expiresAt)}`
                   : 'No expiration set'}
               </span>
             </div>
@@ -402,6 +417,21 @@ export function OfferDetail({
                         }))
                       }
                       rows={6}
+                      disabled={updateOfferMutation.isPending}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="offer-expires-at">Expires on</Label>
+                    <Input
+                      id="offer-expires-at"
+                      type="date"
+                      value={editValues.expiresAt}
+                      onChange={(event) =>
+                        setEditValues((values) => ({
+                          ...values,
+                          expiresAt: event.target.value,
+                        }))
+                      }
                       disabled={updateOfferMutation.isPending}
                     />
                   </div>
@@ -576,10 +606,10 @@ export function OfferDetail({
                     </Heading>
                     <Text size="xs" color="muted">
                       Generated{' '}
-                      {new Date(coverLetterDoc.createdAt).toLocaleDateString(
-                        'en-GB',
-                        { day: 'numeric', month: 'short' },
-                      )}{' '}
+                      {formatDate(new Date(coverLetterDoc.createdAt), {
+                        day: 'numeric',
+                        month: 'short',
+                      })}{' '}
                       · 1 AI action
                     </Text>
                   </div>
@@ -728,7 +758,7 @@ export function OfferDetail({
                     <span className="text-muted-foreground">
                       Tracking since
                     </span>
-                    <span>{application.createdAt.toLocaleDateString()}</span>
+                    <span>{formatDate(application.createdAt)}</span>
                   </div>
                   <Button
                     variant="secondary"
@@ -812,7 +842,7 @@ export function OfferDetail({
                     View original posting
                   </a>
                 )}
-                <span>Added {offer.createdAt.toLocaleDateString()}</span>
+                <span>Added {formatDate(offer.createdAt)}</span>
               </div>
             </CardContent>
           </Card>

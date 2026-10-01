@@ -3,9 +3,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import type { Claim, ClaimState, EvidenceBase } from '@/entities/profile/types';
+import { updateEvidenceRules } from '@/features/profile/api/profile.api';
 import { toList } from '@/features/profile/utils/preferences-form';
 import { AsyncButton } from '@/shared/ui/async-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -19,25 +20,6 @@ import {
 } from '@/shared/ui/primitives';
 import { cn } from '@/shared/ui/utils';
 
-async function patchEvidence(body: unknown) {
-  const response = await fetch('/api/profile/evidence', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorBody = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(
-      errorBody?.message ?? 'Failed to update your evidence base.',
-    );
-  }
-
-  return response.json();
-}
-
 const CLAIM_KIND_LABEL: Record<Claim['kind'], string> = {
   skill: 'Skill',
   experience: 'Experience',
@@ -48,9 +30,9 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
   const router = useRouter();
   const claimMutation = useMutation({
     mutationFn: ({ claimId, state }: { claimId: string; state: ClaimState }) =>
-      patchEvidence({ claimId, state }),
+      updateEvidenceRules({ claimId, state }),
     onSuccess: () => router.refresh(),
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => toastError(error.message),
   });
 
   const pendingClaims = evidence.claims.filter(
@@ -92,7 +74,12 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       type="button"
                       size="sm"
                       pending={isPending && pendingState === 'CONFIRMED'}
-                      disabled={isPending && pendingState !== 'CONFIRMED'}
+                      // Disabled while ANY claim mutation is in flight, not
+                      // just this row's (AI-5): two rows mutating at once
+                      // race a read-modify-write of the same evidence JSON
+                      // column, and the second write silently drops the
+                      // first's change.
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,
@@ -107,7 +94,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       size="sm"
                       variant="secondary"
                       pending={isPending && pendingState === 'FLAGGED'}
-                      disabled={isPending && pendingState !== 'FLAGGED'}
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,
@@ -122,7 +109,7 @@ export function EvidenceReview({ evidence }: { evidence: EvidenceBase }) {
                       size="sm"
                       variant="danger"
                       pending={isPending && pendingState === 'EXCLUDED'}
-                      disabled={isPending && pendingState !== 'EXCLUDED'}
+                      disabled={claimMutation.isPending}
                       onClick={() =>
                         claimMutation.mutate({
                           claimId: claim.id,
@@ -158,12 +145,12 @@ function RulesEditor({ evidence }: { evidence: EvidenceBase }) {
     mutationFn: (rules: {
       neverInclude: string[];
       alwaysIncludeWhenRelevant: string[];
-    }) => patchEvidence(rules),
+    }) => updateEvidenceRules(rules),
     onSuccess: () => {
       toast.success('Generation rules saved');
       router.refresh();
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => toastError(error.message),
   });
 
   return (

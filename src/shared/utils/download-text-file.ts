@@ -5,5 +5,7 @@ export function downloadTextFile(filename: string, content: string): void {
   link.href = url;
   link.download = filename;
   link.click();
-  URL.revokeObjectURL(url);
+  // Revoke on the next tick (MISC-6) - revoking synchronously can abort the
+  // download in some browsers before it has started reading the blob.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

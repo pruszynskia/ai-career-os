@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   COMPANY_TITLE_RECENCY_WINDOW_MS,
+  canonicalizeUrl,
   computeOfferFingerprint,
   isDuplicateFingerprint,
   isDuplicateWithinWindow,
@@ -14,8 +15,24 @@ describe('normalizeText', () => {
   });
 });
 
+describe('canonicalizeUrl', () => {
+  it('strips tracking params but keeps others, sorted for stable comparison', () => {
+    expect(
+      canonicalizeUrl('https://www.acme.com/jobs/1?utm_source=linkedin'),
+    ).toBe(canonicalizeUrl('https://acme.com/jobs/1'));
+    // PIPE-2: a real identifying param (Indeed/Greenhouse-style ?jk=) must
+    // NOT be dropped - two different jobs shouldn't canonicalize the same.
+    expect(canonicalizeUrl('https://indeed.com/viewjob?jk=a')).not.toBe(
+      canonicalizeUrl('https://indeed.com/viewjob?jk=b'),
+    );
+    expect(canonicalizeUrl('https://indeed.com/viewjob?b=2&a=1')).toBe(
+      canonicalizeUrl('https://indeed.com/viewjob?a=1&b=2'),
+    );
+  });
+});
+
 describe('isDuplicateFingerprint', () => {
-  it('reports canonical-url when the job link matches, ignoring query params', () => {
+  it('reports canonical-url when the job link matches, ignoring tracking params', () => {
     const a = computeOfferFingerprint({
       company: 'Acme',
       title: 'Senior Engineer',
@@ -25,7 +42,7 @@ describe('isDuplicateFingerprint', () => {
     const b = computeOfferFingerprint({
       company: 'Globex',
       title: 'Product Manager',
-      url: 'https://www.acme.com/jobs/1?ref=linkedin',
+      url: 'https://www.acme.com/jobs/1?utm_source=linkedin',
       rawContent: 'Different posting text entirely.',
     });
 

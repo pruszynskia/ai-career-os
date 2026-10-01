@@ -13,6 +13,11 @@ import {
 import { toAiErrorResponse } from '@/shared/ai/errors';
 import { getOwnerId } from '@/shared/auth/session';
 
+// Longer than the 90s SDK timeout (AI-7) so a slow provider's own timeout
+// error reaches the fallback logic instead of Vercel killing the function
+// first and returning a non-JSON 504.
+export const maxDuration = 120;
+
 const generateCampaignSchema = z.object({
   theme: z.string().min(1),
   postCount: z.number().int().min(1).max(10),

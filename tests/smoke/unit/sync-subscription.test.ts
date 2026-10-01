@@ -90,6 +90,30 @@ describe('syncSubscriptionFromStripe', () => {
     expect(subscriptionService.upsertFromStripe).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores a newer non-live event for a different subscription while the stored one is live', async () => {
+    vi.mocked(subscriptionService.findByOwnerId).mockResolvedValue({
+      id: 'row_1',
+      ownerId: 'owner_1',
+      stripeCustomerId: 'cus_1',
+      stripeSubscriptionId: 'sub_new',
+      status: 'active',
+      plan: 'pro',
+      currentPeriodEnd: null,
+      lastStripeEventAt: new Date(1_700_000_000 * 1000),
+      createdAt: new Date(0),
+      updatedAt: new Date(1_700_000_000_000),
+    });
+    const oldSubscription = {
+      ...fakeSubscription({ ownerId: 'owner_1' }),
+      id: 'sub_old',
+      status: 'canceled',
+    } as Parameters<typeof syncSubscriptionFromStripe>[0];
+
+    await syncSubscriptionFromStripe(oldSubscription, 1_700_000_100);
+
+    expect(subscriptionService.upsertFromStripe).not.toHaveBeenCalled();
+  });
+
   it('writes when the row has no lastStripeEventAt yet (first sync)', async () => {
     vi.mocked(subscriptionService.findByOwnerId).mockResolvedValue({
       id: 'row_1',

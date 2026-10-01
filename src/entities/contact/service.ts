@@ -37,6 +37,18 @@ function rankScore(contact: Contact): number {
   return degreeScore + classificationScore;
 }
 
+const UNIQUE_VIOLATION = '23505';
+
+// Thrown on the 23505 from contacts_owner_profile_url_key (MISC-2) - mirrors
+// ApplicationExistsError (create-application.service.ts) so the manual
+// add-contact route can map it to a clean 409 instead of a raw 500.
+export class ContactExistsError extends Error {
+  constructor() {
+    super('A contact with this profile URL is already saved.');
+    this.name = 'ContactExistsError';
+  }
+}
+
 export interface NewContact {
   name: string;
   company: string;
@@ -82,7 +94,12 @@ export const contactService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if ((error as { code?: string }).code === UNIQUE_VIOLATION) {
+        throw new ContactExistsError();
+      }
+      throw error;
+    }
     return toContact(data);
   },
 
@@ -117,9 +134,19 @@ export const contactService = {
       }
     }
 
-    const toInsert = inputs.filter(
-      (input) => !input.profileUrl || !existingUrls.has(input.profileUrl),
-    );
+    // MISC-3: dedupe within the file itself, not just against the DB - two
+    // rows sharing a URL in the same 500-row chunk both pass the DB check
+    // above (neither exists yet) and then hit contacts_owner_profile_url_key
+    // on the second one, 500ing the whole chunk even though earlier chunks
+    // already committed. Keeps the first occurrence.
+    const seenUrls = new Set<string>();
+    const toInsert = inputs.filter((input) => {
+      if (!input.profileUrl) return true;
+      if (existingUrls.has(input.profileUrl)) return false;
+      if (seenUrls.has(input.profileUrl)) return false;
+      seenUrls.add(input.profileUrl);
+      return true;
+    });
 
     const created: Contact[] = [];
     for (const batch of chunk(toInsert, INSERT_CHUNK_SIZE)) {

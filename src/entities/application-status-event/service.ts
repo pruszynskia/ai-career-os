@@ -21,26 +21,6 @@ function toApplicationStatusEvent(
 }
 
 export const applicationStatusEventService = {
-  async create(values: {
-    ownerId: string;
-    applicationId: string;
-    status: ApplicationStatus;
-  }): Promise<ApplicationStatusEvent> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('application_status_events')
-      .insert({
-        owner_id: values.ownerId,
-        application_id: values.applicationId,
-        status: values.status,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return toApplicationStatusEvent(data);
-  },
-
   async findMany(filter: {
     applicationId: string;
   }): Promise<ApplicationStatusEvent[]> {

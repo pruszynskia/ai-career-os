@@ -21,8 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/primitives/interaction/select/Select';
+import { formatDate } from '@/shared/utils/format-date';
+import {
+  parseLocalDateInput,
+  todayDateInputValue,
+} from '@/shared/utils/local-date-input';
 
-const POST_STATUSES: PostStatus[] = ['DRAFT', 'SCHEDULED', 'SENT'];
+// SCHEDULED is excluded (POST-1): it needs a date, which only the dedicated
+// schedule input below (DRAFT posts) collects - toggling straight to it
+// from this dropdown left scheduledAt unset.
+const POST_STATUSES: PostStatus[] = ['DRAFT', 'SENT'];
 
 export function PostList({
   posts,
@@ -91,7 +99,7 @@ export function PostCard({
 
     scheduleMutation.mutate({
       id: post.id,
-      scheduledAt: new Date(scheduledAtInput),
+      scheduledAt: parseLocalDateInput(scheduledAtInput),
     });
   }
 
@@ -129,10 +137,10 @@ export function PostCard({
             </SelectContent>
           </Select>
           <span className="text-sm text-muted-foreground">
-            {post.createdAt.toLocaleDateString()}
+            {formatDate(post.createdAt)}
             {post.scheduledAt &&
-              ` · scheduled for ${post.scheduledAt.toLocaleDateString()}`}
-            {post.sentAt && ` · sent ${post.sentAt.toLocaleDateString()}`}
+              ` · scheduled for ${formatDate(post.scheduledAt)}`}
+            {post.sentAt && ` · sent ${formatDate(post.sentAt)}`}
           </span>
         </div>
         <div className="flex gap-2">
@@ -185,6 +193,7 @@ export function PostCard({
             type="date"
             className="w-auto"
             value={scheduledAtInput}
+            min={todayDateInputValue()}
             onChange={(event) => setScheduledAtInput(event.target.value)}
             disabled={scheduleMutation.isPending}
           />

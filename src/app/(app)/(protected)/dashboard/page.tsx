@@ -18,6 +18,7 @@ import { getResponseRateReadout } from '@/features/dashboard/services/response-r
 import { getOwnerId } from '@/shared/auth/session';
 import { EntitlementError } from '@/shared/billing/errors';
 import { AppPageLayout } from '@/shared/layouts';
+import { Banner } from '@/shared/ui/banner';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardTitle } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -26,7 +27,12 @@ import { NeedsAttentionCard } from '@/widgets/needs-attention-card/needs-attenti
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
+  const { checkout } = await searchParams;
   const ownerId = await getOwnerId();
   const [
     posts,
@@ -96,6 +102,14 @@ export default async function DashboardPage() {
         )
       }
     >
+      {checkout === 'success' && (
+        // Stripe redirects here before its webhook has updated our
+        // subscription row, so the plan can still read "Free" for a moment.
+        <Banner tone="success">
+          Payment received. Your Pro plan activates within a few seconds -
+          refresh if it still shows Free.
+        </Banner>
+      )}
       <PipelineStrip applications={applications} />
       <Grid cols={1} colsMd={12} gap={6}>
         <VStack gap={6} className="md:col-span-8">

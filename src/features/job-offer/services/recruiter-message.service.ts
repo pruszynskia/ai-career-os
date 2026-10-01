@@ -100,6 +100,24 @@ export async function generateOutreach(
     offer.id,
   );
 
+  const toDrafts = (
+    result: z.infer<typeof outreachSchema>,
+  ): {
+    channel: OutreachChannel;
+    subject: string | null;
+    body: string;
+    claimsUsed: string[];
+  }[] => [
+    { channel: 'CONNECTION_NOTE', subject: null, ...result.connectionNote },
+    { channel: 'DIRECT_MESSAGE', subject: null, ...result.directMessage },
+    {
+      channel: 'EMAIL',
+      subject: result.email.subject,
+      body: result.email.body,
+      claimsUsed: result.email.claimsUsed,
+    },
+  ];
+
   const aiService = await getMeteredAiService('outreach');
   const result = await aiService.generateStructured({
     messages: [
@@ -117,34 +135,21 @@ export async function generateOutreach(
     schema: outreachSchema,
     schemaName: 'outreach',
     maxTokens: 2048,
+    validate: (output) => {
+      for (const draft of toDrafts(output)) {
+        assertValidClaims(evidence, {
+          claimsUsed: draft.claimsUsed,
+          text: draft.body,
+        });
+        assertValidOutreach(
+          { channel: draft.channel, subject: draft.subject, body: draft.body },
+          recentBodies,
+        );
+      }
+    },
   });
 
-  const drafts: {
-    channel: OutreachChannel;
-    subject: string | null;
-    body: string;
-    claimsUsed: string[];
-  }[] = [
-    { channel: 'CONNECTION_NOTE', subject: null, ...result.connectionNote },
-    { channel: 'DIRECT_MESSAGE', subject: null, ...result.directMessage },
-    {
-      channel: 'EMAIL',
-      subject: result.email.subject,
-      body: result.email.body,
-      claimsUsed: result.email.claimsUsed,
-    },
-  ];
-
-  for (const draft of drafts) {
-    assertValidClaims(evidence, {
-      claimsUsed: draft.claimsUsed,
-      text: draft.body,
-    });
-    assertValidOutreach(
-      { channel: draft.channel, subject: draft.subject, body: draft.body },
-      recentBodies,
-    );
-  }
+  const drafts = toDrafts(result);
 
   const messages = await outreachMessageService.createMany(
     ownerId,
@@ -222,6 +227,16 @@ export async function generateFollowUp(
     offer.id,
   );
 
+  // A follow-up on the email channel is still an email - it needs a subject
+  // line even when there was no prior outreach-studio draft to reply to
+  // (the recruiterMessage fallback above has none of its own).
+  const rawSubject = latest?.subject
+    ? `Re: ${latest.subject}`
+    : channel === 'EMAIL'
+      ? `Following up: ${offer.title}`
+      : null;
+  const subject = rawSubject?.slice(0, EMAIL_SUBJECT_HARD_MAX) ?? null;
+
   const aiService = await getMeteredAiService('outreach');
   const result = await aiService.generateStructured({
     messages: [
@@ -240,28 +255,18 @@ export async function generateFollowUp(
     schema: draftSchema,
     schemaName: 'outreach-follow-up',
     maxTokens: 1024,
+    validate: (output) => {
+      assertValidClaims(evidence, {
+        claimsUsed: output.claimsUsed,
+        text: output.body,
+      });
+      assertValidOutreach(
+        { channel, subject, body: output.body },
+        recentBodies,
+        maxChars,
+      );
+    },
   });
-
-  assertValidClaims(evidence, {
-    claimsUsed: result.claimsUsed,
-    text: result.body,
-  });
-
-  // A follow-up on the email channel is still an email - it needs a subject
-  // line even when there was no prior outreach-studio draft to reply to
-  // (the recruiterMessage fallback above has none of its own).
-  const rawSubject = latest?.subject
-    ? `Re: ${latest.subject}`
-    : channel === 'EMAIL'
-      ? `Following up: ${offer.title}`
-      : null;
-  const subject = rawSubject?.slice(0, EMAIL_SUBJECT_HARD_MAX) ?? null;
-
-  assertValidOutreach(
-    { channel, subject, body: result.body },
-    recentBodies,
-    maxChars,
-  );
 
   const [message] = await outreachMessageService.createMany(ownerId, offer.id, [
     {

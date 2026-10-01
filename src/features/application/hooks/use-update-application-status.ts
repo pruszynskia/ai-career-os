@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import { updateApplicationStatus } from '@/features/application/api/application.api';
 import type { ApplicationStatus } from '@/features/application/types';
@@ -19,6 +19,6 @@ export function useUpdateApplicationStatus(options?: { silent?: boolean }) {
       if (!silent) toast.success('Status updated');
       router.refresh();
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toastError(error.message),
   });
 }

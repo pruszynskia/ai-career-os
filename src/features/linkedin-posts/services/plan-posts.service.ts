@@ -71,14 +71,18 @@ export async function planPosts() {
     ],
     schema: plannedPostsSchema,
     schemaName: 'planned_posts',
+    // Plans multiple posts at once - the shared 1024 default truncates
+    // mid-JSON (AI-2).
+    maxTokens: 2048,
+    validate: (result) => {
+      for (const plannedPost of result.posts) {
+        assertValidClaims(profile.evidence, {
+          claimsUsed: plannedPost.claimsUsed,
+          text: plannedPost.content,
+        });
+      }
+    },
   });
-
-  for (const plannedPost of plannedPosts) {
-    assertValidClaims(profile.evidence, {
-      claimsUsed: plannedPost.claimsUsed,
-      text: plannedPost.content,
-    });
-  }
 
   const posts = await Promise.all(
     plannedPosts.map((plannedPost) =>

@@ -18,6 +18,7 @@ import {
   gridTableNumericCellClassName,
 } from '@/shared/ui/grid-table';
 import { ListRow } from '@/shared/ui/list-row';
+import { formatDate } from '@/shared/utils/format-date';
 import { Meter, Text } from '@/shared/ui/primitives';
 
 const COLUMNS = 'minmax(0,1fr) 150px 96px 76px';
@@ -108,7 +109,7 @@ export function UpcomingInterviewsCard({
                     <span className={gridTableNumericCellClassName}>–</span>
                   )}
                   <span className={gridTableNumericCellClassName}>
-                    {application.updatedAt.toLocaleDateString(undefined, {
+                    {formatDate(application.updatedAt, {
                       month: 'short',
                       day: 'numeric',
                     })}

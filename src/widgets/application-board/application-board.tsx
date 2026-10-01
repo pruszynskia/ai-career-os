@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { DragEventHandler } from 'react';
-import { toast } from 'sonner';
+import { toast, toastError } from '@/shared/ui/toast';
 
 import type { ApplicationStatus } from '@/entities/application/types';
 import type { OfferWithApplication } from '@/features/job-offer/types';
@@ -117,7 +117,7 @@ export function ApplicationBoard({
     }
 
     if (!masterCvId) {
-      toast.error('Upload a CV in Profile before tracking this application.');
+      toastError('Upload a CV in Profile before tracking this application.');
       return;
     }
 

@@ -85,6 +85,9 @@ export async function matchOffer(id: string) {
     ],
     schema: matchOfferResponseSchema,
     schemaName: 'offer_fit_assessment',
+    // The fit assessment includes reasoning text per subscore - the shared
+    // 1024 default truncates mid-JSON (AI-2).
+    maxTokens: 2048,
   });
 
   const criteria: FitAssessment['criteria'] = {

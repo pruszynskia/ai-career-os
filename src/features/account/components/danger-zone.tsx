@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { requestJson } from '@/shared/api/request';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog';
@@ -49,18 +50,15 @@ export function DangerZone() {
     setIsDeleting(true);
     setError(null);
     try {
-      const response = await fetch('/api/account', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: CONFIRM_WORD }),
-      });
-      const body = (await response.json().catch(() => null)) as {
-        message?: string;
-      } | null;
-
-      if (!response.ok) {
-        throw new Error(body?.message ?? 'Failed to delete the account.');
-      }
+      await requestJson(
+        '/api/account',
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirm: CONFIRM_WORD }),
+        },
+        'Failed to delete the account.',
+      );
 
       router.push('/sign-in');
     } catch (caught) {
@@ -136,11 +134,23 @@ export function DangerZone() {
                   onChange={(event) => setConfirmText(event.target.value)}
                   autoComplete="off"
                 />
+                {/* Rendered here too (ERR-4): a delete failure leaves the
+                    dialog open, so the copy below the card sits behind the
+                    still-open overlay and is never seen. */}
+                {error ? (
+                  <Text color="destructive" role="alert">
+                    {error}
+                  </Text>
+                ) : null}
               </VStack>
             </ConfirmDialog>
           </VStack>
 
-          {error ? <Text color="destructive">{error}</Text> : null}
+          {error && !isOpen ? (
+            <Text color="destructive" role="alert">
+              {error}
+            </Text>
+          ) : null}
         </VStack>
       </CardContent>
     </Card>

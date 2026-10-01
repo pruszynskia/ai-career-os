@@ -44,6 +44,7 @@ const AI_OFFER_SUFFIXES = [
   '/tailor-cv',
   '/cover-letter',
   '/outreach',
+  '/outreach/follow-up',
 ];
 
 /**

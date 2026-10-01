@@ -1,8 +1,7 @@
 import Link from 'next/link';
 
-import { buttonVariants } from '@/shared/ui/button';
+import { Button } from '@/shared/ui/button';
 import { Heading, Text } from '@/shared/ui/primitives';
-import { cn } from '@/shared/ui/utils';
 
 // Rendered on demand, never prerendered: the production CSP in src/proxy.ts
 // binds script execution to a per-request nonce, and a statically prerendered
@@ -28,9 +27,9 @@ export default function NotFound() {
         <Text color="muted">
           The page you are looking for does not exist or has moved.
         </Text>
-        <Link href="/" className={cn(buttonVariants({ size: 'lg' }), 'mt-2')}>
-          Back to home
-        </Link>
+        <Button asChild size="lg" className="mt-2">
+          <Link href="/">Back to home</Link>
+        </Button>
       </div>
     </main>
   );

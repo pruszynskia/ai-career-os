@@ -26,16 +26,32 @@ export class AlreadySubscribedError extends Error {
 
 // Mirrors the private siteOrigin() in src/shared/auth/actions.ts — that
 // helper isn't exported and this task's scope doesn't touch src/shared/auth/**.
-async function siteOrigin(): Promise<string> {
+//
+// BILL-3: `x-forwarded-host` is client-controllable (it's just a header), so
+// trusting it to build the Stripe redirect/return URL let a crafted request
+// point a real checkout/portal session at an attacker's domain. In
+// production this must come from the trusted env var instead - only local
+// dev, which has no env var set, falls back to the request's own host.
+export async function siteOrigin(): Promise<string> {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be set in production.');
+  }
+
   const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host');
-  return host ? `http://${host}` : 'http://localhost:3000';
+  if (!host) return 'http://localhost:3000';
+  return `${host.startsWith('localhost') ? 'http' : 'https'}://${host}`;
 }
 
 const PRICE_ID_BY_PLAN: Record<CheckoutPlan, string | undefined> = {
   pro: process.env.STRIPE_PRICE_ID_PRO,
 };
+
+// Stripe states that mean a subscription exists (or is mid-payment) and a
+// second Checkout would double-charge.
+const BLOCKING_STRIPE_STATUSES = new Set(['active', 'trialing', 'incomplete']);
 
 export async function createCheckoutSession(
   ownerId: string,
@@ -81,6 +97,21 @@ export async function createCheckoutSession(
           metadata: { owner_id: ownerId },
         })
       ).id;
+  }
+
+  // Our row is written by the webhook, which can lag the Checkout redirect by
+  // seconds - long enough for a second "Upgrade" click. Ask Stripe directly.
+  const stripeSubscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    status: 'all',
+    limit: 10,
+  });
+  if (
+    stripeSubscriptions.data.some((sub) =>
+      BLOCKING_STRIPE_STATUSES.has(sub.status),
+    )
+  ) {
+    throw new AlreadySubscribedError();
   }
 
   const origin = await siteOrigin();

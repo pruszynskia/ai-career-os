@@ -30,7 +30,7 @@ export function DeleteOfferButton({
         </Button>
       }
       title="Delete this offer?"
-      description="This permanently removes the offer and any tailored CVs or cover letters generated for it. This cannot be undone."
+      description="This permanently removes the offer, its tracked application and status history, and any tailored CVs, cover letters or outreach generated for it. This cannot be undone."
       confirmLabel="Delete offer"
       pendingLabel="Deleting…"
       pending={mutation.isPending}
