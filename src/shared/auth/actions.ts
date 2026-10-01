@@ -28,8 +28,13 @@ async function siteOrigin() {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL;
   }
+  // Vercel preview deployments: VERCEL_URL is set by the platform, not the
+  // request, so it's safe where NEXT_PUBLIC_SITE_URL (production-only) isn't.
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
   // Request headers are attacker-controlled; never build emailed links from
-  // them in production.
+  // them in a production build.
   if (process.env.NODE_ENV === 'production') {
     throw new Error('NEXT_PUBLIC_SITE_URL must be set in production.');
   }
