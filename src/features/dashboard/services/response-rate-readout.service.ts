@@ -4,6 +4,7 @@ import type { ResponseRateReadout } from '@/features/dashboard/services/response
 
 import { applicationStatusEventService } from '@/entities/application-status-event/service';
 import { applicationService } from '@/entities/application/service';
+import { jobOfferService } from '@/entities/job-offer/service';
 import { outreachMessageService } from '@/entities/outreach-message/service';
 import { computeResponseRateReadout } from '@/features/dashboard/services/response-rate-readout';
 import { requirePlan } from '@/shared/billing/entitlements';
@@ -19,14 +20,21 @@ export async function getResponseRateReadout(
 ): Promise<ResponseRateReadout> {
   await requirePlan(ownerId, 'pro');
 
-  const [applications, statusEvents, outreachChannels] = await Promise.all([
-    applicationService.findMany({ ownerId }),
-    applicationStatusEventService.findAllByOwnerId(ownerId),
-    outreachMessageService.findChannelsByOwnerId(ownerId),
-  ]);
+  const [applications, offers, statusEvents, outreachChannels] =
+    await Promise.all([
+      applicationService.findMany({ ownerId }),
+      // Bundles carry no fit (ADR-025); the readout buckets by it.
+      jobOfferService.findMany({ ownerId }),
+      applicationStatusEventService.findAllByOwnerId(ownerId),
+      outreachMessageService.findChannelsByOwnerId(ownerId),
+    ]);
+  const offerById = new Map(offers.map((offer) => [offer.id, offer]));
 
   return computeResponseRateReadout(
-    applications,
+    applications.map((application) => ({
+      ...application,
+      jobOffer: offerById.get(application.jobOffer.id) ?? application.jobOffer,
+    })),
     statusEvents,
     outreachChannels,
   );

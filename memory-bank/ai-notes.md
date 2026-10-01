@@ -94,6 +94,10 @@ memory-bank/current-task.md
   weeks. Recovery: `supabase migration repair --linked --status reverted <mcp
   versions> --status applied <file versions>`, then `db push`. Check drift
   anytime with `npm run db:status`.
+- Supabase grants `anon` / `authenticated` table-level SELECT on every
+  public table, so `revoke select (col)` alone changes nothing. To hide a
+  column: revoke the table grant, re-grant the other columns by name, and
+  remember every later `add column` needs its own grant (ADR-025).
 
 ---
 

@@ -1,9 +1,13 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
+import { readOwnedColumn } from '@/shared/db/gated-columns';
 import { isInvalidInputSyntaxError } from '@/shared/db/postgres-errors';
 import { buildSearchOrFilter } from '@/shared/utils/offer-search';
-import { toCvDocument } from '@/entities/cv-document/service';
+import {
+  CV_DOCUMENT_COLUMNS,
+  withTailoringReport,
+} from '@/entities/cv-document/service';
 import type { CvDocument } from '@/entities/cv-document/types';
 import {
   fitAssessmentSchema,
@@ -12,6 +16,18 @@ import {
   type OfferSortOption,
   type OfferSource,
 } from '@/entities/job-offer/types';
+
+// Every column `authenticated` can SELECT (ADR-025) - `fit` is excluded and
+// merged in by withFit. Also used for embedded job_offers(...) selects.
+export const JOB_OFFER_COLUMNS =
+  'id, owner_id, url, source, raw_content, company, title, description, match_score, is_favorite, created_at, updated_at, expires_at';
+
+async function withFit(rows: Record<string, unknown>[]): Promise<JobOffer[]> {
+  const fits = await readOwnedColumn('job_offers', 'fit', rows);
+  return rows.map((row) =>
+    toJobOffer({ ...row, fit: fits.get(row.id as string) ?? null }),
+  );
+}
 
 export function toJobOffer(row: Record<string, unknown>): JobOffer {
   const expiresAt = row.expires_at ? new Date(row.expires_at as string) : null;
@@ -60,7 +76,7 @@ export const jobOfferService = {
         description: values.description,
         expires_at: values.expiresAt?.toISOString() ?? null,
       })
-      .select()
+      .select(JOB_OFFER_COLUMNS)
       .single();
 
     if (error) throw error;
@@ -74,7 +90,7 @@ export const jobOfferService = {
     const supabase = await createClient();
     let query = supabase
       .from('job_offers')
-      .select('*')
+      .select(JOB_OFFER_COLUMNS)
       .eq('owner_id', filter.ownerId);
 
     if (filter.isFavorite !== undefined)
@@ -87,23 +103,31 @@ export const jobOfferService = {
     }
 
     const sort = opts?.sort ?? 'createdAt';
+    // `fit` isn't selectable by `authenticated` (ADR-025), so the callback
+    // sort runs in JS after withFit; created_at desc breaks ties.
+    // ponytail: the callback sort fetches every row before `take` applies -
+    // fine at one owner's offer count; add a generated, granted sort column
+    // if that ever grows (it would expose the Pro-only number, so not now).
+    const byCallback = sort === 'callbackProbability';
     const sortColumn = {
       createdAt: 'created_at',
       matchScore: 'match_score',
-      // jsonb path - postgres compares jsonb numbers numerically, so this
-      // orders correctly without a generated column (TASK-080).
-      callbackProbability: 'fit->hrCallbackProbability',
+      callbackProbability: 'created_at',
       company: 'company',
     }[sort];
     query = query.order(sortColumn, {
       ascending: sort === 'company',
       nullsFirst: false,
     });
-    if (opts?.take) query = query.limit(opts.take);
+    if (opts?.take && !byCallback) query = query.limit(opts.take);
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data ?? []).map(toJobOffer);
+    const offers = await withFit(data ?? []);
+    if (!byCallback) return offers;
+
+    const score = (offer: JobOffer) => offer.fit?.hrCallbackProbability ?? -1;
+    return offers.sort((a, b) => score(b) - score(a)).slice(0, opts?.take);
   },
 
   async update(
@@ -136,11 +160,12 @@ export const jobOfferService = {
       .from('job_offers')
       .update(patch)
       .eq('id', id)
-      .select()
+      .select(JOB_OFFER_COLUMNS)
       .single();
 
     if (error) throw error;
-    return toJobOffer(data);
+    const [offer] = await withFit([data]);
+    return offer;
   },
 
   // For client-side duplicate-fingerprint detection in addOffer().
@@ -174,7 +199,7 @@ export const jobOfferService = {
     const supabase = await createClient();
     const { data: offerRow, error: offerError } = await supabase
       .from('job_offers')
-      .select('*')
+      .select(JOB_OFFER_COLUMNS)
       .eq('id', id)
       .maybeSingle();
 
@@ -186,7 +211,7 @@ export const jobOfferService = {
 
     const { data: cvRow, error: cvError } = await supabase
       .from('cv_documents')
-      .select('*')
+      .select(CV_DOCUMENT_COLUMNS)
       .eq('job_offer_id', id)
       .eq('kind', 'TAILORED')
       .order('created_at', { ascending: false })
@@ -195,10 +220,11 @@ export const jobOfferService = {
 
     if (cvError) throw cvError;
 
-    return {
-      offer: toJobOffer(offerRow),
-      latestTailoredCv: cvRow ? toCvDocument(cvRow) : undefined,
-    };
+    const [[offer], [latestTailoredCv]] = await Promise.all([
+      withFit([offerRow]),
+      cvRow ? withTailoringReport([cvRow]) : [undefined],
+    ]);
+    return { offer, latestTailoredCv };
   },
 };
 
@@ -215,7 +241,7 @@ export async function getOfferOrThrow(id: string): Promise<JobOffer> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('job_offers')
-    .select('*')
+    .select(JOB_OFFER_COLUMNS)
     .eq('id', id)
     .maybeSingle();
 
@@ -225,5 +251,6 @@ export async function getOfferOrThrow(id: string): Promise<JobOffer> {
   }
   if (!data) throw new OfferNotFoundError();
 
-  return toJobOffer(data);
+  const [offer] = await withFit([data]);
+  return offer;
 }

@@ -41,4 +41,7 @@ Config applied 2026-10-01:
 - #6/#10 Supabase Auth (Management API): `site_url` = `https://ai-career-os-mu.vercel.app` (was an SSO-protected Vercel alias), prod + preview `/auth/callback` added to the redirect allow-list, `password_min_length` 6 → 8, secure password change on.
 - #9 Upstash for Redis (`upstash-kv-pink-lens`) connected to Production + Preview; app reads its `KV_REST_API_*` vars. Live once `security` is merged and deployed.
 
-Accepted: leaked-password protection (HIBP) — Supabase Pro-only, project is on Free; Free owner can read own `fit` / `tailoring_report` via PostgREST (ADR-024); DOCX zip-bomb inflation inside mammoth (`ponytail:` in extract-cv-text.ts).
+Follow-up branch `hardening-docx-hibp-column-acl` (closes the previously accepted items):
+- HIBP: Supabase's leaked-password protection is Pro-only, so the app checks the HIBP range API itself at sign-up and password reset (`src/shared/auth/pwned-password.ts`, fails open).
+- DOCX zip bomb: uncompressed size summed from the zip central directory before mammoth runs (50 MB cap).
+- #3 residual: `fit` / `tailoring_report` no longer selectable by `authenticated`; server reads them via `src/shared/db/gated-columns.ts` (ADR-025). Also fixed: account export leaked both via `applications[]` for Free owners.

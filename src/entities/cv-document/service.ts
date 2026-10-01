@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createClient } from '@/shared/db/client';
+import { readOwnedColumn } from '@/shared/db/gated-columns';
 import type {
   CvDocument,
   CvDocumentKind,
@@ -20,6 +21,28 @@ export class CvDocumentNotFoundError extends Error {
     super(message);
     this.name = 'CvDocumentNotFoundError';
   }
+}
+
+// Every column `authenticated` can SELECT (ADR-025) - `tailoring_report` is
+// excluded and merged in by withTailoringReport. Also used for embedded
+// cv_documents(...) selects.
+export const CV_DOCUMENT_COLUMNS =
+  'id, owner_id, is_master, content, job_offer_id, created_at, updated_at, kind';
+
+export async function withTailoringReport(
+  rows: Record<string, unknown>[],
+): Promise<CvDocument[]> {
+  const reports = await readOwnedColumn(
+    'cv_documents',
+    'tailoring_report',
+    rows,
+  );
+  return rows.map((row) =>
+    toCvDocument({
+      ...row,
+      tailoring_report: reports.get(row.id as string) ?? null,
+    }),
+  );
 }
 
 export function toCvDocument(row: Record<string, unknown>): CvDocument {
@@ -63,23 +86,27 @@ export const cvDocumentService = {
         kind: values.kind,
         tailoring_report: values.tailoringReport ?? null,
       })
-      .select()
+      .select(CV_DOCUMENT_COLUMNS)
       .single();
 
     if (error) throw error;
-    return toCvDocument(data);
+    // Just written - no need to read the gated column back.
+    return toCvDocument({
+      ...data,
+      tailoring_report: values.tailoringReport ?? null,
+    });
   },
 
   async findMany(ownerId: string): Promise<CvDocument[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('cv_documents')
-      .select('*')
+      .select(CV_DOCUMENT_COLUMNS)
       .eq('owner_id', ownerId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data.map(toCvDocument);
+    return withTailoringReport(data);
   },
 
   async update(
@@ -93,12 +120,13 @@ export const cvDocumentService = {
       .update({ content, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('owner_id', ownerId)
-      .select()
+      .select(CV_DOCUMENT_COLUMNS)
       .maybeSingle();
 
     if (error) throw error;
     if (!data) throw new CvDocumentNotFoundError();
-    return toCvDocument(data);
+    const [document] = await withTailoringReport([data]);
+    return document;
   },
 
   async findFirst(filter: {
@@ -110,7 +138,7 @@ export const cvDocumentService = {
     const supabase = await createClient();
     let query = supabase
       .from('cv_documents')
-      .select('*')
+      .select(CV_DOCUMENT_COLUMNS)
       .eq('owner_id', filter.ownerId);
 
     if (filter.id !== undefined) query = query.eq('id', filter.id);
@@ -126,7 +154,9 @@ export const cvDocumentService = {
       .maybeSingle();
 
     if (error) throw error;
-    return data ? toCvDocument(data) : null;
+    if (!data) return null;
+    const [document] = await withTailoringReport([data]);
+    return document;
   },
 
   // ponytail: sequential awaits, not a single DB transaction — fine for a

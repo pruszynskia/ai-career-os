@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { toJobOffer } from '@/entities/job-offer/service';
+import { JOB_OFFER_COLUMNS, toJobOffer } from '@/entities/job-offer/service';
 import { createClient } from '@/shared/db/client';
 import type { ApplicationStatus } from '@/entities/application/types';
 import type {
@@ -57,7 +57,9 @@ export const applicationStatusEventService = {
     const supabase = await createClient();
     let query = supabase
       .from('application_status_events')
-      .select('*, application:applications(job_offer:job_offers(*))')
+      .select(
+        `*, application:applications(job_offer:job_offers(${JOB_OFFER_COLUMNS}))`,
+      )
       .eq('owner_id', filter.ownerId)
       .order('created_at', { ascending: false });
 

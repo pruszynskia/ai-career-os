@@ -1,7 +1,10 @@
 import 'server-only';
 
-import { toCvDocument } from '@/entities/cv-document/service';
-import { toJobOffer } from '@/entities/job-offer/service';
+import {
+  CV_DOCUMENT_COLUMNS,
+  toCvDocument,
+} from '@/entities/cv-document/service';
+import { JOB_OFFER_COLUMNS, toJobOffer } from '@/entities/job-offer/service';
 import { createClient } from '@/shared/db/client';
 import { isInvalidInputSyntaxError } from '@/shared/db/postgres-errors';
 import type {
@@ -35,7 +38,10 @@ function toApplicationBundle(row: Record<string, unknown>): ApplicationBundle {
   };
 }
 
-const BUNDLE_SELECT = '*, job_offer:job_offers(*), sent_cv:cv_documents(*)';
+// Embedded rows carry no gated columns (ADR-025): jobOffer.fit and
+// sentCv.tailoringReport are always null in a bundle. A caller that needs
+// them reads the offer/CV through its own entity service.
+const BUNDLE_SELECT = `*, job_offer:job_offers(${JOB_OFFER_COLUMNS}), sent_cv:cv_documents(${CV_DOCUMENT_COLUMNS})`;
 
 export const applicationService = {
   async create(values: {
