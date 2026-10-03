@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -15,7 +16,8 @@ export function useUpdateApplicationStatus(options?: { silent?: boolean }) {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: ApplicationStatus }) =>
       updateApplicationStatus(id, status),
-    onSuccess: () => {
+    onSuccess: (_data, { status }) => {
+      track('application_status_changed', { status });
       if (!silent) toast.success('Status updated');
       router.refresh();
     },

@@ -149,7 +149,7 @@ Dashboard" is the dashboard view of TASK-050's status events.
 
 # Monetization Milestone
 
-`backlog/mvp.yaml` TASK-053–063.
+`backlog/mvp.yaml` TASK-053–063, TASK-129.
 
 After Stage 2, the user has a complete workflow: **start selling
 subscriptions.** This is the point multi-user support and billing become
@@ -175,6 +175,7 @@ model that already isolates their data.
 | TASK-062 | Launch hardening — rate limiting, security headers, admin-client guard and account deletion |
 | TASK-064 | Clear Supabase security and performance advisories |
 | TASK-063 | Rotate development secrets before public launch |
+| TASK-129 | Google Analytics 4 with consent banner and key feature events |
 
 Row order matches the task blocks' order in `backlog/mvp.yaml`, and follows
 `docs/BACKLOG_MANAGEMENT.md` §6: accounts first (TASK-053/054), then the

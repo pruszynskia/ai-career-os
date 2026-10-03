@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -10,6 +11,7 @@ export function useImportConnections() {
   return useMutation({
     mutationFn: importConnections,
     onSuccess: (result) => {
+      track('contacts_imported', { count: result.imported });
       toast.success(
         `Imported ${result.imported}, classified ${result.classified}, skipped ${result.skipped}`,
       );

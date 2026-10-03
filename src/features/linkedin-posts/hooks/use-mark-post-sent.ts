@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -10,6 +11,7 @@ export function useMarkPostSent() {
   return useMutation({
     mutationFn: markPostSent,
     onSuccess: () => {
+      track('post_published');
       toast.success('Post marked as sent');
       router.refresh();
     },

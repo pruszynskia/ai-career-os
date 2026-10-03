@@ -12,6 +12,7 @@ import { getOwnerId } from '@/shared/auth/session';
 import { getPlanForOwner } from '@/shared/billing/entitlements';
 import { AppPageLayout } from '@/shared/layouts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { AnalyticsToggle } from '@/shared/analytics/analytics-toggle';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { HStack, VStack } from '@/shared/ui/primitives';
 import { ThemeToggle } from '@/shared/ui/theme-toggle';
@@ -23,6 +24,7 @@ const SECTIONS = [
   { id: 'job-preferences', label: 'Job preferences' },
   { id: 'billing', label: 'Billing' },
   { id: 'ai-usage', label: 'AI usage' },
+  { id: 'privacy', label: 'Privacy' },
   { id: 'danger-zone', label: 'Danger zone' },
 ] as const;
 
@@ -91,6 +93,20 @@ export default async function SettingsPage() {
           <div id="ai-usage" className="scroll-mt-4">
             <UsageMeter used={used} limit={plan.aiActionsPerMonth} />
           </div>
+
+          <Card id="privacy" className="scroll-mt-4">
+            <CardHeader>
+              <CardTitle>Privacy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <VStack gap={2}>
+                <p className="text-body-sm text-muted-foreground">
+                  Anonymous usage analytics (Google Analytics).
+                </p>
+                <AnalyticsToggle />
+              </VStack>
+            </CardContent>
+          </Card>
 
           <div id="danger-zone" className="scroll-mt-4">
             <DangerZone />

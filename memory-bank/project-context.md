@@ -23,6 +23,7 @@ status) without duplicates.
 
 Implemented:
 
+- TASK-129 Google Analytics 4: consent banner, Settings privacy toggle, `track()` events in mutation hooks; off when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is unset (ADR-026)
 - TASK-001 Initialize repository foundation
 - TASK-002 Database schema & Prisma setup (migrated to Supabase Postgres/RLS — see ADR-009)
 - TASK-003 Minimal single-user authentication (migrated to Supabase Auth — see ADR-009)
