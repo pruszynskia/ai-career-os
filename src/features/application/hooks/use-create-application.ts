@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -14,6 +15,7 @@ export function useCreateApplication(options?: { silent?: boolean }) {
   return useMutation({
     mutationFn: createApplication,
     onSuccess: () => {
+      track('application_created');
       if (!silent) toast.success('Application tracked');
     },
     // A failure here is often a stale page (e.g. a 409 because the offer was

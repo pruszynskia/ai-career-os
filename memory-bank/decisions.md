@@ -1269,3 +1269,41 @@ Consequences:
 - The offers list's callback-probability sort runs in JS after the gated
   read, since `authenticated` can no longer ORDER BY `fit`.
 - ADR-024's response-boundary nulling for Free owners is still required.
+
+## ADR-026
+
+Date:
+
+2026-10-03
+
+Decision:
+
+Google Analytics 4 is added behind a consent gate, with no new dependency
+(TASK-129). `src/shared/analytics/` wraps `next/script`: gtag.js loads only
+after the visitor accepts the banner, with `allow_google_signals` and
+`allow_ad_personalization_signals` off. Consent lives in localStorage
+(`analytics-consent`); withdrawing it from Settings clears `_ga*` cookies and
+reloads. The Measurement ID is the optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`;
+unset means no banner, no script and an unchanged CSP. `buildCsp` adds the
+GA4 hosts only when it is set. Key actions call `track()` in existing mutation
+hooks' `onSuccess`; params are enums or counts, never IDs, text, names or
+emails.
+
+Alternatives considered:
+
+- `@next/third-parties` `GoogleAnalytics` - rejected: experimental, and it
+  cannot gate on consent or disable Google Signals.
+- Manual `page_view` on route change - rejected: GA4 Enhanced Measurement
+  already records history changes, so it would double count.
+
+Consequences:
+
+- Done in GA Admin, not in code: `sign_up` key event = `page_view` on
+  `/onboarding` or a URL containing `/sign-up?sent=1`; `purchase` key event =
+  `page_view` with `checkout=success` in the URL; data retention 14 months;
+  Google Signals off; Enhanced Measurement "browser history events" on.
+- SPA page views depend on that last setting and could not be verified with a
+  fake ID - check GA Realtime after deploy.
+- `begin_checkout` fires just before the Stripe redirect and may be cancelled
+  by the navigation.
+- Follow-up: there is no privacy policy page; GDPR expects one naming GA.

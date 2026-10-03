@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { track } from '@/shared/analytics/analytics';
 
 import { useMutation } from '@tanstack/react-query';
 import { toast, toastError } from '@/shared/ui/toast';
@@ -20,6 +21,7 @@ export function useOutreach() {
       contact: { name: string; profileUrl?: string };
     }) => generateOutreach(id, contact),
     onSuccess: () => {
+      track('outreach_generated');
       toast.success('Outreach drafts generated');
       // interlockWarning is computed server-side from outreach_messages, so
       // a draft generated this session needs a refresh to raise it without

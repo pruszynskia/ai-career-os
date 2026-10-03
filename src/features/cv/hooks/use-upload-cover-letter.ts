@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -10,6 +11,7 @@ export function useUploadCoverLetter() {
   return useMutation({
     mutationFn: uploadCoverLetter,
     onSuccess: () => {
+      track('cover_letter_uploaded');
       toast.success('Cover letter uploaded');
       router.refresh();
     },

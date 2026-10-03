@@ -14,6 +14,8 @@ import { AI_PROVIDER_IDS } from '@/shared/ai/types';
 const clientSchema = z.object({
   NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_STORAGE_SUPABASE_SUPABASE_ANON_KEY: z.string().min(1),
+  // GA4 Measurement ID. Optional: unset means analytics is fully off.
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().min(1).optional(),
 });
 
 const serverSchema = z.object({

@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -10,6 +11,7 @@ export function useGeneratePost() {
   return useMutation({
     mutationFn: generatePost,
     onSuccess: () => {
+      track('post_generated');
       toast.success('Post generated');
       router.refresh();
     },

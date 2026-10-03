@@ -248,6 +248,10 @@ means SaaS-scale concerns (multi-tenant scoping is already enforced by RLS,
 query pagination, auditing via timestamps) are changes to one service module,
 not a rewrite.
 
+## Analytics
+
+Optional GA4 lives in `src/shared/analytics/`: consent-gated (gtag.js loads only after Accept), enabled by `NEXT_PUBLIC_GA_MEASUREMENT_ID`, with `track()` calls in feature mutation hooks. Event params are enums or counts only. See ADR-026.
+
 ---
 
 # Future Extensibility

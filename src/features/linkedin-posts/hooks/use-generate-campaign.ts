@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 import { useRouter } from 'next/navigation';
 import { toast, toastError } from '@/shared/ui/toast';
 
@@ -18,6 +19,7 @@ export function useGenerateCampaign() {
       cadenceDays: number;
     }) => generateCampaign(theme, postCount, cadenceDays),
     onSuccess: () => {
+      track('campaign_generated');
       toast.success('Campaign generated');
       router.refresh();
     },

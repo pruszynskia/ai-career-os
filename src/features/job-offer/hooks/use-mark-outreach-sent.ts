@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { track } from '@/shared/analytics/analytics';
 
 import { markOutreachSent } from '@/features/job-offer/api/job-offer.api';
 
@@ -16,6 +17,7 @@ export function useMarkOutreachSent() {
       offerId: string;
       messageId: string;
     }) => markOutreachSent(offerId, messageId),
+    onSuccess: () => track('outreach_sent'),
     onError: (error) => {
       console.error('Failed to mark the outreach message as sent', error);
     },

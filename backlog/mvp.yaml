@@ -4815,6 +4815,81 @@ tasks:
       - Change the owner_id, RLS or auth model
       - Rotate the Supabase project URL or database host, which are not secrets
   ###############################################################################
+  # TASK-129
+  ###############################################################################
+  - id: TASK-129
+    github:
+      issue: null
+      project_item: null
+    status: todo
+    priority: P2
+    estimate: M
+    milestone: "Monetization Milestone"
+    depends_on:
+      - TASK-056
+      - TASK-057
+      - TASK-062
+    title: Google Analytics 4 with consent banner and key feature events
+    goal: >
+      The app is a multi-user SaaS with no analytics, so the funnel (landing, pricing, sign-up, onboarding, first offer, checkout) and AI feature usage are invisible. This task adds GA4 behind a consent gate: a banner, gtag.js loaded only after Accept, withdrawal from Settings, and `track()` calls in the existing mutation hooks for the key actions. The Measurement ID comes from the optional `NEXT_PUBLIC_GA_MEASUREMENT_ID`; when unset GA is fully off (no banner, no script, CSP unchanged). No new dependency - it is a thin wrapper over `next/script`, because `@next/third-parties` cannot gate on consent or disable Google Signals.
+
+    scope:
+      - src/shared/analytics/
+      - src/app/layout.tsx
+      - src/proxy.ts
+      - src/shared/env.ts
+      - .env.example
+      - src/app/(app)/settings/page.tsx
+      - the mutation hooks listed in the tasks below
+    deliverables:
+      - src/shared/analytics/analytics.ts with `AnalyticsEvent`, a no-op-safe `track()`, and localStorage-backed `getConsent`/`setConsent`/`subscribeConsent`
+      - src/shared/analytics/google-analytics.tsx and consent-banner.tsx (Accept/Decline, shared `Button`)
+      - src/shared/analytics/analytics-toggle.tsx rendered in a new "Privacy" section of the Settings page
+      - GA4 hosts added to `buildCsp` only when the Measurement ID is set
+      - Unit tests for `track`, consent persistence and the banner
+      - ADR-026 in memory-bank/decisions.md
+    tasks:
+      - Add src/shared/analytics/analytics.ts; `setConsent('denied')` clears `_ga*` cookies and reloads the page
+      - Add GoogleAnalytics (consent via `useSyncExternalStore`, server snapshot null) that loads gtag.js with the request nonce and `allow_google_signals:false`, `allow_ad_personalization_signals:false` only when consent is granted, and renders ConsentBanner when consent is unset
+      - Render GoogleAnalytics in src/app/layout.tsx only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set, reusing the existing `x-nonce` value
+      - Extend `buildCsp` in src/proxy.ts with googletagmanager.com / google-analytics.com in script-src, img-src and connect-src, only when the ID is set
+      - Document the variable as optional in src/shared/env.ts and .env.example
+      - Add the Privacy section and AnalyticsToggle (reusing SegmentedControl) to Settings `SECTIONS`
+      - Add one `track()` call in `onSuccess` of each hook - job-offer - use-add-offer, use-match-offer, use-tailor-cv, use-cover-letter, use-outreach, use-draft-follow-up, use-mark-outreach-sent; application - use-create-application, use-update-application-status; cv - use-upload-cv, use-upload-cover-letter, use-optimize-cv, use-optimize-cover-letter; contact - use-add-contact, use-import-connections; linkedin-posts - use-generate-post, use-generate-campaign, use-plan-posts, use-mark-post-sent; marketing - use-create-checkout-session (`begin_checkout`)
+      - Event params are enums or counts only (e.g. `application_status_changed` carries the status), never IDs, text, names or emails
+      - Record ADR-026, including the GA Admin steps done outside code (sign_up and purchase key events from page_view URLs, 14-month retention, Google Signals off, Enhanced Measurement browser history events on) and the missing privacy-policy page as a flagged follow-up
+    acceptance:
+      - With the env var unset there is no banner, no gtag script and the CSP is unchanged
+      - Before consent no request goes to googletagmanager.com or google-analytics.com; after Accept gtag.js loads and `collect` requests fire on client navigation; after Decline there are none
+      - Toggling off in Settings clears consent, removes `_ga*` cookies and reloads with no GA requests
+      - No CSP violations in the console under `next dev` or `next build && next start`
+      - Each listed hook calls `track()` once on success and `track()` is a no-op without consent
+      - npm run test, npm run typecheck, npm run lint and npm run build succeed
+    done:
+      - Verified in a browser with a fake Measurement ID in dev and in a production build
+    labels:
+      - feature
+      - frontend
+    context:
+      architecture:
+        - project-overview
+      standards:
+        - coding-standards
+    references:
+      - memory-bank/decisions.md
+    prompt: |
+      Implement ONLY this task.
+
+      No new dependency: use next/script. GA must never load before the
+      visitor accepts. Event params never contain IDs, text, names or emails.
+
+      Stop immediately after acceptance criteria are met.
+    do_not:
+      - Add @next/third-parties or any other analytics dependency
+      - Load gtag.js, or set any `_ga` cookie, before consent is granted
+      - Track favourite toggles, note edits, deletes, scheduling, preferences or evidence
+      - Write the privacy policy page
+  ###############################################################################
   # TASK-066
   ###############################################################################
   - id: TASK-066

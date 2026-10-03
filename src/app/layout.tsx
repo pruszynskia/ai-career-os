@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '@/app/providers';
+import { GoogleAnalytics } from '@/shared/analytics/google-analytics';
 import './globals.css';
 
 const geistSans = Geist({
@@ -29,6 +30,8 @@ export default async function RootLayout({
   // forward it to next-themes so its anti-flash inline script is allow-listed
   // by the production CSP instead of being silently blocked.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  // Inlined at build time; unset means GA is fully off (dev, CI, previews).
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
     <html
@@ -40,6 +43,7 @@ export default async function RootLayout({
     >
       <body>
         <Providers nonce={nonce}>{children}</Providers>
+        {gaId ? <GoogleAnalytics measurementId={gaId} nonce={nonce} /> : null}
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 # Current Tasks
 
+- 2026-10-03: TASK-129 implemented on branch google-analitycs — GA4 with consent banner, Settings toggle and feature events (ADR-026). Typecheck/lint/test/build green; verified in browser with a fake ID. Not yet merged.
 - 2026-09-29: TASK-121 merged via PR #284, merge commit d815f5fac0452e1c58122159a290518d5ab8d658 — onboarding CV upload step with dropzone, progress and parsed profile summary. Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-124 merged via PR #281, merge commit edaf93cf1bf4958e01bcd1321d72618fad56757d — mobile responsive styling for auth and marketing pages. Prod deploy verified (Vercel: success).
 - 2026-09-29: TASK-119 merged via PR #280, merge commit bb7290740c7a2f1c1b720fc9fe1558b760c1e905 — auth and system pages restyle with field-level reset and global error handling. Prod deploy verified (Vercel: success).

@@ -19,16 +19,23 @@ import { SECURITY_HEADERS } from '@/shared/security-headers';
  */
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV !== 'production';
+  // GA4 hosts are allow-listed only when analytics is configured, so an
+  // environment without a Measurement ID keeps the stricter policy.
+  const ga = !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const gtm = ga ? ' https://www.googletagmanager.com' : '';
+  const gaHosts = ga
+    ? ' https://www.googletagmanager.com https://*.google-analytics.com'
+    : '';
   const scriptSrc = isDev
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : `script-src 'self' 'nonce-${nonce}'`;
+    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval'${gtm}`
+    : `script-src 'self' 'nonce-${nonce}'${gtm}`;
   return [
     "default-src 'self'",
     scriptSrc,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob:${gaHosts}`,
     "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co${gaHosts}${ga ? ' https://*.google.com' : ''}`,
     // Google sign-in: before hydration the button is a native form POST, and
     // the 303 goes to Supabase's /auth/v1/authorize, which then bounces to
     // accounts.google.com — both hops need to be allowed here.
